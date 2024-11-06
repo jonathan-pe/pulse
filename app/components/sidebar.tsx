@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { ChevronUp, User2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 import {
   Sidebar,
@@ -19,7 +21,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu'
-import { useRouter } from 'next/navigation'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const supabase = createClient()
@@ -29,9 +30,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { error } = await supabase.auth.signOut()
 
     if (error) {
+      await toast.error('Failed to log out. Please try again.')
       console.error('Error logging out:', error.message)
       return
     } else {
+      await toast.success('Successfully logged out.')
       router.push('/')
     }
   }
