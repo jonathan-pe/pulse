@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { GalleryVerticalEnd, Minus, Plus } from 'lucide-react'
 
-import { SearchForm } from '@/components/search-form'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { SearchForm } from '@/app/components/search-form'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/app/components/ui/collapsible'
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
-} from '@/components/ui/sidebar'
+} from '@/app/components/ui/sidebar'
 
 // This is sample data.
 const data = {

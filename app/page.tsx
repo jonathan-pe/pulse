@@ -1,6 +1,5 @@
-import { auth } from '@/auth'
-import { LoginForm } from '@/components/login-form'
-import { AppSidebar } from '@/components/sidebar'
+import { LoginForm } from '@/app/components/login-form'
+import { AppSidebar } from '@/app/components/sidebar'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,16 +7,25 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+} from '@/app/components/ui/breadcrumb'
+import { Separator } from '@/app/components/ui/separator'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/app/components/ui/sidebar'
+import { createClient } from '@/utils/supabase/server'
+import OneTapComponent from './components/google-one-tap'
 
 export default async function Home() {
-  const session = await auth()
+  const supabase = await createClient()
 
-  if (!session?.user) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  console.log(user)
+
+  if (!user) {
     return (
       <div className='flex h-screen w-full items-center justify-center px-4'>
+        <OneTapComponent />
         <LoginForm />
       </div>
     )

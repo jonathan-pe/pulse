@@ -12,6 +12,4 @@ yarn will be our preferred package manager
 
 The app's name is "Pulse"
 
-We use Supabase for our API and Postgres DB management
-
-We use the next-auth package for authentication management
+We use Supabase for our API, authentication and Postgres DB management
