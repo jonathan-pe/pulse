@@ -10,6 +10,9 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -21,35 +24,82 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu'
+import SportsbookComboBox from './sportsbook-combobox'
+import { SUPPORTED_LEAGUES, SUPPORTED_SPORTS } from '../constants'
+import { useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const supabase = createClient()
   const router = useRouter()
 
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user) {
+        setUser(user)
+      }
+    }
+
+    fetchUser()
+  }, [supabase])
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut()
 
     if (error) {
-      await toast.error('Failed to log out. Please try again.')
+      toast.error('Failed to log out. Please try again.')
       console.error('Error logging out:', error.message)
       return
     } else {
-      await toast.success('Successfully logged out.')
+      toast.success('Successfully logged out.')
       router.push('/')
     }
   }
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader />
-      <SidebarContent />
+      <SidebarHeader>
+        <SportsbookComboBox />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Leagues</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {SUPPORTED_LEAGUES.map((league) => (
+                <SidebarMenuItem key={league}>
+                  <SidebarMenuButton>{league}</SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Sports</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {SUPPORTED_SPORTS.map((sport) => (
+                <SidebarMenuItem key={sport}>
+                  <SidebarMenuButton>{sport}</SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2 /> Username
+                  <User2 /> {user?.user_metadata?.display_name ?? user?.email}
                   <ChevronUp className='ml-auto' />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
