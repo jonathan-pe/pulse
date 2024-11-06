@@ -38,6 +38,7 @@ const GoogleOneTap = () => {
         return
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       /* global google */
       window.google.accounts.id.initialize({
         client_id: process.env.AUTH_GOOGLE_ID!,

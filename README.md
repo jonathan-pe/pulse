@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pulse - Prediction-Based Sports App
+
+Pulse is a prediction-based sports app with a gamified approach, steering clear of gambling elements. It utilizes React (Next.js), Tailwind CSS for styling, and TypeScript. The app leverages OddsBlaze for sports odds API and Supabase for API, authentication, and Postgres DB management. Some components are grabbed from shadcn.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+Ensure you have the following installed:
+
+- Node.js
+- Yarn (preferred package manager)
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/your-username/pulse.git
+   cd pulse
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   yarn install
+   ```
+
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory and add the following variables:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
+   ```
+
+### Running the Development Server
+
+Start the development server:
 
 ```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Building for Production
+
+To create an optimized production build:
+
+```bash
+yarn build
+```
+
+### Running the Production Build
+
+After building the application, you can start the production server:
+
+```bash
+yarn start
+```
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+To learn more about the technologies used in this project, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs) - learn about Tailwind CSS.
+- [Supabase Documentation](https://supabase.com/docs) - learn about Supabase features and API.
+- [OddsBlaze API](https://docs.oddsblaze.com/) - learn about the sports odds API.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
