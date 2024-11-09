@@ -14,11 +14,25 @@ import {
   CommandList,
 } from '@/app/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover'
-import { sportsbooks } from '@/app/constants/sportsbooks'
 import { useAppStore } from '@/app/store'
+import { useState, useEffect } from 'react'
+import { Sportsbook } from '@/types/sportsbook'
 
 export default function SportsbookComboBox() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
+  const [sportsbooks, setSportsbooks] = useState<Sportsbook[]>([])
+
+  useEffect(() => {
+    getSportsbooks()
+  }, [])
+
+  const getSportsbooks = async () => {
+    const response = await fetch(`${process.env.BACKEND_URL}/sportsbooks`)
+    const data = await response.json()
+
+    setSportsbooks(data)
+    return data
+  }
 
   const selectedSportsbook = useAppStore((state) => state.sportsbook)
   const setSportsbook = useAppStore((state) => state.setSportsbook)
@@ -33,9 +47,9 @@ export default function SportsbookComboBox() {
       </PopoverTrigger>
       <PopoverContent className='w-full p-0'>
         <Command>
-          <CommandInput placeholder='Search framework...' />
+          <CommandInput placeholder='Search...' />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>No sportsbooks found.</CommandEmpty>
             <CommandGroup>
               {sportsbooks.map((sportsbook) => (
                 <CommandItem

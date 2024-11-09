@@ -1,35 +1,25 @@
-import { LoginForm } from '@/app/components/login-form'
-import { AppSidebar } from '@/app/components/sidebar'
+'use client'
+
+import React from 'react'
+import { Separator } from '@radix-ui/react-separator'
+import { AppSidebar } from '../components/sidebar'
 import {
   Breadcrumb,
+  BreadcrumbList,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/app/components/ui/breadcrumb'
-import { Separator } from '@/app/components/ui/separator'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/app/components/ui/sidebar'
-import { createClient } from '@/utils/supabase/server'
-import OneTapComponent from './components/google-one-tap'
+  BreadcrumbPage,
+} from '../components/ui/breadcrumb'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '../components/ui/sidebar'
+import { useAppStore } from '../store'
+import { SUPPORTED_LEAGUES } from '../constants'
+import { useParams } from 'next/navigation'
 
-export default async function Home() {
-  const supabase = await createClient()
+export default function Page() {
+  const { league: leagueID } = useParams() as { league: string }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  console.log(user)
-
-  if (!user) {
-    return (
-      <div className='flex h-screen w-full items-center justify-center px-4'>
-        <OneTapComponent />
-        <LoginForm />
-      </div>
-    )
-  }
+  const league = useAppStore((state) => state.league) ?? SUPPORTED_LEAGUES.find((l) => l.id === leagueID)
 
   return (
     <div className='mx-auto'>
@@ -42,11 +32,11 @@ export default async function Home() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className='hidden md:block'>
-                  <BreadcrumbLink href='#'>Building Your Application</BreadcrumbLink>
+                  <BreadcrumbLink href='/'>Home</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className='hidden md:block' />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                  <BreadcrumbPage>{league?.league}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
