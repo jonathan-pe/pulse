@@ -77,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className='px-4'>
         <SidebarMenu>
           {SUPPORTED_SPORTS.map((sport) => (
-            <Collapsible defaultOpen className='group/collapsible' key={sport}>
+            <Collapsible className='group/collapsible' key={sport}>
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton>

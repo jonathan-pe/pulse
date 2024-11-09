@@ -10,9 +10,6 @@ interface AppState {
 
   league: League | null
   setLeague: (league: League | null) => void
-
-  darkMode: boolean
-  setDarkMode: (darkMode: boolean) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -23,9 +20,6 @@ export const useAppStore = create<AppState>()(
 
       league: null,
       setLeague: (league) => set({ league }),
-
-      darkMode: true,
-      setDarkMode: (darkMode) => set({ darkMode }),
     }),
     {
       name: 'appStore',

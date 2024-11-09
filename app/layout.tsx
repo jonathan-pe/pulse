@@ -25,8 +25,8 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiased min-h-screen`}>
         <ThemeProvider attribute='class' defaultTheme='dark' disableTransitionOnChange>
           {children}
+          <Toaster richColors />
         </ThemeProvider>
-        <Toaster richColors />
       </body>
     </html>
   )
