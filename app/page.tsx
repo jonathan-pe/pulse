@@ -12,6 +12,7 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // TODO: remove once we're more confident in auth
   console.log(user)
 
   if (!user) {
