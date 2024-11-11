@@ -1,9 +1,22 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  // update user's auth session
-  return await updateSession(request)
+  // Update user's auth session and get the user session
+  const { supabaseResponse, user } = await updateSession(request)
+
+  const PROTECTED_PATHS = ['/sportsbook', '/account', '/account/*', '/sportsbook/*']
+
+  if (PROTECTED_PATHS.includes(request.nextUrl.pathname) && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Redirect authenticated users from the home page to /sportsbook
+  if (request.nextUrl.pathname === '/' && user) {
+    return NextResponse.redirect(new URL('/sportsbook', request.url))
+  }
+
+  return supabaseResponse
 }
 
 export const config = {

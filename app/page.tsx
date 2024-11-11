@@ -1,44 +1,19 @@
-import React from 'react'
-import { LoginForm } from '@/app/components/login-form'
-import { Separator } from '@/app/components/ui/separator'
-import { SidebarTrigger } from '@/app/components/ui/sidebar'
-import { createClient } from '@/utils/supabase/server'
-import OneTapComponent from './components/google-one-tap'
+import { Button } from '@/app/components/ui/button'
+import Link from 'next/link'
 
-export default async function Home() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // TODO: remove once we're more confident in auth
-  console.log(user)
-
-  if (!user) {
-    return (
-      <div className='flex h-screen w-full items-center justify-center px-4'>
-        <OneTapComponent />
-        <LoginForm />
-      </div>
-    )
-  }
-
+export default function Home() {
   return (
-    <div className='mx-auto w-full h-full'>
-      <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
-        <SidebarTrigger className='-ml-1' />
-        <Separator orientation='vertical' className='mr-2 h-4' />
-        <span>Pulse</span>
+    <div className='flex flex-col mx-auto w-full min-h-screen p-4'>
+      <header className='flex items-center justify-between'>
+        <span className='text-2xl font-bold'>Pulse</span>
+        <Button>
+          <Link href='/login'>Login</Link>
+        </Button>
       </header>
-      <div className='flex flex-1 flex-col gap-4 p-4'>
-        <div className='grid auto-rows-min gap-4 md:grid-cols-3'>
-          <div className='aspect-video rounded-xl bg-muted' />
-          <div className='aspect-video rounded-xl bg-muted' />
-          <div className='aspect-video rounded-xl bg-muted' />
-        </div>
-        <div className='min-h-[100vh] flex-1 rounded-xl bg-muted md:min-h-min' />
-      </div>
+      <main className='flex flex-1 justify-center items-center flex-col h-full'>
+        <h1 className='text-4xl font-bold mb-4'>Welcome to Pulse</h1>
+        <p>Gamified sports predictions without real money or prizes</p>
+      </main>
     </div>
   )
 }

@@ -25,11 +25,11 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu'
 import SportsbookComboBox from './sportsbook-combobox'
-import { SUPPORTED_LEAGUES, SUPPORTED_SPORTS } from '../constants'
+import { SUPPORTED_LEAGUES, SUPPORTED_SPORTS } from '../../constants'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible'
-import { useAppStore } from '../store'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
+import { useAppStore } from '../../store'
 import { Label } from '@/app/components/ui/label'
 import { Switch } from '@/app/components/ui/switch'
 import { useTheme } from 'next-themes'
@@ -65,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       return
     } else {
       toast.success('Successfully logged out.')
-      router.push('/')
+      router.push('/login')
     }
   }
 
@@ -91,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <SidebarMenuSubItem
                         key={league.id}
                         onClick={() => {
-                          router.push(`/${league.id}`)
+                          router.push(`/sportsbook/${league.id}`)
                           setLeague(league)
                         }}
                       >
