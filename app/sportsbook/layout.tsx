@@ -15,6 +15,7 @@ import {
 import { useAppStore } from '../store'
 import { toast } from 'sonner'
 import { SWRConfig, mutate } from 'swr'
+import { useRouter } from 'next/navigation'
 
 export default function Sportsbook({
   children,
@@ -23,6 +24,7 @@ export default function Sportsbook({
 }>) {
   const league = useAppStore((state) => state.league)
   const setLeague = useAppStore((state) => state.setLeague)
+  const router = useRouter()
 
   return (
     <div className='mx-auto w-full h-full'>
@@ -57,7 +59,13 @@ export default function Sportsbook({
               <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem>
-                    <BreadcrumbLink href='/' onClick={() => setLeague(null)}>
+                    <BreadcrumbLink
+                      className='cursor-pointer'
+                      onClick={() => {
+                        setLeague(null)
+                        router.push('/sportsbook')
+                      }}
+                    >
                       Sportsbook
                     </BreadcrumbLink>
                   </BreadcrumbItem>
