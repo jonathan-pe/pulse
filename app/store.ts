@@ -12,6 +12,8 @@ interface AppState {
   setLeague: (league: League | null) => void
 }
 
+const UNPERSISTED_KEYS = ['league']
+
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
@@ -22,6 +24,8 @@ export const useAppStore = create<AppState>()(
       setLeague: (league) => set({ league }),
     }),
     {
+      partialize: (state) =>
+        Object.fromEntries(Object.entries(state).filter(([key]) => !UNPERSISTED_KEYS.includes(key))),
       name: 'appStore',
     }
   )

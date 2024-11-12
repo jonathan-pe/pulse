@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
+import Script from 'next/script'
+import { createClient } from '@/utils/supabase/client'
 import { CredentialResponse } from 'google-one-tap'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef } from 'react'
 
-const supabase = createClient(process.env.SUPABASE_PUBLIC_URL!, process.env.SUPABASE_PUBLIC_ANON_KEY!)
-
-const GoogleOneTap = () => {
+const OneTapComponent = () => {
+  const supabase = createClient()
   const router = useRouter()
+  const initializedRef = useRef(false)
 
   // generate nonce to use for google id token sign-in
   const generateNonce = async (): Promise<string[]> => {
@@ -24,6 +25,9 @@ const GoogleOneTap = () => {
 
   useEffect(() => {
     const initializeGoogleOneTap = async () => {
+      if (initializedRef.current) return
+      initializedRef.current = true
+
       console.log('Initializing Google One Tap')
       const [nonce, hashedNonce] = await generateNonce()
       console.log('Nonce: ', nonce, hashedNonce)
@@ -48,7 +52,7 @@ const GoogleOneTap = () => {
             const { data, error } = await supabase.auth.signInWithIdToken({
               provider: 'google',
               token: response.credential,
-              // nonce,
+              nonce,
             })
 
             if (error) throw error
@@ -59,6 +63,10 @@ const GoogleOneTap = () => {
             console.error('Error during Google One Tap sign-in', error)
           }
         },
+        nonce: hashedNonce,
+        use_fedcm_for_prompt: true,
+        cancel_on_tap_outside: false,
+        log_level: 'debug',
       })
       window.google.accounts.id.prompt()
     }
@@ -70,11 +78,17 @@ const GoogleOneTap = () => {
     document.body.appendChild(script)
 
     return () => {
+      initializedRef.current = false
       document.body.removeChild(script)
     }
   }, [router])
 
-  return null
+  return (
+    <>
+      <Script src='https://accounts.google.com/gsi/client' strategy='afterInteractive' />
+      <div id='oneTap' className='fixed top-0 right-0 z-[100]' />
+    </>
+  )
 }
 
-export default GoogleOneTap
+export default OneTapComponent

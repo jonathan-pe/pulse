@@ -6,13 +6,14 @@ import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
-import { login, signup } from '@/app/actions'
+import { login } from '@/app/actions'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { LoaderCircle } from 'lucide-react'
+import { PasswordInput } from '@/app/components/ui/password-input'
 
-export function LoginForm() {
+export default function LoginForm({ setView }: { setView: (view: 'login' | 'signup') => void }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -36,25 +37,24 @@ export function LoginForm() {
   }
 
   return (
-    <Card className='mx-auto max-w-sm'>
+    <Card className='mx-auto w-96'>
       <CardHeader>
         <CardTitle className='text-2xl'>Login</CardTitle>
-        <CardDescription>Enter your email below to login to your account</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className='grid gap-4'>
           <div className='grid gap-2'>
             <Label htmlFor='email'>Email</Label>
-            <Input id='email' type='email' name='email' placeholder='m@example.com' required />
+            <Input id='email' type='email' name='email' required />
           </div>
           <div className='grid gap-2'>
             <div className='flex items-center'>
               <Label htmlFor='password'>Password</Label>
-              <Link href='#' className='ml-auto inline-block text-sm underline'>
+              {/* <Link href='#' className='ml-auto inline-block text-sm underline'>
                 Forgot your password?
-              </Link>
+              </Link> */}
             </div>
-            <Input id='password' type='password' name='password' placeholder='Password' required />
+            <PasswordInput id='password' name='password' required />
           </div>
           <Button type='submit' className='w-full'>
             {loading ? <LoaderCircle className='animate-spin' /> : 'Login'}
@@ -62,7 +62,7 @@ export function LoginForm() {
         </form>
         <div className='mt-4 text-center text-sm'>
           Don&apos;t have an account?{' '}
-          <Link href='#' className='underline'>
+          <Link href='#' className='underline' onClick={() => setView('signup')}>
             Sign up
           </Link>
         </div>

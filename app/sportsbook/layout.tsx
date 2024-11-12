@@ -15,14 +15,16 @@ import {
 import { useAppStore } from '../store'
 import { toast } from 'sonner'
 import { SWRConfig, mutate } from 'swr'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { SUPPORTED_LEAGUES } from '../constants'
 
 export default function Sportsbook({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const league = useAppStore((state) => state.league)
+  const { leagueID } = useParams() as { leagueID: string }
+  const league = useAppStore((state) => state.league) ?? SUPPORTED_LEAGUES.find((l) => l.id === leagueID)
   const setLeague = useAppStore((state) => state.setLeague)
   const router = useRouter()
 

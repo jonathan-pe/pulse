@@ -25,29 +25,10 @@ export default async function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased min-h-screen`}>
-        {/* <SWRConfig
-          value={{
-            onError: (error, key) => {
-              toast.error(error.message, {
-                description: error.description,
-                duration: 10000,
-                closeButton: true,
-              })
-            },
-            revalidateOnFocus: false,
-            onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
-              if (retryCount >= 1) return
-              if (error.status === 404) return
-
-              setTimeout(() => revalidate({ retryCount }), 10000)
-            },
-          }}
-        > */}
         <ThemeProvider attribute='class' defaultTheme='dark' disableTransitionOnChange>
           <div className='mx-auto'>{children}</div>
           <Toaster richColors />
         </ThemeProvider>
-        {/* </SWRConfig> */}
       </body>
     </html>
   )

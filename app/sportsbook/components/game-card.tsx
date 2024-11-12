@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/app/components/ui/card'
 import { Game } from '@/types/game'
 
-export default function GameCard({ game, sportsbookID }: { game: Game; sportsbookID: string }) {
+export default function GameCard({ game, sportsbookID }: { game: Game; sportsbookID?: string }) {
   const { teams, sportsbooks } = game
   const sportsbook = sportsbooks.find((sb) => sb.id === sportsbookID)
 

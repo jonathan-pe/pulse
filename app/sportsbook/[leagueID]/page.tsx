@@ -32,7 +32,7 @@ export default function Page() {
       <h2 className='text-2xl font-bold'>Today&apos;s Games</h2>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
         {games.map((game: Game) => (
-          <GameCard key={game.id} game={game} sportsbookID={sportsbook.id} />
+          <GameCard key={game.id} game={game} sportsbookID={sportsbook?.id} />
         ))}
       </div>
     </div>
