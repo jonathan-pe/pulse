@@ -33,6 +33,7 @@ import { useAppStore } from '../../store'
 import { Label } from '@/app/components/ui/label'
 import { Switch } from '@/app/components/ui/switch'
 import { useTheme } from 'next-themes'
+import Image from 'next/image'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const supabase = createClient()
@@ -112,7 +113,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  <User2 /> {user?.user_metadata?.display_name ?? user?.email}
+                  {user?.user_metadata?.picture ? (
+                    <Image
+                      src={user.user_metadata.picture}
+                      alt='user profile photo'
+                      width={24}
+                      height={24}
+                      className='rounded-full'
+                    />
+                  ) : (
+                    <User2 />
+                  )}{' '}
+                  {user?.user_metadata?.display_name ??
+                    user?.user_metadata?.full_name ??
+                    user?.user_metadata?.username ??
+                    user?.email}
                   <ChevronUp className='ml-auto' />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

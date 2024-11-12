@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
     BACKEND_URL: process.env.BACKEND_URL,
     HCAPTCHA_SITE_KEY: process.env.HCAPTCHA_SITE_KEY,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+    ],
+  },
 }
 
 export default nextConfig
