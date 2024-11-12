@@ -64,8 +64,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       console.error('Error logging out:', error.message)
       return
     } else {
-      toast.success('Successfully logged out.')
+      setLeague(null)
       router.push('/login')
+      toast.success('Successfully logged out.')
     }
   }
 
