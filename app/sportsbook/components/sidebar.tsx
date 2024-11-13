@@ -25,8 +25,6 @@ import {
 } from '@/app/components/ui/dropdown-menu'
 import SportsbookComboBox from './sportsbook-combobox'
 import { SUPPORTED_LEAGUES, SUPPORTED_SPORTS } from '../../constants'
-import { useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
 import { useAppStore } from '../../store'
 import { Label } from '@/app/components/ui/label'

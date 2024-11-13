@@ -3,7 +3,7 @@ import { Sportsbook } from '@/types/sportsbook'
 import { League } from '@/types/league'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Session, User } from '@supabase/supabase-js'
+import { Session, User } from '@/types/supabase'
 import { UserStats } from '@/types/user'
 
 interface AppState {

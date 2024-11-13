@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronDown, ChevronUp, User2 } from 'lucide-react'
+import { ChevronUp, User2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
@@ -13,8 +13,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
 } from '@/app/components/ui/sidebar'
 import {
   DropdownMenu,
@@ -23,8 +21,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu'
-import { useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
 import { useAppStore } from '@/app/store'
 import { Label } from '@/app/components/ui/label'
 import { Switch } from '@/app/components/ui/switch'
