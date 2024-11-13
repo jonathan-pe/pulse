@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   // Update user's auth session and get the user session
   const { supabaseResponse, user } = await updateSession(request)
 
-  const PROTECTED_PATHS = ['/sportsbook', '/account', '/account/*', '/sportsbook/*']
+  const PROTECTED_PATHS = ['/sportsbook', '/profile', '/profile/*', '/sportsbook/*']
 
   if (PROTECTED_PATHS.includes(request.nextUrl.pathname) && !user) {
     return NextResponse.redirect(new URL('/login', request.url))

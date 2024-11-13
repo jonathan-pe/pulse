@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { fetcher } from '@/utils/serverFetcher'
+import { Session, User } from '@/types/supabase'
 
 interface UpdateSessionResponse {
   supabaseResponse: NextResponse
@@ -15,48 +16,56 @@ export async function updateSession(request: NextRequest): Promise<UpdateSession
   const sessionTokenCookie = request.cookies.get('session_token')
   const refreshTokenCookie = request.cookies.get('refresh_token')
 
-  if (!sessionTokenCookie?.value || !refreshTokenCookie?.value) {
-    return { supabaseResponse, user: null }
-  }
-
-  try {
-    // Verify the session with the custom backend
-    const { user } = await fetcher(`${process.env.BACKEND_URL}/auth/verify-session`, {
-      method: 'POST',
-    })
-
-    return { supabaseResponse, user }
-  } catch (error) {
-    console.log(error)
-    // If the session token is expired, try to refresh it
+  if (sessionTokenCookie?.value) {
     try {
-      const { access_token, refresh_token } = await refreshToken()
-
-      // Set the new tokens in cookies
-      supabaseResponse.cookies.set('session_token', access_token, { path: '/', httpOnly: true })
-      supabaseResponse.cookies.set('refresh_token', refresh_token, { path: '/', httpOnly: true })
-
-      // Verify the session again with the new access token
+      // Verify the session with the custom backend
       const { user } = await fetcher(`${process.env.BACKEND_URL}/auth/verify-session`, {
         method: 'POST',
       })
 
       return { supabaseResponse, user }
-    } catch (refreshError) {
+    } catch (error) {
       return { supabaseResponse, user: null }
     }
   }
-}
 
-interface RefreshTokenResponse {
-  access_token: string
-  refresh_token: string
-}
+  if (refreshTokenCookie?.value) {
+    try {
+      // Try to refresh the session with the refresh token
+      const { user, session }: { user: User; session: Session } = await fetcher(
+        `${process.env.BACKEND_URL}/auth/refresh-token`,
+        {
+          method: 'POST',
+        }
+      )
 
-export const refreshToken = async (): Promise<RefreshTokenResponse> => {
-  const { access_token, refresh_token } = await fetcher(`${process.env.BACKEND_URL}/auth/refresh-token`, {
-    method: 'POST',
-  })
+      /* Setting client session cookies automatically doesn't work in middleware 
+        since it's server to server so we need to set them manually through
+        supabase and the response
+        
+        maxAge is seconds here but ms in node/express */
 
-  return { access_token, refresh_token }
+      supabaseResponse.cookies.set('session_token', session.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: session.expires_in,
+      })
+
+      supabaseResponse.cookies.set('refresh_token', session.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: 90 * 24 * 60 * 60, // 90 days in seconds
+      })
+
+      return { supabaseResponse, user }
+    } catch (error) {
+      return { supabaseResponse, user: null }
+    }
+  }
+
+  return { supabaseResponse, user: null }
 }
