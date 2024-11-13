@@ -2,22 +2,21 @@
 
 import Link from 'next/link'
 import HCaptcha from '@hcaptcha/react-hcaptcha'
-import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { LoaderCircle } from 'lucide-react'
-import { set, z } from 'zod'
+import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { Input } from '@/app/components/ui/input'
-import { signup } from '@/app/actions'
-import { PasswordInput } from './ui/password-input'
+import { PasswordInput } from '../components/ui/password-input'
 import { useTheme } from 'next-themes'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form'
 import { SignupSchema } from '@/types/user'
+import { fetcher } from '@/utils/clientFetcher'
 
 const signupSchema = z
   .object({
@@ -38,7 +37,6 @@ const signupSchema = z
   })
 
 export default function SignupForm({ setView }: { setView: (view: 'login' | 'signup') => void }) {
-  const router = useRouter()
   const { theme } = useTheme()
 
   const [loading, setLoading] = useState(false)
@@ -50,22 +48,33 @@ export default function SignupForm({ setView }: { setView: (view: 'login' | 'sig
   const handleSubmit = async (values: SignupSchema) => {
     setLoading(true)
 
-    const result = await signup(values)
-    captchaRef.current?.resetCaptcha()
+    try {
+      const { user } = await fetcher(`${process.env.BACKEND_URL}/auth/signup`, {
+        method: 'POST',
+        body: JSON.stringify(values),
+      })
 
-    setLoading(false)
+      if (user) {
+        toast.success('Account created successfully', {
+          description: 'Please check your email to verify your account',
+          duration: 10000,
+        })
+        setView('login')
+      } else {
+        toast.error('Failed to create account', {
+          description: 'Please try again',
+          duration: 5000,
+        })
+      }
 
-    if (result?.error) {
-      toast.error(result.error.message, {
+      captchaRef.current?.resetCaptcha()
+    } catch (error) {
+      toast.error('Failed to create account', {
         description: 'Please try again',
         duration: 5000,
       })
-    } else {
-      toast.success('Account created successfully', {
-        description: 'Please check your email to verify your account',
-        duration: 5000,
-      })
-      setView('login')
+    } finally {
+      setLoading(false)
     }
   }
 

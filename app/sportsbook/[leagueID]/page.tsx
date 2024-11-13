@@ -4,7 +4,7 @@ import React from 'react'
 import useSWR from 'swr'
 import { useParams } from 'next/navigation'
 import { useAppStore } from '@/app/store'
-import { fetcher } from '@/app/lib/utils'
+import { fetcher } from '@/utils/clientFetcher'
 import Loading from './loading'
 import PulseError from '@/app/components/pulse-error'
 import { Game } from '@/types/game'
@@ -21,7 +21,7 @@ export default function Page() {
     mutate,
   } = useSWR(
     sportsbook ? `${process.env.BACKEND_URL}/odds?sportsbook_id=${sportsbook.id}&league_id=${leagueID}` : null,
-    fetcher
+    (url) => fetcher(url, {})
   )
 
   if (isLoading) return <Loading />

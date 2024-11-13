@@ -23,12 +23,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu'
-import SportsbookComboBox from './sportsbook-combobox'
-import { SUPPORTED_LEAGUES, SUPPORTED_SPORTS } from '../../constants'
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../components/ui/collapsible'
-import { useAppStore } from '../../store'
+import { useAppStore } from '@/app/store'
 import { Label } from '@/app/components/ui/label'
 import { Switch } from '@/app/components/ui/switch'
 import { useTheme } from 'next-themes'
@@ -61,11 +58,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader>
-        <SportsbookComboBox />
-      </SidebarHeader>
+      <SidebarHeader>{/* <SportsbookComboBox /> */}</SidebarHeader>
       <SidebarContent className='px-4'>
-        <SidebarMenu>
+        {/* <SidebarMenu>
           {SUPPORTED_SPORTS.map((sport) => (
             <Collapsible className='group/collapsible' key={sport}>
               <SidebarMenuItem>
@@ -93,7 +88,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuItem>
             </Collapsible>
           ))}
-        </SidebarMenu>
+        </SidebarMenu> */}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

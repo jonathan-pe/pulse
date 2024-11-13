@@ -3,36 +3,49 @@
 import Link from 'next/link'
 
 import { Button } from '@/app/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
-import { login } from '@/app/actions'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { LoaderCircle } from 'lucide-react'
 import { PasswordInput } from '@/app/components/ui/password-input'
+import { useAppStore } from '../store'
+import { fetcher } from '@/utils/clientFetcher'
 
 export default function LoginForm({ setView }: { setView: (view: 'login' | 'signup') => void }) {
-  const [loading, setLoading] = useState(false)
   const router = useRouter()
+
+  const [loading, setLoading] = useState(false)
+  const setUser = useAppStore((state) => state.setUser)
+  const setSession = useAppStore((state) => state.setSession)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading(true)
 
     const formData = new FormData(event.currentTarget)
-    const result = await login(formData)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
 
-    setLoading(false)
+    try {
+      const { user, session } = await fetcher(`${process.env.BACKEND_URL}/auth/login`, {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
 
-    if (result?.error) {
-      toast.error(result.error.message, {
+      setUser(user)
+      setSession(session)
+
+      router.push('/sportsbook')
+    } catch (error) {
+      toast.error((error as Error).message, {
         description: 'Please try again',
         duration: 5000,
       })
-    } else {
-      router.push('/sportsbook')
+    } finally {
+      setLoading(false)
     }
   }
 

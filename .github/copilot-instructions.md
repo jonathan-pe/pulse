@@ -13,3 +13,5 @@ yarn will be our preferred package manager
 The app's name is "Pulse"
 
 We use Supabase for our API, authentication and Postgres DB management
+
+All DB tables that we create should have their appropriate RLS settings created as well

@@ -17,22 +17,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/pop
 import { useAppStore } from '@/app/store'
 import { useState, useEffect } from 'react'
 import { Sportsbook } from '@/types/sportsbook'
+import { fetcher } from '@/utils/clientFetcher'
+import useSWR from 'swr'
 
 export default function SportsbookComboBox() {
   const [open, setOpen] = useState(false)
-  const [sportsbooks, setSportsbooks] = useState<Sportsbook[]>([])
 
-  useEffect(() => {
-    getSportsbooks()
-  }, [])
-
-  const getSportsbooks = async () => {
-    const response = await fetch(`${process.env.BACKEND_URL}/sportsbooks`)
-    const data = await response.json()
-
-    setSportsbooks(data)
-    return data
-  }
+  const { data: sportsbooks } = useSWR(`${process.env.BACKEND_URL}/sportsbooks`, (url) => fetcher(url, {}))
 
   const selectedSportsbook = useAppStore((state) => state.sportsbook)
   const setSportsbook = useAppStore((state) => state.setSportsbook)
@@ -51,13 +42,13 @@ export default function SportsbookComboBox() {
           <CommandList>
             <CommandEmpty>No sportsbooks found.</CommandEmpty>
             <CommandGroup>
-              {sportsbooks.map((sportsbook) => (
+              {sportsbooks?.map((sportsbook: Sportsbook) => (
                 <CommandItem
                   key={sportsbook.id}
                   value={sportsbook.id}
                   onSelect={(currentValue) => {
                     if (currentValue !== selectedSportsbook?.id) {
-                      setSportsbook(sportsbooks.find((sb) => sb.id === currentValue) ?? null)
+                      setSportsbook(sportsbooks.find((sb: Sportsbook) => sb.id === currentValue) ?? null)
                     }
                     setOpen(false)
                   }}
