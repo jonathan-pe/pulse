@@ -14,6 +14,8 @@ export default function Page() {
   const { leagueID } = useParams() as { leagueID: string }
   const sportsbook = useAppStore((state) => state.sportsbook)
 
+  if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
+
   const {
     data: { games } = { games: [] },
     error,
