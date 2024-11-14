@@ -26,6 +26,7 @@ export default function Page() {
 
   if (isLoading) return <Loading />
   if (error) return <PulseError message="Can't load league data. Please try again." onRetry={() => mutate()} />
+  if (!games.length) return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />
 
   return (
     <div className='flex flex-1 flex-col gap-4 p-4'>
