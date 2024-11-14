@@ -14,8 +14,6 @@ export default function Page() {
   const { leagueID } = useParams() as { leagueID: string }
   const sportsbook = useAppStore((state) => state.sportsbook)
 
-  if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
-
   const {
     data: { games } = { games: [] },
     error,
@@ -26,6 +24,7 @@ export default function Page() {
     (url) => fetcher(url, {})
   )
 
+  if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
   if (isLoading) return <Loading />
   if (error) return <PulseError message="Can't load league data. Please try again." onRetry={() => mutate()} />
   if (!games.length) return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />
