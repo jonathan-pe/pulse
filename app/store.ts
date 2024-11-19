@@ -21,7 +21,7 @@ interface AppState {
   setUserStats: (userStats: UserStats | null) => void
 
   cart: Odds[] | null
-  setCart: (cart: Odds[] | null) => void
+  setCart: (fn: (prev: Odds[]) => Odds[] | null) => void
 }
 
 const UNPERSISTED_KEYS = ['league']
@@ -42,7 +42,9 @@ export const useAppStore = create<AppState>()(
       setUserStats: (userStats) => set({ userStats }),
 
       cart: null,
-      setCart: (cart) => set({ cart }),
+      setCart: (fn: (prev: Odds[]) => Odds[] | null) => {
+        set(({ cart }) => ({ cart: fn(cart ?? []) }))
+      },
     }),
     {
       partialize: (state) =>
