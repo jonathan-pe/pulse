@@ -5,10 +5,8 @@ import useSWR from 'swr'
 import { useParams } from 'next/navigation'
 import { useAppStore } from '@/app/store'
 import { fetcher } from '@/utils/clientFetcher'
-import Loading from './loading'
 import PulseError from '@/app/components/pulse-error'
 import { Game } from '@/types/game'
-import GameCard from '../components/game-card'
 
 export default function Page() {
   const { leagueID } = useParams() as { leagueID: string }
@@ -25,21 +23,18 @@ export default function Page() {
   )
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
-  if (isLoading) return <Loading />
+  // if (isLoading) return <Loading />
   if (error) return <PulseError message="Can't load league data. Please try again." onRetry={() => mutate()} />
   if (!games.length) return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />
-
-  games.sort((a: Game, b: Game) => {
-    return new Date(a.start).getTime() - new Date(b.start).getTime()
-  })
 
   return (
     <div className='flex flex-1 flex-col gap-4 p-4'>
       <h2 className='text-2xl font-bold'>Available Games</h2>
-      <div className='flex flex-col gap-4'>
-        {games.map((game: Game) => (
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        {/* {games.map((game: Game) => (
           <GameCard key={game.id} game={game} sportsbookID={sportsbook?.id} />
-        ))}
+        ))} */}
+        testing
       </div>
     </div>
   )

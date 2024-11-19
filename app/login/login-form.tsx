@@ -19,7 +19,6 @@ export default function LoginForm({ setView }: { setView: (view: 'login' | 'sign
 
   const [loading, setLoading] = useState(false)
   const setUser = useAppStore((state) => state.setUser)
-  const setSession = useAppStore((state) => state.setSession)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -30,14 +29,12 @@ export default function LoginForm({ setView }: { setView: (view: 'login' | 'sign
     const password = formData.get('password') as string
 
     try {
-      const { user, session } = await fetcher(`${process.env.BACKEND_URL}/auth/login`, {
+      const { user } = await fetcher(`${process.env.BACKEND_URL}/auth/login`, {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       })
 
       setUser(user)
-      setSession(session)
-
       router.push('/sportsbook')
     } catch (error) {
       toast.error((error as Error).message, {

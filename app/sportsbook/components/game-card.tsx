@@ -1,6 +1,8 @@
 // app/components/GameCard.tsx
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/app/components/ui/card'
 import { Game } from '@/types/game'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function GameCard({ game, sportsbookID }: { game: Game; sportsbookID?: string }) {
   const { teams, sportsbooks } = game
@@ -19,46 +21,81 @@ export default function GameCard({ game, sportsbookID }: { game: Game; sportsboo
     timeZoneName: 'short', // TODO: remove once we test other time zones
   })
 
+  const mainSpreads = game.sportsbooks
+    .find((sb) => sb.id === sportsbookID)
+    ?.odds.filter((odd) => odd.market === 'Point Spread' && odd.main)
+  const homeSpread = mainSpreads?.find((spread) => spread.selection === 'Home')
+  console.log(homeSpread?.points, homeSpread?.name, (homeSpread?.points ?? 0) > 0 && '+')
+  const awaySpread = mainSpreads?.find((spread) => spread.selection === 'Away')
+
+  console.log(mainSpreads)
+
+  const mainTotals = game.sportsbooks
+    .find((sb) => sb.id === sportsbookID)
+    ?.odds.filter((odd) => odd.market === 'Total Points' && odd.main)
+  const overTotal = mainTotals?.find((total) => total.selection === 'Over')
+  const underTotal = mainTotals?.find((total) => total.selection === 'Under')
+
+  const mainMoneylines = game.sportsbooks
+    .find((sb) => sb.id === sportsbookID)
+    ?.odds.filter((odd) => odd.market === 'Moneyline' && odd.main)
+  const homeMoneyline = mainMoneylines?.find((moneyLine) => moneyLine.selection === 'Home')
+  const awayMoneyline = mainMoneylines?.find((moneyLine) => moneyLine.selection === 'Away')
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {teams.away.name} @ {teams.home.name}
-        </CardTitle>
-        <CardDescription>{localStartTime}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className='flex justify-between'>
-          <div>
-            <h3 className='font-bold'>Team A</h3>
-            <p>
-              {teams.home.name} ({teams.home.abbreviation})
-            </p>
+    <Link href={`${usePathname()}/${game.id}`}>
+      <Card className='cursor-pointer hover:bg-muted'>
+        <CardContent className='px-6 py-4'>
+          <div className='grid grid-cols-5 grid-rows-3 gap-4'>
+            <div className='col-span-2'>{localStartTime}</div>
+            <div className='flex justify-center text-muted-foreground'>Spread</div>
+            <div className='flex justify-center text-muted-foreground'>Over/Under</div>
+            <div className='flex justify-center text-muted-foreground'>Money</div>
+
+            <div className='col-span-2 flex items-center font-bold text-xl'>
+              {teams.away.abbreviation} {teams.away.name.split(' ').pop()}
+            </div>
+            <Card className='p-2 hover:bg-green-300/20'>
+              <CardContent className='flex flex-col justify-center items-center p-0'>
+                <span>{`${(awaySpread?.points ?? 0) > 0 ? '+' : ''}${awaySpread?.points}`}</span>
+                <span>{awaySpread?.price}</span>
+              </CardContent>
+            </Card>
+            <Card className='p-2 hover:bg-green-300/20'>
+              <CardContent className='flex flex-col justify-center items-center p-0'>
+                <span>O {overTotal?.points}</span>
+                <span>{overTotal?.price}</span>
+              </CardContent>
+            </Card>
+            <Card className='p-2 hover:bg-green-300/20'>
+              <CardContent className='flex flex-col justify-center items-center p-0 h-full w-full'>
+                <span>{awayMoneyline?.price}</span>
+              </CardContent>
+            </Card>
+
+            <div className='col-span-2 flex items-center font-bold text-xl'>
+              {teams.home.abbreviation} {teams.home.name.split(' ').pop()}
+            </div>
+            <Card className='p-2 hover:bg-green-300/20'>
+              <CardContent className='flex flex-col justify-center items-center p-0'>
+                <span>{`${(homeSpread?.points ?? 0) > 0 ? '+' : ''}${homeSpread?.points}`}</span>
+                <span>{homeSpread?.price}</span>
+              </CardContent>
+            </Card>
+            <Card className='p-2 hover:bg-green-300/20'>
+              <CardContent className='flex flex-col justify-center items-center p-0'>
+                <span>U {underTotal?.points}</span>
+                <span>{underTotal?.price}</span>
+              </CardContent>
+            </Card>
+            <Card className='p-2 hover:bg-green-300/20'>
+              <CardContent className='flex flex-col justify-center items-center p-0 h-full w-full'>
+                <span>{homeMoneyline?.price}</span>
+              </CardContent>
+            </Card>
           </div>
-          <div>
-            <h3 className='font-bold'>Team B</h3>
-            <p>
-              {teams.away.name} ({teams.away.abbreviation})
-            </p>
-          </div>
-        </div>
-        <div className='mt-4'>
-          <h4 className='font-bold'>Odds</h4>
-          <ul>
-            {sportsbook.odds.map((odd) => (
-              <li key={odd.id} className='mt-2'>
-                <p>Market: {odd.market}</p>
-                <p>Selection: {odd.selection}</p>
-                <p>Price: {odd.price}</p>
-                {odd.points !== null && <p>Points: {odd.points}</p>}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <p>Additional game information can go here.</p>
-      </CardFooter>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }

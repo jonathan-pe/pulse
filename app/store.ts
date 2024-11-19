@@ -3,8 +3,9 @@ import { Sportsbook } from '@/types/sportsbook'
 import { League } from '@/types/league'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Session, User } from '@/types/supabase'
+import { User } from '@/types/supabase'
 import { UserStats } from '@/types/user'
+import { Odds } from '@/types/game'
 
 interface AppState {
   sportsbook: Sportsbook | null
@@ -16,11 +17,11 @@ interface AppState {
   user: User | null
   setUser: (user: User | null) => void
 
-  session: Session | null
-  setSession: (session: Session | null) => void
-
   userStats: UserStats | null
   setUserStats: (userStats: UserStats | null) => void
+
+  odds: Odds[] | null
+  setOdds: (event: Odds[] | null) => void
 }
 
 const UNPERSISTED_KEYS = ['league']
@@ -37,11 +38,11 @@ export const useAppStore = create<AppState>()(
       user: null,
       setUser: (user) => set({ user }),
 
-      session: null,
-      setSession: (session) => set({ session }),
-
       userStats: null,
       setUserStats: (userStats) => set({ userStats }),
+
+      odds: null,
+      setOdds: (odds) => set({ odds }),
     }),
     {
       partialize: (state) =>
