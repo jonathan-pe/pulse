@@ -17,6 +17,9 @@ import { toast } from 'sonner'
 import { SWRConfig, mutate } from 'swr'
 import { useParams, useRouter } from 'next/navigation'
 import { SUPPORTED_LEAGUES } from '../constants'
+import { ShoppingCartIcon } from 'lucide-react'
+import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
 
 export default function Sportsbook({
   children,
@@ -24,9 +27,11 @@ export default function Sportsbook({
   children: React.ReactNode
 }>) {
   const { leagueID } = useParams() as { leagueID: string }
+  const router = useRouter()
+
   const league = useAppStore((state) => state.league) ?? SUPPORTED_LEAGUES.find((l) => l.id === leagueID)
   const setLeague = useAppStore((state) => state.setLeague)
-  const router = useRouter()
+  const cart = useAppStore((state) => state.cart)
 
   return (
     <div className='mx-auto w-full h-full'>
@@ -55,32 +60,38 @@ export default function Sportsbook({
         >
           <AppSidebar />
           <SidebarInset>
-            <header className='sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 border-b px-4'>
-              <SidebarTrigger className='-ml-1' />
-              <Separator orientation='vertical' className='mr-2 h-4' />
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <BreadcrumbLink
-                      className='cursor-pointer'
-                      onClick={() => {
-                        setLeague(null)
-                        router.push('/sportsbook')
-                      }}
-                    >
-                      Sportsbook
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  {league && (
-                    <>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        <BreadcrumbPage>{league?.league}</BreadcrumbPage>
-                      </BreadcrumbItem>
-                    </>
-                  )}
-                </BreadcrumbList>
-              </Breadcrumb>
+            <header className='sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 border-b px-4 justify-between'>
+              <div className='flex items-center'>
+                <SidebarTrigger className='-ml-1' />
+                <Separator orientation='vertical' className='mr-2 h-4' />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink
+                        className='cursor-pointer'
+                        onClick={() => {
+                          setLeague(null)
+                          router.push('/sportsbook')
+                        }}
+                      >
+                        Sportsbook
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    {league && (
+                      <>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbPage>{league?.league}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </>
+                    )}
+                  </BreadcrumbList>
+                </Breadcrumb>
+              </div>
+              <Button variant='ghost' className='relative'>
+                <ShoppingCartIcon width={24} height={24} />
+                <Badge className='pointer-events-none'>{cart?.length ?? 0}</Badge>
+              </Button>
             </header>
             {children}
           </SidebarInset>

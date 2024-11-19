@@ -55,19 +55,19 @@ export default function GameCard({ game, sportsbookID }: { game: Game; sportsboo
             <div className='col-span-2 flex items-center font-bold text-xl'>
               {teams.away.abbreviation} {teams.away.name.split(' ').pop()}
             </div>
-            <Card className='p-2 hover:bg-green-300/20'>
+            <Card className='p-2 hover:bg-primary/20'>
               <CardContent className='flex flex-col justify-center items-center p-0'>
                 <span>{`${(awaySpread?.points ?? 0) > 0 ? '+' : ''}${awaySpread?.points}`}</span>
                 <span>{awaySpread?.price}</span>
               </CardContent>
             </Card>
-            <Card className='p-2 hover:bg-green-300/20'>
+            <Card className='p-2 hover:bg-primary/20'>
               <CardContent className='flex flex-col justify-center items-center p-0'>
                 <span>O {overTotal?.points}</span>
                 <span>{overTotal?.price}</span>
               </CardContent>
             </Card>
-            <Card className='p-2 hover:bg-green-300/20'>
+            <Card className='p-2 hover:bg-primary/20'>
               <CardContent className='flex flex-col justify-center items-center p-0 h-full w-full'>
                 <span>{awayMoneyline?.price}</span>
               </CardContent>
@@ -76,19 +76,19 @@ export default function GameCard({ game, sportsbookID }: { game: Game; sportsboo
             <div className='col-span-2 flex items-center font-bold text-xl'>
               {teams.home.abbreviation} {teams.home.name.split(' ').pop()}
             </div>
-            <Card className='p-2 hover:bg-green-300/20'>
+            <Card className='p-2 hover:bg-primary/20'>
               <CardContent className='flex flex-col justify-center items-center p-0'>
                 <span>{`${(homeSpread?.points ?? 0) > 0 ? '+' : ''}${homeSpread?.points}`}</span>
                 <span>{homeSpread?.price}</span>
               </CardContent>
             </Card>
-            <Card className='p-2 hover:bg-green-300/20'>
+            <Card className='p-2 hover:bg-primary/20'>
               <CardContent className='flex flex-col justify-center items-center p-0'>
                 <span>U {underTotal?.points}</span>
                 <span>{underTotal?.price}</span>
               </CardContent>
             </Card>
-            <Card className='p-2 hover:bg-green-300/20'>
+            <Card className='p-2 hover:bg-primary/20'>
               <CardContent className='flex flex-col justify-center items-center p-0 h-full w-full'>
                 <span>{homeMoneyline?.price}</span>
               </CardContent>
