@@ -20,6 +20,7 @@ import { SUPPORTED_LEAGUES } from '../constants'
 import { ShoppingCartIcon } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Badge } from '../components/ui/badge'
+import Cart from '../components/cart'
 
 export default function Sportsbook({
   children,
@@ -88,10 +89,7 @@ export default function Sportsbook({
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
-              <Button variant='ghost' className='relative'>
-                <ShoppingCartIcon width={24} height={24} />
-                <Badge className='pointer-events-none'>{cart?.length ?? 0}</Badge>
-              </Button>
+              <Cart />
             </header>
             {children}
           </SidebarInset>
