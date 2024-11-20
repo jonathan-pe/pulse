@@ -54,3 +54,7 @@ export interface Game {
 export interface ApiResponse {
   games: Game[]
 }
+
+export interface Odds_Event extends Odds {
+  event: string
+}
