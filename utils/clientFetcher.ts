@@ -1,17 +1,19 @@
-import { PulseError } from '@/types/error'
-
-export const fetcher = async (url: string, { method = 'GET', headers, body }: RequestInit) => {
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', ...headers },
-    body,
+import { GraphQLClient, RequestDocument } from 'graphql-request'
+const getClient = async () => {
+  return new GraphQLClient(`${process.env.BACKEND_URL!}/graphql`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
     credentials: 'include',
   })
+}
 
-  if (!res.ok) {
-    const { error } = await res.json()
-    throw new PulseError(error.message ?? 'An error occurred', error.description ?? 'Please try again.', res.status)
+export const fetcher = async <T>(query: RequestDocument, variables?: Record<string, any>): Promise<T> => {
+  try {
+    const client = await getClient()
+    return await client.request<T>(query, variables)
+  } catch (error: any) {
+    console.error(error)
+    throw new Error(error.response?.errors?.[0]?.message ?? 'An error occurred')
   }
-
-  return res.json()
 }

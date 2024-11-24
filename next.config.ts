@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     BACKEND_URL: process.env.BACKEND_URL,
     HCAPTCHA_SITE_KEY: process.env.HCAPTCHA_SITE_KEY,
     DATABASE_URL: process.env.DATABASE_URL,
+    ENCRYPTION_SECRET: process.env.ENCRYPTION_SECRET,
   },
   images: {
     remotePatterns: [

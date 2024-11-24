@@ -15,7 +15,7 @@ import {
 } from '@/app/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover'
 import { useAppStore } from '@/app/store'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Sportsbook } from '@/types/sportsbook'
 import { fetcher } from '@/utils/clientFetcher'
 import useSWR from 'swr'
@@ -23,7 +23,19 @@ import useSWR from 'swr'
 export default function SportsbookComboBox() {
   const [open, setOpen] = useState(false)
 
-  const { data: sportsbooks } = useSWR(`${process.env.BACKEND_URL}/sportsbooks`, (url) => fetcher(url, {}))
+  const { data } = useSWR<{ sportsbooks: Sportsbook[] }>(
+    `
+      {
+        sportsbooks {
+          id
+          name
+        }
+      }
+    `,
+    fetcher
+  )
+
+  const sportsbooks = data?.sportsbooks ?? []
 
   const selectedSportsbook = useAppStore((state) => state.sportsbook)
   const setSportsbook = useAppStore((state) => state.setSportsbook)

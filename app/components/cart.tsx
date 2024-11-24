@@ -4,26 +4,21 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from '@/app/components/ui/sheet'
 import { Button } from './ui/button'
-import { CircleX, ShieldCloseIcon, ShoppingCartIcon } from 'lucide-react'
+import { CircleX, ShoppingCartIcon } from 'lucide-react'
 import { Badge } from './ui/badge'
 import useCart from '../hooks/use-cart'
-import { Label } from './ui/label'
-import { Input } from './ui/input'
 import { Card } from './ui/card'
 import { useAppStore } from '../store'
 
 const Cart = () => {
-  const { cart, addToCart, removeFromCart } = useCart()
+  const { cart, removeFromCart } = useCart()
   const userStats = useAppStore((state) => state.userStats)
-
-  console.log(userStats)
 
   return (
     <Sheet>
