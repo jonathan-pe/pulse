@@ -11,7 +11,7 @@ import { Game } from '@/types/game'
 import GameCard from '../components/game-card'
 
 export default function Page() {
-  const { leagueID } = useParams() as { leagueID: string }
+  const { leagueId } = useParams() as { leagueId: string }
   const sportsbook = useAppStore((state) => state.sportsbook)
 
   const {
@@ -19,9 +19,51 @@ export default function Page() {
     error,
     isLoading,
     mutate,
-  } = useSWR(
-    sportsbook ? `${process.env.BACKEND_URL}/odds?sportsbook_id=${sportsbook.id}&league_id=${leagueID}` : null,
-    (url) => fetcher(url, {})
+  } = useSWR<{ games: Game[] }>(
+    sportsbook
+      ? `{
+            games(leagueId: "${leagueId}", sportsbookId: "${sportsbook.id}") {
+              id
+              sport
+              league
+              teams {
+                home {
+                  id
+                  name
+                  abbreviation
+                }
+                away {
+                  id
+                  name
+                  abbreviation
+                }
+              }
+              start
+              status
+              live
+              tournament
+              sportsbooks {
+                id
+                name
+                odds {
+                  id
+                  group
+                  market
+                  name
+                  main
+                  price
+                  points
+                  selection
+                  link
+                  sgp
+                  grade
+                }
+              }
+            }
+        }
+    `
+      : null,
+    fetcher
   )
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />

@@ -9,7 +9,7 @@ import PulseError from '@/app/components/pulse-error'
 import { Game } from '@/types/game'
 
 export default function Page() {
-  const { leagueID } = useParams() as { leagueID: string }
+  const { leagueId } = useParams() as { leagueId: string }
   const sportsbook = useAppStore((state) => state.sportsbook)
 
   const {
@@ -18,7 +18,7 @@ export default function Page() {
     isLoading,
     mutate,
   } = useSWR(
-    sportsbook ? `${process.env.BACKEND_URL}/odds?sportsbook_id=${sportsbook.id}&league_id=${leagueID}` : null,
+    sportsbook ? `${process.env.BACKEND_URL}/odds?sportsbook_id=${sportsbook.id}&league_id=${leagueId}` : null,
     (url) => fetcher(url, {})
   )
 

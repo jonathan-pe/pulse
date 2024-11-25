@@ -27,10 +27,10 @@ export default function Sportsbook({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const { leagueID } = useParams() as { leagueID: string }
+  const { leagueId } = useParams() as { leagueId: string }
   const router = useRouter()
 
-  const league = useAppStore((state) => state.league) ?? SUPPORTED_LEAGUES.find((l) => l.id === leagueID)
+  const league = useAppStore((state) => state.league) ?? SUPPORTED_LEAGUES.find((l) => l.id === leagueId)
   const setLeague = useAppStore((state) => state.setLeague)
   const cart = useAppStore((state) => state.cart)
 
