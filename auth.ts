@@ -56,15 +56,12 @@ export const config: NextAuthConfig = {
         .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
         .encrypt(ENCRYPTION_KEY)
 
-      console.log('encoded & encrypted', encryptedJWT)
-
       return encryptedJWT
     },
     decode: async ({ token }) => {
       try {
         const { plaintext } = await compactDecrypt(token!, ENCRYPTION_KEY)
         const decodedJWT = await jwtVerify(new TextDecoder().decode(plaintext), SECRET_KEY, { algorithms: ['HS512'] })
-        console.log('decoded', decodedJWT.payload)
         return decodedJWT.payload as JWT
       } catch (error) {
         console.error(error)
@@ -75,7 +72,6 @@ export const config: NextAuthConfig = {
   callbacks: {
     async jwt({ token, user, account, session }) {
       // Add custom user data to the JWT token
-      console.log(account?.access_token)
       return { ...token, accessToken: user?.accessToken }
     },
     async session({ session, token }) {
