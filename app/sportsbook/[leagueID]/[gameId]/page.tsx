@@ -10,6 +10,7 @@ import { Game } from '@/types/game'
 
 import { GAMES_QUERY } from '../page'
 import GameCard from '../../components/game-card'
+import Loading from './loading'
 
 export default function Page() {
   const { leagueId, gameId } = useParams() as { leagueId: string; gameId: string }
@@ -21,7 +22,7 @@ export default function Page() {
   )
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
-  // if (isLoading) return <Loading />
+  if (isLoading) return <Loading />
   if (error) return <PulseError message="Can't load league data. Please try again." onRetry={() => mutate()} />
   if (!data?.games.length)
     return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />

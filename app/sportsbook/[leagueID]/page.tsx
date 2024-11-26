@@ -45,7 +45,7 @@ export default function Page() {
       <h2 className='text-2xl font-bold'>Available Games</h2>
       <div className='flex flex-col gap-4'>
         {games.map((game: Game) => (
-          <GameCard key={game.id} game={game} sportsbookID={sportsbook?.id} />
+          <GameCard key={game.id} game={game} sportsbookID={sportsbook?.id} selectable />
         ))}
       </div>
     </div>

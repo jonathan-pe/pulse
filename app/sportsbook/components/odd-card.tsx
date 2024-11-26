@@ -13,13 +13,13 @@ const displayPoints = (points: number | null, selection: string, market: string)
 
   if (market.includes('Total Points')) {
     return (
-      <span>
+      <span className='font-semibold'>
         {selection.charAt(0)} {points}
       </span>
     )
   }
 
-  return <span>{`${points > 0 ? '+' : ''}${points}`}</span>
+  return <span className='font-semibold'>{`${points > 0 ? '+' : ''}${points}`}</span>
 }
 
 const OddCard = ({ odd, event }: OddCardProps) => {
@@ -36,7 +36,7 @@ const OddCard = ({ odd, event }: OddCardProps) => {
     </Card>
   ) : (
     <Card
-      className={`flex justify-center items-center p-2 hover:bg-primary/20 ${
+      className={`flex cursor-pointer justify-center items-center p-2 hover:bg-primary/20 ${
         cart?.find((o) => o.id === odd?.id) ? 'bg-primary/30' : ''
       }`}
       onClick={(e) => {
@@ -51,7 +51,7 @@ const OddCard = ({ odd, event }: OddCardProps) => {
     >
       <CardContent className='flex flex-col justify-center items-center p-0'>
         {displayPoints(odd.points, odd.selection, odd.market)}
-        <span>{odd?.price}</span>
+        <span className='text-primary'>{odd?.price}</span>
       </CardContent>
     </Card>
   )

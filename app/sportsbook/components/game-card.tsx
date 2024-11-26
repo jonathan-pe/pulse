@@ -6,7 +6,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import OddCard from './odd-card'
 
-export default function GameCard({ game, sportsbookID }: { game: Game; sportsbookID?: string }) {
+interface GameCardProps {
+  game: Game
+  sportsbookID?: string
+  selectable?: boolean
+}
+
+export default function GameCard({ game, sportsbookID, selectable }: GameCardProps) {
   const { teams, sportsbooks } = game
   const sportsbook = sportsbooks.find((sb) => sb.id === sportsbookID)
 
@@ -47,8 +53,8 @@ export default function GameCard({ game, sportsbookID }: { game: Game; sportsboo
   const awayTeamName = `${teams.away.abbreviation} ${teams.away.name.split(' ').pop()}`
 
   return (
-    <Link href={`${usePathname()}/${game.id}`}>
-      <Card className='cursor-pointer hover:bg-muted'>
+    <Link href={selectable ? `${usePathname()}/${game.id}` : ''} className={!selectable ? 'cursor-default' : ''}>
+      <Card className={`${selectable && 'cursor-pointer hover:bg-muted'}`}>
         <CardContent className='px-6 py-4'>
           <div className='grid gap-4'>
             <div className='grid grid-cols-5 gap-4'>
