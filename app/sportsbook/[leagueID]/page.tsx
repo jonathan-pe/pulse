@@ -9,69 +9,34 @@ import Loading from './loading'
 import PulseError from '@/app/components/pulse-error'
 import { Game } from '@/types/game'
 import GameCard from '../components/game-card'
+import { gql } from 'graphql-request'
+import { GameFragment } from '@/app/lib/fragments'
+
+export const GAMES_QUERY = gql`
+  ${GameFragment}
+  query Games($leagueId: String!, $sportsbookId: String!, $gameId: String) {
+    games(leagueId: $leagueId, sportsbookId: $sportsbookId, gameId: $gameId) {
+      ...GameFragment
+    }
+  }
+`
 
 export default function Page() {
   const { leagueId } = useParams() as { leagueId: string }
   const sportsbook = useAppStore((state) => state.sportsbook)
 
-  const {
-    data: { games } = { games: [] },
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<{ games: Game[] }>(
-    sportsbook
-      ? `{
-            games(leagueId: "${leagueId}", sportsbookId: "${sportsbook.id}") {
-              id
-              sport
-              league
-              teams {
-                home {
-                  id
-                  name
-                  abbreviation
-                }
-                away {
-                  id
-                  name
-                  abbreviation
-                }
-              }
-              start
-              status
-              live
-              tournament
-              sportsbooks {
-                id
-                name
-                odds {
-                  id
-                  group
-                  market
-                  name
-                  main
-                  price
-                  points
-                  selection
-                  link
-                  sgp
-                  grade
-                }
-              }
-            }
-        }
-    `
-      : null,
-    fetcher
+  const { data, error, isLoading, mutate } = useSWR<{ games: Game[] }>(
+    sportsbook ? [GAMES_QUERY, { leagueId, sportsbookId: sportsbook.id }] : null,
+    ([query, variables]) => fetcher(query, variables as Record<string, any>)
   )
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
   if (isLoading) return <Loading />
   if (error) return <PulseError message="Can't load league data. Please try again." onRetry={() => mutate()} />
-  if (!games.length) return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />
+  if (!data?.games.length)
+    return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />
 
-  games.sort((a: Game, b: Game) => {
+  const games = data.games.sort((a: Game, b: Game) => {
     return new Date(a.start).getTime() - new Date(b.start).getTime()
   })
 
