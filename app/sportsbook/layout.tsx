@@ -15,12 +15,10 @@ import {
 import { useAppStore } from '../store'
 import { toast } from 'sonner'
 import { SWRConfig, mutate } from 'swr'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, usePathname } from 'next/navigation'
 import { SUPPORTED_LEAGUES } from '../constants'
-import { ShoppingCartIcon } from 'lucide-react'
-import { Button } from '../components/ui/button'
-import { Badge } from '../components/ui/badge'
 import Cart from '../components/cart'
+import Breadcrumbs from './components/breadcrumbs'
 
 export default function Sportsbook({
   children,
@@ -29,10 +27,10 @@ export default function Sportsbook({
 }>) {
   const { leagueId } = useParams() as { leagueId: string }
   const router = useRouter()
+  const pathname = usePathname()
 
   const league = useAppStore((state) => state.league) ?? SUPPORTED_LEAGUES.find((l) => l.id === leagueId)
   const setLeague = useAppStore((state) => state.setLeague)
-  const cart = useAppStore((state) => state.cart)
 
   return (
     <div className='mx-auto w-full h-full'>
@@ -65,29 +63,7 @@ export default function Sportsbook({
               <div className='flex items-center'>
                 <SidebarTrigger className='-ml-1' />
                 <Separator orientation='vertical' className='mr-2 h-4' />
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem>
-                      <BreadcrumbLink
-                        className='cursor-pointer'
-                        onClick={() => {
-                          setLeague(null)
-                          router.push('/sportsbook')
-                        }}
-                      >
-                        Sportsbook
-                      </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    {league && (
-                      <>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                          <BreadcrumbPage>{league?.league}</BreadcrumbPage>
-                        </BreadcrumbItem>
-                      </>
-                    )}
-                  </BreadcrumbList>
-                </Breadcrumb>
+                <Breadcrumbs />
               </div>
               <Cart />
             </header>

@@ -11,7 +11,7 @@ interface OddCardProps {
 const displayPoints = (points: number | null, selection: string, market: string) => {
   if (!points || market.includes('Moneyline')) return
 
-  if (market.includes('Total Points')) {
+  if (market.includes('Total Points') || selection === 'Over' || selection === 'Under') {
     return (
       <span className='font-semibold'>
         {selection.charAt(0)} {points}
@@ -36,8 +36,8 @@ const OddCard = ({ odd, event }: OddCardProps) => {
     </Card>
   ) : (
     <Card
-      className={`flex cursor-pointer justify-center items-center p-2 hover:bg-primary/20 ${
-        cart?.find((o) => o.id === odd?.id) ? 'bg-primary/30' : ''
+      className={`flex min-w-20 cursor-pointer justify-center items-center p-2 hover:bg-primary/15 active:bg-primary/10 ${
+        cart?.find((o) => o.id === odd?.id) ? 'bg-primary/20' : ''
       }`}
       onClick={(e) => {
         e.preventDefault()

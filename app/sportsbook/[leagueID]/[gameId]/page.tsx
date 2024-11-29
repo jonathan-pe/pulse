@@ -11,6 +11,7 @@ import { Game } from '@/types/game'
 import { GAMES_QUERY } from '../page'
 import GameCard from '../../components/game-card'
 import Loading from './loading'
+import OddsTabs from './components/odds-tabs'
 
 export default function Page() {
   const { leagueId, gameId } = useParams() as { leagueId: string; gameId: string }
@@ -23,16 +24,17 @@ export default function Page() {
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
   if (isLoading) return <Loading />
-  if (error) return <PulseError message="Can't load league data. Please try again." onRetry={() => mutate()} />
+  if (error) return <PulseError message='Failed to load game data. Please try again.' onRetry={() => mutate()} />
   if (!data?.games.length)
-    return <PulseError message='No games found. Please check back later.' onRetry={() => mutate()} />
+    return <PulseError message='Game not found. Please check try again or check back later.' onRetry={() => mutate()} />
+
+  const game = data.games[0]
 
   return (
-    <div className='flex flex-1 flex-col gap-4 p-4'>
-      <h2 className='text-2xl font-bold'>Available Games</h2>
-      <div className='flex flex-col gap-4'>
-        <GameCard key={data.games[0].id} game={data.games[0]} sportsbookID={sportsbook?.id} />
-      </div>
+    <div className='flex flex-1 flex-col gap-4 p-4 overflow-x-auto'>
+      <GameCard key={data.games[0].id} game={data.games[0]} sportsbookID={sportsbook?.id} />
+
+      <OddsTabs game={game} homeTeam={game.teams.home} awayTeam={game.teams.away} />
     </div>
   )
 }

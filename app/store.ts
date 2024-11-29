@@ -5,7 +5,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User } from '@/types/supabase'
 import { UserStats } from '@/types/user'
-import { Odds_Event } from '@/types/game'
+import { Game, Odds_Event } from '@/types/game'
 
 interface AppState {
   sportsbook: Sportsbook | null
@@ -22,6 +22,9 @@ interface AppState {
 
   cart: Odds_Event[] | null
   setCart: (fn: (prev: Odds_Event[]) => Odds_Event[] | null) => void
+
+  game: Game | null
+  setGame: (game: Game | null) => void
 }
 
 const UNPERSISTED_KEYS = ['league']
@@ -45,6 +48,9 @@ export const useAppStore = create<AppState>()(
       setCart: (fn: (prev: Odds_Event[]) => Odds_Event[] | null) => {
         set(({ cart }) => ({ cart: fn(cart ?? []) }))
       },
+
+      game: null,
+      setGame: (game) => set({ game }),
     }),
     {
       partialize: (state) =>

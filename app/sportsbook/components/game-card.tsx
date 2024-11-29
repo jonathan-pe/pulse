@@ -5,6 +5,7 @@ import { Game } from '@/types/game'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import OddCard from './odd-card'
+import { useAppStore } from '@/app/store'
 
 interface GameCardProps {
   game: Game
@@ -15,6 +16,8 @@ interface GameCardProps {
 export default function GameCard({ game, sportsbookID, selectable }: GameCardProps) {
   const { teams, sportsbooks } = game
   const sportsbook = sportsbooks.find((sb) => sb.id === sportsbookID)
+
+  const setGame = useAppStore((state) => state.setGame)
 
   const { cart, addToCart, removeFromCart } = useCart()
 
@@ -53,7 +56,11 @@ export default function GameCard({ game, sportsbookID, selectable }: GameCardPro
   const awayTeamName = `${teams.away.abbreviation} ${teams.away.name.split(' ').pop()}`
 
   return (
-    <Link href={selectable ? `${usePathname()}/${game.id}` : ''} className={!selectable ? 'cursor-default' : ''}>
+    <Link
+      href={selectable ? `${usePathname()}/${game.id}` : ''}
+      className={!selectable ? 'cursor-default' : ''}
+      onClick={() => setGame(game)}
+    >
       <Card className={`${selectable && 'cursor-pointer hover:bg-muted'}`}>
         <CardContent className='px-6 py-4'>
           <div className='grid gap-4'>
