@@ -18,7 +18,6 @@ const MarketCard = ({ game, market, odds, awayTeamName, homeTeamName }: MarketCa
     () =>
       odds.reduce((acc, odd) => {
         const grouper = market.includes('Player') ? odd.name : odd.selection
-        console.log(grouper, market)
 
         if (!acc[grouper]) acc[grouper] = []
         acc[grouper].push(odd)
@@ -55,7 +54,7 @@ const MarketCard = ({ game, market, odds, awayTeamName, homeTeamName }: MarketCa
                         return (a.points ?? 0) - (b.points ?? 0)
                       })
                       .map((odd) => (
-                        <OddCard key={odd.id} odd={odd} event={game.id} />
+                        <OddCard key={odd.id} odd={odd} event={`${awayTeamName} @ ${homeTeamName}`} />
                       ))}
                   </div>
                   <ScrollBar orientation='horizontal' />
