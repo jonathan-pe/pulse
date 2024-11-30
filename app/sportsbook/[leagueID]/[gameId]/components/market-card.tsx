@@ -47,8 +47,8 @@ const MarketCard = ({ game, market, odds, awayTeamName, homeTeamName }: MarketCa
             })
             .map((selection) => (
               <div className='grid grid-cols-5 gap-4' key={selection}>
-                <div className='flex items-center font-bold text-xl'>{displaySelection(selection)}</div>
-                <ScrollArea className='flex col-span-4 py-3'>
+                <div className='flex col-span-2 items-center font-bold text-xl'>{displaySelection(selection)}</div>
+                <ScrollArea className='flex col-span-3 py-3'>
                   <div className='flex gap-2'>
                     {groupedOdds[selection]
                       .sort((a, b) => {

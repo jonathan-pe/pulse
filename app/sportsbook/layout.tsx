@@ -59,7 +59,7 @@ export default function Sportsbook({
         >
           <AppSidebar />
           <SidebarInset>
-            <header className='sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 border-b px-4 justify-between'>
+            <header className='sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 border-b px-4 justify-between z-10'>
               <div className='flex items-center'>
                 <SidebarTrigger className='-ml-1' />
                 <Separator orientation='vertical' className='mr-2 h-4' />
