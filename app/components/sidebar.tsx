@@ -1,9 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronUp, User2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { ChevronDown, ChevronUp, User2 } from 'lucide-react'
+import { redirect, useRouter } from 'next/navigation'
 
 import {
   Sidebar,
@@ -13,6 +12,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from '@/app/components/ui/sidebar'
 import {
   DropdownMenu,
@@ -21,27 +22,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/app/components/ui/dropdown-menu'
+import SportsbookComboBox from '../sportsbook/components/sportsbook-combobox'
+import { SUPPORTED_LEAGUES, SUPPORTED_SPORTS } from '@/app/constants'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/app/components/ui/collapsible'
 import { useAppStore } from '@/app/store'
 import { Label } from '@/app/components/ui/label'
 import { Switch } from '@/app/components/ui/switch'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import Link from 'next/link'
-import { fetcher } from '@/app/lib/fetcher'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
   const setLeague = useAppStore((state) => state.setLeague)
-  const user = useAppStore((state) => state.user)
+  const { data, status } = useSession()
+
+  if (status !== 'authenticated') return redirect('/login')
+
+  const { user } = data
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader>{/* <SportsbookComboBox /> */}</SidebarHeader>
+      <SidebarHeader>
+        <SportsbookComboBox />
+      </SidebarHeader>
       <SidebarContent className='px-4'>
-        {/* <SidebarMenu>
+        <SidebarMenu>
           {SUPPORTED_SPORTS.map((sport) => (
             <Collapsible className='group/collapsible' key={sport}>
               <SidebarMenuItem>
@@ -69,7 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuItem>
             </Collapsible>
           ))}
-        </SidebarMenu> */}
+        </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -77,21 +86,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton>
-                  {user?.user_metadata?.picture ? (
-                    <Image
-                      src={user.user_metadata.picture}
-                      alt='user profile photo'
-                      width={24}
-                      height={24}
-                      className='rounded-full'
-                    />
+                  {user?.image ? (
+                    <Image src={user.image} alt='user profile photo' width={24} height={24} className='rounded-full' />
                   ) : (
                     <User2 />
                   )}{' '}
-                  {user?.user_metadata?.display_name ??
-                    user?.user_metadata?.full_name ??
-                    user?.user_metadata?.username ??
-                    user?.email}
+                  {user?.name ?? user?.email}
                   <ChevronUp className='ml-auto' />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -107,10 +107,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     />
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuItem className='cursor-pointer'>
-                  <Link href='/profile'>Profile</Link>
+                <DropdownMenuItem className='cursor-pointer' asChild>
+                  <Link href='/profile' className='w-full'>
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => signOut({ redirectTo: '/login' })} className='cursor-pointer'>
+                <DropdownMenuItem onClick={() => signOut({ redirectTo: '/login' })} className='cursor-pointer' asChild>
                   <span>Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

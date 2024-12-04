@@ -6,6 +6,9 @@ import './globals.css'
 import { Toaster } from '@/app/components/ui/sonner'
 import { ThemeProvider } from '@/app/components/theme-provider'
 import { SessionProvider } from 'next-auth/react'
+import { SidebarInset, SidebarProvider } from './components/ui/sidebar'
+import { AppSidebar } from './components/sidebar'
+import { auth } from '@/auth'
 
 const poppins = Poppins({
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
@@ -23,13 +26,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const session = await auth()
+
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased min-h-screen`}>
         <ThemeProvider attribute='class' defaultTheme='dark' disableTransitionOnChange>
           <SessionProvider>
-            <div className='mx-auto'>{children}</div>
-            <Toaster richColors />
+            <SidebarProvider>
+              {session && <AppSidebar />}
+
+              <SidebarInset>{children}</SidebarInset>
+              <Toaster richColors />
+            </SidebarProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

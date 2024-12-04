@@ -28,39 +28,32 @@ export default function ProfilePage() {
   }
 
   return (
-    <div>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <div className='flex flex-col items-center justify-center min-h-screen'>
-            <Card className='w-full max-w-md'>
-              <CardHeader>
-                <CardTitle className='text-2xl'>Profile</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {user ? (
-                  <div>
-                    <img src={user.image ?? ''} alt='Profile Picture' className='rounded-full w-24 h-24 mx-auto' />
-                    <p>Name: {user.name}</p>
-                    <p>Email: {user.email}</p>
-                    {stats && (
-                      <>
-                        <p>Points: {stats.points}</p>
-                        <p>Longest Streak: {stats.longestStreak}</p>
-                        <p>Current Streak: {stats.currentStreak}</p>
-                        <p>Correct Predictions: {stats.correctPredictions}</p>
-                      </>
-                    )}
-                    {/* Display past predictions */}
-                  </div>
-                ) : (
-                  <p>Please log in.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+    <div className='flex flex-col items-center justify-center min-h-screen'>
+      <Card className='w-full max-w-md'>
+        <CardHeader>
+          <CardTitle className='text-2xl'>Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {user ? (
+            <div>
+              <img src={user.image ?? ''} alt='Profile Picture' className='rounded-full w-24 h-24 mx-auto' />
+              <p>Name: {user.name}</p>
+              <p>Email: {user.email}</p>
+              {stats && (
+                <>
+                  <p>Points: {stats.points}</p>
+                  <p>Longest Streak: {stats.longestStreak}</p>
+                  <p>Current Streak: {stats.currentStreak}</p>
+                  <p>Correct Predictions: {stats.correctPredictions}</p>
+                </>
+              )}
+              {/* Display past predictions */}
+            </div>
+          ) : (
+            <p>Please log in.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
