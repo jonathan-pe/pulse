@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/pop
 import { useAppStore } from '@/app/store'
 import { useState } from 'react'
 import { Sportsbook } from '@/types/sportsbook'
-import { fetcher } from '@/utils/clientFetcher'
+import { fetcher } from '@/app/lib/fetcher'
 import useSWR from 'swr'
 
 export default function SportsbookComboBox() {

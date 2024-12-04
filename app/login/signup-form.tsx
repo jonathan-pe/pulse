@@ -16,7 +16,7 @@ import { PasswordInput } from '../components/ui/password-input'
 import { useTheme } from 'next-themes'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form'
 import { SignupSchema } from '@/types/user'
-import { fetcher } from '@/utils/clientFetcher'
+import { fetcher } from '@/app/lib/fetcher'
 
 const signupSchema = z
   .object({

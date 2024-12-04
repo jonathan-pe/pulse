@@ -1,4 +1,5 @@
 import { GraphQLClient, RequestDocument } from 'graphql-request'
+
 const getClient = async () => {
   return new GraphQLClient(`${process.env.BACKEND_URL!}/graphql`, {
     headers: {

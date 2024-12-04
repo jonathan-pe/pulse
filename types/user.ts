@@ -1,11 +1,16 @@
+import { User } from 'next-auth'
+
 export interface UserStats {
+  correctPredictions: number
+  createdAt: Date
+  currentStreak: number
+  id: string
+  longestStreak: number
   points: number
-  streak: number
-  daily_prediction_count: number
-  total_predictions: number
-  correct_predictions: number
-  bonus_points: number
-  last_prediction_date: string | null
+  totalPredictions: number
+  updatedAt: Date
+  user: User
+  userId: String
 }
 
 export interface SignupSchema {

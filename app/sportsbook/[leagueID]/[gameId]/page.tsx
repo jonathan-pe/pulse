@@ -4,7 +4,7 @@ import React from 'react'
 import useSWR from 'swr'
 import { useParams } from 'next/navigation'
 import { useAppStore } from '@/app/store'
-import { fetcher } from '@/utils/clientFetcher'
+import { fetcher } from '@/app/lib/fetcher'
 import PulseError from '@/app/components/pulse-error'
 import { Game } from '@/types/game'
 

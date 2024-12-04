@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import './styles/scroll-shadows.css';
-
 body {
   font-family: 'Poppins', Arial, Helvetica, sans-serif;
 }

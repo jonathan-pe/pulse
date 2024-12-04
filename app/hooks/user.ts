@@ -1,23 +1,42 @@
 import useSWR, { KeyedMutator } from 'swr'
 import { useAppStore } from '@/app/store'
-import { fetcher } from '@/utils/clientFetcher'
+import { fetcher } from '@/app/lib/fetcher'
 import { UserStats } from '@/types/user'
+import { gql } from 'graphql-request'
 
 interface UserStatsResponse {
-  stats: UserStats | null
+  stats: UserStats | undefined
   error?: Error
   retry?: KeyedMutator<any>
 }
+
+interface UserStatsData {
+  userStatsByUserId: UserStats
+}
+
+const USER_STATS_QUERY = gql`
+  query UserStats($userId: String!) {
+    userStatsByUserId(userId: $userId) {
+      id
+      userId
+      points
+      longestStreak
+      currentStreak
+      totalPredictions
+      correctPredictions
+    }
+  }
+`
 
 export const useUserStats = (userId: string | undefined): UserStatsResponse => {
   const setUserStats = useAppStore((state) => state.setUserStats)
 
   const { data, error, mutate } = useSWR(
-    userId ? `${process.env.BACKEND_URL}/user/${userId}/stats` : null,
-    (url) => fetcher(url, {}),
+    userId ? [USER_STATS_QUERY, { userId }] : null,
+    ([query, variables]) => fetcher<UserStatsData>(query, variables as Record<string, any>),
     {
       onSuccess: (data) => {
-        setUserStats(data)
+        setUserStats(data.userStatsByUserId)
       },
       revalidateOnFocus: false,
       onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
@@ -29,5 +48,5 @@ export const useUserStats = (userId: string | undefined): UserStatsResponse => {
     }
   )
 
-  return { stats: data, error, retry: mutate }
+  return { stats: data?.userStatsByUserId, error, retry: mutate }
 }

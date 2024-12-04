@@ -70,18 +70,16 @@ export const config: NextAuthConfig = {
     },
   },
   callbacks: {
-    async jwt({ token, user, account, session }) {
-      // Add custom user data to the JWT token
-      return { ...token, accessToken: user?.accessToken }
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+
+      return token
     },
     async session({ session, token }) {
-      // Merge the JWT data into the session object
-      // session.user.id = token.id as string
-      // session.user.email = token.email ?? ''
-      // session.user.name = token.name
-      // session.user.accessToken = token.accessToken as string | undefined
-      session.user.accessToken = token.accessToken as string | undefined
-      // You can also add custom fields here if needed
+      session.user.id = (token.id ?? token.sub) as string
+
       return session
     },
   },

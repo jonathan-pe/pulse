@@ -27,7 +27,8 @@ import { Switch } from '@/app/components/ui/switch'
 import { useTheme } from 'next-themes'
 import Image from 'next/image'
 import Link from 'next/link'
-import { fetcher } from '@/utils/clientFetcher'
+import { fetcher } from '@/app/lib/fetcher'
+import { signOut } from 'next-auth/react'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter()
@@ -35,22 +36,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const setLeague = useAppStore((state) => state.setLeague)
   const user = useAppStore((state) => state.user)
-
-  const handleSignOut = async () => {
-    const { error } = await fetcher(`${process.env.BACKEND_URL}/auth/signout`, {
-      method: 'POST',
-    })
-
-    if (error) {
-      toast.error('Failed to log out. Please try again.')
-      console.error('Error logging out:', error.message)
-      return
-    } else {
-      setLeague(null)
-      router.push('/login')
-      toast.success('Successfully logged out.')
-    }
-  }
 
   return (
     <Sidebar {...props}>
@@ -125,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <DropdownMenuItem className='cursor-pointer'>
                   <Link href='/profile'>Profile</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSignOut()} className='cursor-pointer'>
+                <DropdownMenuItem onClick={() => signOut({ redirectTo: '/login' })} className='cursor-pointer'>
                   <span>Sign out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

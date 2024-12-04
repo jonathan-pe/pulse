@@ -37,8 +37,6 @@ const OddsTabs = ({ game, homeTeam, awayTeam }: OddsTabsProps) => {
     return acc
   }, {} as Record<string, Record<string, Odds[]>>)
 
-  console.log(oddsGroupedByMarketAndMarketType)
-
   return (
     <Tabs defaultValue={Object.keys(MARKETS)[0]}>
       <TabsList>
