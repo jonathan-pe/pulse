@@ -8,10 +8,20 @@ import { fetcher } from '@/app/lib/fetcher'
 import PulseError from '@/app/components/pulse-error'
 import { Game } from '@/types/game'
 
-import { GAMES_QUERY } from '../page'
 import GameCard from '../../components/game-card'
 import Loading from './loading'
 import OddsTabs from './components/odds-tabs'
+import { GameFragment } from '@/app/lib/fragments'
+import { gql } from 'graphql-request'
+
+const GAMES_QUERY = gql`
+  ${GameFragment}
+  query Games($leagueId: String!, $sportsbookId: String!, $gameId: String) {
+    games(leagueId: $leagueId, sportsbookId: $sportsbookId, gameId: $gameId) {
+      ...GameFragment
+    }
+  }
+`
 
 export default function Page() {
   const { leagueId, gameId } = useParams() as { leagueId: string; gameId: string }

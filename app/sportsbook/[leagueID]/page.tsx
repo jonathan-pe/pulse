@@ -12,7 +12,7 @@ import GameCard from '../components/game-card'
 import { gql } from 'graphql-request'
 import { GameFragment } from '@/app/lib/fragments'
 
-export const GAMES_QUERY = gql`
+const GAMES_QUERY = gql`
   ${GameFragment}
   query Games($leagueId: String!, $sportsbookId: String!, $gameId: String) {
     games(leagueId: $leagueId, sportsbookId: $sportsbookId, gameId: $gameId) {

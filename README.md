@@ -27,11 +27,9 @@ Ensure you have the following installed:
    ```
 
 3. Set up environment variables:
-   Create a `.env.local` file in the root directory and add the following variables:
+   Create a copy of the `.env.example` file in the root directory and fill in the corresponding variables:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
+   cp .env.example .env
    ```
 
 ### Running the Development Server
