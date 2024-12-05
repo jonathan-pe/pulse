@@ -27,7 +27,7 @@ const OddCard = ({ odd, event }: OddCardProps) => {
 
   return !odd ? (
     <Card
-      className='flex justify-center items-center cursor-not-allowed opacity-50'
+      className='flex cursor-not-allowed items-center justify-center opacity-50'
       onClick={(event) => {
         event.preventDefault()
       }}
@@ -36,20 +36,20 @@ const OddCard = ({ odd, event }: OddCardProps) => {
     </Card>
   ) : (
     <Card
-      className={`flex min-w-20 cursor-pointer justify-center items-center p-2 hover:bg-primary/15 active:bg-primary/10 ${
+      className={`flex min-w-20 cursor-pointer items-center justify-center p-2 hover:bg-primary/15 active:bg-primary/10 ${
         cart?.find((o) => o.id === odd?.id) ? 'bg-primary/20' : ''
       }`}
       onClick={(e) => {
         e.preventDefault()
 
-        if (!cart?.find((o) => o.id === odd?.id)) {
-          odd && addToCart(odd, event)
-        } else {
-          odd && removeFromCart(odd?.id)
+        if (odd && !cart?.find((o) => o.id === odd?.id)) {
+          addToCart(odd, event)
+        } else if (odd) {
+          removeFromCart(odd?.id)
         }
       }}
     >
-      <CardContent className='flex flex-col justify-center items-center p-0'>
+      <CardContent className='flex flex-col items-center justify-center p-0'>
         {displayPoints(odd.points, odd.selection, odd.market)}
         <span className='text-primary'>{odd?.price}</span>
       </CardContent>

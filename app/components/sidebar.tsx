@@ -40,9 +40,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setLeague = useAppStore((state) => state.setLeague)
   const { data, status } = useSession()
 
-  if (status !== 'authenticated') return redirect('/login')
+  if (status === 'unauthenticated') return redirect('/login')
 
-  const { user } = data
+  const user = data?.user
 
   return (
     <Sidebar {...props}>
@@ -97,7 +97,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </DropdownMenuTrigger>
               <DropdownMenuContent side='top' className='w-[--radix-popper-anchor-width]'>
                 <DropdownMenuLabel>
-                  <div className='flex items-center justify-between flex-1'>
+                  <div className='flex flex-1 items-center justify-between'>
                     <Label className='font-normal'>Dark Mode</Label>
                     <Switch
                       id='dark-mode-switch'

@@ -1,6 +1,5 @@
 // app/components/GameCard.tsx
 import { Card, CardContent } from '@/app/components/ui/card'
-import useCart from '@/app/hooks/use-cart'
 import { Game } from '@/types/game'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -18,8 +17,7 @@ export default function GameCard({ game, sportsbookID, selectable }: GameCardPro
   const sportsbook = sportsbooks.find((sb) => sb.id === sportsbookID)
 
   const setGame = useAppStore((state) => state.setGame)
-
-  const { cart, addToCart, removeFromCart } = useCart()
+  const pathname = usePathname()
 
   if (!sportsbook) return null
 
@@ -57,7 +55,7 @@ export default function GameCard({ game, sportsbookID, selectable }: GameCardPro
 
   return (
     <Link
-      href={selectable ? `${usePathname()}/${game.id}` : ''}
+      href={selectable ? `${pathname}/${game.id}` : ''}
       className={!selectable ? 'cursor-default' : ''}
       onClick={() => setGame(game)}
     >
@@ -72,7 +70,7 @@ export default function GameCard({ game, sportsbookID, selectable }: GameCardPro
             </div>
 
             <div className='grid grid-cols-5 gap-4'>
-              <div className='col-span-2 flex items-center font-bold text-xl'>
+              <div className='col-span-2 flex items-center text-xl font-bold'>
                 {teams.away.abbreviation} {teams.away.name.split(' ').pop()}
               </div>
               <OddCard odd={awaySpread} event={`${awayTeamName} @ ${homeTeamName}`} />
@@ -81,7 +79,7 @@ export default function GameCard({ game, sportsbookID, selectable }: GameCardPro
             </div>
 
             <div className='grid grid-cols-5 gap-4'>
-              <div className='col-span-2 flex items-center font-bold text-xl'>
+              <div className='col-span-2 flex items-center text-xl font-bold'>
                 {teams.home.abbreviation} {teams.home.name.split(' ').pop()}
               </div>
               <OddCard odd={homeSpread} event={`${awayTeamName} @ ${homeTeamName}`} />

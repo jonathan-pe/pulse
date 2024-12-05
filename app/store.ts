@@ -3,7 +3,7 @@ import { Sportsbook } from '@/types/sportsbook'
 import { League } from '@/types/league'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User } from '@/types/supabase'
+import { User } from 'next-auth'
 import { UserStats } from '@/types/user'
 import { Game, Odds_Event } from '@/types/game'
 

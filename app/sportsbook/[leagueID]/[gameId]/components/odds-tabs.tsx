@@ -47,12 +47,11 @@ const OddsTabs = ({ game, homeTeam, awayTeam }: OddsTabsProps) => {
         ))}
       </TabsList>
       {Object.keys(oddsGroupedByMarketAndMarketType).map((marketType) => (
-        <TabsContent key={marketType} value={marketType} className='grid gap-4 grid-cols-2'>
+        <TabsContent key={marketType} value={marketType} className='grid grid-cols-2 gap-4'>
           {Object.keys(oddsGroupedByMarketAndMarketType[marketType]).map((market: string) => (
             <MarketCard
               key={market}
               market={market}
-              game={game}
               odds={oddsGroupedByMarketAndMarketType[marketType][market]}
               awayTeamName={awayTeamName}
               homeTeamName={homeTeamName}

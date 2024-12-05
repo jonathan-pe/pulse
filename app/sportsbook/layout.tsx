@@ -14,7 +14,7 @@ export default function Sportsbook({
   children: React.ReactNode
 }>) {
   return (
-    <div className='mx-auto w-full h-full'>
+    <div className='mx-auto size-full'>
       <SWRConfig
         value={{
           onError: (error, key) => {
@@ -37,7 +37,7 @@ export default function Sportsbook({
           },
         }}
       >
-        <header className='sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 border-b px-4 justify-between z-10'>
+        <header className='sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background px-4'>
           <div className='flex items-center'>
             <SidebarTrigger className='-ml-1' />
             <Separator orientation='vertical' className='mr-2 h-4' />

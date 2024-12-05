@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const config = {
   matcher: [
@@ -10,13 +11,14 @@ export const config = {
      * - api/auth (Auth API routes)
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|api/auth/*|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/auth/*|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
 
 const PROTECTED_PATHS = ['/sportsbook', '/profile']
 
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
+  const session = await auth()
   const { pathname } = req.nextUrl
 
   // Check if the request path is protected
@@ -24,16 +26,18 @@ export default auth((req) => {
 
   if (isProtectedPath) {
     // Check if the user is authenticated
-    if (!req.auth) {
+    if (!session) {
       // Redirect to login if not authenticated
       const loginUrl = new URL('/login', req.nextUrl.origin)
-      return Response.redirect(loginUrl)
+      return NextResponse.redirect(loginUrl)
     }
   } else {
     // Redirect to sportsbook if authenticated and trying to pages like login
-    if (req.auth) {
+    if (session) {
       const sportsbookUrl = new URL('/sportsbook', req.nextUrl.origin)
-      return Response.redirect(sportsbookUrl)
+      return NextResponse.redirect(sportsbookUrl)
     }
   }
-})
+
+  return NextResponse.next()
+}

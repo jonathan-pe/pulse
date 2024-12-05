@@ -10,7 +10,7 @@ export interface UserStats {
   totalPredictions: number
   updatedAt: Date
   user: User
-  userId: String
+  userId: string
 }
 
 export interface SignupSchema {

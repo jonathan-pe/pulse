@@ -27,7 +27,7 @@ export default function Page() {
 
   const { data, error, isLoading, mutate } = useSWR<{ games: Game[] }>(
     sportsbook ? [GAMES_QUERY, { leagueId, sportsbookId: sportsbook.id }] : null,
-    ([query, variables]) => fetcher(query, variables as Record<string, any>)
+    ([query, variables]) => fetcher(query, variables as Record<string, unknown>)
   )
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />

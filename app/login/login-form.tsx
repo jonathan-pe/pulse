@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/ca
 import { signIn } from 'next-auth/react'
 import GoogleIcon from '../components/google-icon'
 
-export default function LoginForm({ setView }: { setView: (view: 'login' | 'signup') => void }) {
+export default function LoginForm() {
   return (
     <Card className='mx-auto w-96'>
       <CardHeader>

@@ -41,16 +41,27 @@ export const config: NextAuthConfig = {
         accessToken: token?.accessToken,
       }
 
-      const jwt = await new SignJWT(jwtClaims)
-        .setProtectedHeader({ alg: 'HS512' })
-        .setIssuedAt()
-        .setIssuer('pulse')
-        .setAudience('pulse')
-        .setExpirationTime('30 days')
-        .setJti(token?.jti!)
-        .setIssuedAt(new Date())
-        .setSubject(token?.sub!)
-        .sign(SECRET_KEY)
+      let jwt
+
+      if (token?.jti && token?.sub) {
+        jwt = await new SignJWT(jwtClaims)
+          .setProtectedHeader({ alg: 'HS512' })
+          .setIssuedAt()
+          .setIssuer('pulse')
+          .setAudience('pulse')
+          .setExpirationTime('30 days')
+          .setJti(token.jti)
+          .setSubject(token.sub)
+          .sign(SECRET_KEY)
+      } else {
+        jwt = await new SignJWT(jwtClaims)
+          .setProtectedHeader({ alg: 'HS512' })
+          .setIssuedAt()
+          .setIssuer('pulse')
+          .setAudience('pulse')
+          .setExpirationTime('30 days')
+          .sign(SECRET_KEY)
+      }
 
       const encryptedJWT = await new CompactEncrypt(new TextEncoder().encode(jwt))
         .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })

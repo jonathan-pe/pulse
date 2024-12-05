@@ -19,7 +19,7 @@ export default function Page() {
 
   const { data, error, isLoading, mutate } = useSWR<{ games: Game[] }>(
     sportsbook ? [GAMES_QUERY, { leagueId, sportsbookId: sportsbook.id, gameId }] : null,
-    ([query, variables]) => fetcher(query, variables as Record<string, any>)
+    ([query, variables]) => fetcher(query, variables as Record<string, unknown>)
   )
 
   if (!sportsbook) return <PulseError message='Please select a sportsbook.' />
@@ -31,7 +31,7 @@ export default function Page() {
   const game = data.games[0]
 
   return (
-    <div className='flex flex-1 flex-col gap-4 p-4 overflow-x-auto'>
+    <div className='flex flex-1 flex-col gap-4 overflow-x-auto p-4'>
       <GameCard key={data.games[0].id} game={data.games[0]} sportsbookID={sportsbook?.id} />
 
       <OddsTabs game={game} homeTeam={game.teams.home} awayTeam={game.teams.away} />

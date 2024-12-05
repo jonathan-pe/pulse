@@ -3,10 +3,9 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/app/components/ui/card'
 import { useUserStats } from '@/app/hooks/user'
 import { toast } from 'sonner'
-import { SidebarInset, SidebarProvider } from '../components/ui/sidebar'
-import { AppSidebar } from '../components/sidebar'
 import { User } from 'next-auth'
 import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 
 export default function ProfilePage() {
   const { data } = useSession()
@@ -28,7 +27,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen'>
+    <div className='flex min-h-screen flex-col items-center justify-center'>
       <Card className='w-full max-w-md'>
         <CardHeader>
           <CardTitle className='text-2xl'>Profile</CardTitle>
@@ -36,7 +35,7 @@ export default function ProfilePage() {
         <CardContent>
           {user ? (
             <div>
-              <img src={user.image ?? ''} alt='Profile Picture' className='rounded-full w-24 h-24 mx-auto' />
+              <Image src={user.image ?? ''} alt='Profile Picture' className='mx-auto size-24 rounded-full' />
               <p>Name: {user.name}</p>
               <p>Email: {user.email}</p>
               {stats && (

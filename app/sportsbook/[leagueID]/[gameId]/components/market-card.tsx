@@ -2,18 +2,17 @@ import React, { useMemo } from 'react'
 import { Card, CardContent } from '@/app/components/ui/card'
 import OddCard from '@/app/sportsbook/components/odd-card'
 import { ScrollArea, ScrollBar } from '@/app/components/ui/scroll-area'
-import { Game, Odds } from '@/types/game'
+import { Odds } from '@/types/game'
 import { getSelectionOrderPriority } from '@/app/lib/utils'
 
 interface MarketCardProps {
-  game: Game
   market: string
   odds: Odds[]
   awayTeamName: string
   homeTeamName: string
 }
 
-const MarketCard = ({ game, market, odds, awayTeamName, homeTeamName }: MarketCardProps) => {
+const MarketCard = ({ market, odds, awayTeamName, homeTeamName }: MarketCardProps) => {
   const groupedOdds = useMemo(
     () =>
       odds.reduce((acc, odd) => {
@@ -46,8 +45,8 @@ const MarketCard = ({ game, market, odds, awayTeamName, homeTeamName }: MarketCa
             })
             .map((selection) => (
               <div className='grid grid-cols-5 gap-4' key={selection}>
-                <div className='flex col-span-2 items-center font-bold text-xl'>{displaySelection(selection)}</div>
-                <ScrollArea className='flex col-span-3 py-3'>
+                <div className='col-span-2 flex items-center text-xl font-bold'>{displaySelection(selection)}</div>
+                <ScrollArea className='col-span-3 flex py-3'>
                   <div className='flex gap-2'>
                     {groupedOdds[selection]
                       .sort((a, b) => {

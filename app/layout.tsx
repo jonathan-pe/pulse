@@ -30,7 +30,7 @@ export default async function RootLayout({
 
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={`${poppins.variable} antialiased min-h-screen`}>
+      <body className={`${poppins.variable} min-h-screen antialiased`}>
         <ThemeProvider attribute='class' defaultTheme='dark' disableTransitionOnChange>
           <SessionProvider>
             <SidebarProvider>

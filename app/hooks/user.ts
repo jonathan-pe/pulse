@@ -4,14 +4,13 @@ import { fetcher } from '@/app/lib/fetcher'
 import { UserStats } from '@/types/user'
 import { gql } from 'graphql-request'
 
+interface UserStatsData {
+  userStatsByUserId: UserStats
+}
 interface UserStatsResponse {
   stats: UserStats | undefined
   error?: Error
-  retry?: KeyedMutator<any>
-}
-
-interface UserStatsData {
-  userStatsByUserId: UserStats
+  retry?: KeyedMutator<UserStatsData>
 }
 
 const USER_STATS_QUERY = gql`
@@ -33,7 +32,7 @@ export const useUserStats = (userId: string | undefined): UserStatsResponse => {
 
   const { data, error, mutate } = useSWR(
     userId ? [USER_STATS_QUERY, { userId }] : null,
-    ([query, variables]) => fetcher<UserStatsData>(query, variables as Record<string, any>),
+    ([query, variables]) => fetcher<UserStatsData>(query, variables as Record<string, unknown>),
     {
       onSuccess: (data) => {
         setUserStats(data.userStatsByUserId)
