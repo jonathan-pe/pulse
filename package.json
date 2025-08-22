@@ -9,7 +9,7 @@
     "dev:web": "pnpm --filter @pulse/web dev",
     "db:generate": "pnpm -F @pulse/db generate",
     "dev": "concurrently -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\"",
-    "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name 'pnpm-lock.yaml' -type f -exec rm -f '{}' +",
+    "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' +",
     "lint": "eslint .",
     "typecheck": "pnpm -r -w exec tsc --noEmit",
     "update-deps": "pnpm -r up --latest",
@@ -18,6 +18,8 @@
   "devDependencies": {
     "concurrently": "^9.2.0",
     "eslint": "^9.33.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.4"
   }
 }

@@ -1,31 +1,42 @@
 // apps/api/src/index.ts
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import { clerkMiddleware } from '@clerk/express';
-import * as trpcExpress from '@trpc/server/adapters/express';
-import { appRouter } from './router';
-import { createContext } from './trpc';
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import { clerkMiddleware } from '@clerk/express'
+import * as trpcExpress from '@trpc/server/adapters/express'
+import { appRouter } from './router'
+import { createContext } from './trpc'
 
-const PORT = Number(process.env.PORT ?? 4000);
-const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
+const PORT = Number(process.env.PORT ?? 4000)
+const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173'
 
-const app = express();
-app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
-app.use(express.json());
+const app = express()
+app.use(cors({ origin: CORS_ORIGIN, credentials: true }))
+app.use(express.json())
 
-// Attach Clerk; this adds req.auth and more
-app.use(clerkMiddleware());
+// Attach Clerk only when configured; this adds req.auth and more
+if (process.env.CLERK_FRONTEND_API || process.env.CLERK_API_KEY) {
+  app.use(clerkMiddleware())
+} else {
+  // Helpful message during local development when Clerk isn't configured
+  // so the server can still start without auth.
+  // If you rely on Clerk for protected routes, ensure env vars are set.
+  // eslint-disable-next-line no-console
+  console.info('[api] CLERK not configured - skipping clerk middleware')
+}
 
 // Health route (public)
-app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/health', (_req, res) => res.json({ ok: true }))
 
 // tRPC
-app.use('/trpc', trpcExpress.createExpressMiddleware({
-  router: appRouter,
-  createContext,
-}));
+app.use(
+  '/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  })
+)
 
 app.listen(PORT, () => {
-  console.log(`[api] listening on http://localhost:${PORT}`);
-});
+  console.log(`[api] listening on http://localhost:${PORT}`)
+})
