@@ -38,5 +38,6 @@ app.use(
 )
 
 app.listen(PORT, () => {
-  console.log(`[api] listening on http://localhost:${PORT}`)
+  // eslint-disable-next-line no-console
+  console.info(`[api] listening on http://localhost:${PORT}`)
 })
