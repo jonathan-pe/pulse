@@ -1,0 +1,40 @@
+# Pulse – tRPC + Clerk starter
+
+This is a minimal monorepo scaffold for **Pulse** using:
+
+- **Frontend**: Vite, React, TypeScript, Tailwind CSS, (ready for shadcn/ui)
+- **Backend**: Express + tRPC
+- **Auth**: Clerk
+
+## Quick start
+
+```bash
+# 1) Install dependencies (use pnpm preferred)
+pnpm install
+
+# 2) Copy env files
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+
+# 3) Fill your Clerk keys
+#   - apps/api/.env -> CLERK_SECRET_KEY=sk_...
+#   - apps/web/.env -> VITE_CLERK_PUBLISHABLE_KEY=pk_...
+
+# 4) Dev servers
+pnpm dev
+# API on http://localhost:4000
+# Web on http://localhost:5173
+```
+
+### shadcn/ui
+Once the web app is running, you can install shadcn/ui components:
+
+```bash
+# from apps/web
+pnpm dlx shadcn@latest init
+pnpm dlx shadcn@latest add button card input
+```
+
+Tailwind is preconfigured; a simple `Button` is included as a placeholder until you add shadcn components.
+
+---
