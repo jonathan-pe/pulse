@@ -73,3 +73,8 @@ Desktop.ini
 *.vscode/
 .cache/
 *.lock
+
+# Ignore TypeScript incremental build info
+**/tsconfig.tsbuildinfo
+# or ignore all .tsbuildinfo files:
+*.tsbuildinfo

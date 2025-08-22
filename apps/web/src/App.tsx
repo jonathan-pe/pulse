@@ -1,37 +1,35 @@
-// apps/web/src/App.tsx
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
-import { Link, Outlet, createBrowserRouter, RouterProvider } from 'react-router-dom'
-import Home from './pages/Home'
-import Dashboard from './pages/Dashboard'
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
-const router = createBrowserRouter([
-  { path: '/', element: <Home /> },
-  { path: '/dashboard', element: <Dashboard /> },
-])
+function App() {
+  const [count, setCount] = useState(0)
 
-export default function App() {
   return (
-    <div className="container">
-      <header className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="font-bold text-xl">Pulse</div>
-          <nav className="text-sm opacity-80 flex gap-3">
-            <Link to="/">Home</Link>
-            <Link to="/dashboard">Dashboard</Link>
-          </nav>
-        </div>
-        <div>
-          <SignedOut>
-            <SignInButton mode="modal" />
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </div>
-      </header>
-      <main className="card">
-        <RouterProvider router={router} />
-      </main>
-    </div>
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+    </>
   )
 }
+
+export default App

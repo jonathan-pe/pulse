@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String              @id @default(cuid())
+  clerkId      String              @unique
+  email        String              @unique
+  createdAt    DateTime            @default(now())
+  profile      UserProfile?
+  predictions  Prediction[]
+  points       Int                 @default(0)
+  streak       Int                 @default(0)
+  lastPickDate DateTime?
+  transactions PointsTransaction[]
+}
+
+model UserProfile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id])
+  username    String  @unique
+  displayName String
+  avatarUrl   String?
+}
+
+model Game {
+  id          String       @id @default(cuid())
+  externalId  String       @unique
+  sport       String
+  league      String
+  startsAt    DateTime
+  homeTeam    String
+  awayTeam    String
+  venue       String?
+  status      String       @default("scheduled")
+  homeScore   Int?         @default(0)
+  awayScore   Int?         @default(0)
+  oddsLines   OddsLine[]
+  predictions Prediction[]
+
+  @@index([league, startsAt])
+}
+
+model OddsLine {
+  id            String   @id @default(cuid())
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  book          String
+  market        String // moneyline | pointspread | overunder
+  spread        Float?
+  moneylineHome Int?
+  moneylineAway Int?
+  total         Float?
+  updatedAt     DateTime @default(now())
+
+  @@unique([gameId, book, market], name: "gameId_book_market")
+  @@index([gameId, book])
+}
+
+model Prediction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  pick          String
+  createdAt     DateTime @default(now())
+  status        String   @default("pending")
+  pointsAwarded Int      @default(0)
+
+  @@unique([userId, gameId])
+  @@index([userId, createdAt])
+}
+
+model PointsTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int
+  reason    String
+  refId     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model IngestLog {
+  id        String   @id @default(cuid())
+  source    String
+  type      String
+  succeeded Boolean
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

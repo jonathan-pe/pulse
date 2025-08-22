@@ -7,9 +7,15 @@
     "moduleResolution": "Bundler",
     "noEmit": false,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "composite": true
   },
   "include": [
     "src"
+  ],
+  "references": [
+    {
+      "path": "../../packages/types"
+    }
   ]
 }

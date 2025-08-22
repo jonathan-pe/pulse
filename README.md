@@ -38,3 +38,20 @@ pnpm dlx shadcn@latest add button card input
 Tailwind is preconfigured; a simple `Button` is included as a placeholder until you add shadcn components.
 
 ---
+
+## Updating dependencies safely
+
+This repo includes helper scripts to update workspace dependencies and run verification steps.
+
+From the repo root:
+
+```bash
+# Update all workspace deps to their latest matching versions
+pnpm run update-deps
+
+# Run a full install, build all packages and run typechecks
+pnpm run update-and-verify
+```
+
+If anything breaks after updating, revert changes in `pnpm-lock.yaml` or restore from Git, then update individual packages selectively.
+
