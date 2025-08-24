@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 **Pulse** (this application) is a gamified sports prediction platform where users can engage in daily predictions of real-world sporting events. By leveraging sportsbook odds, the app offers a fun and competitive environment for sports enthusiasts to test their prediction skills. Users can earn points for correct predictions, participate in streak challenges, and compete on leaderboards—all without any real money, gambling, or prizes involved, ensuring compliance with laws and regulations.
 
 ## Features

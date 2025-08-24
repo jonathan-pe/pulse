@@ -1,3 +1,7 @@
+---
+applyTo: '**'
+---
+
 # Pulse — Tech Stack Design (Authoritative Guide for Code Generation)
 
 This document tells an AI code generator **exactly** what technology choices, patterns, boundaries, and conventions to use for Pulse. It is **stack‑specific** and **implementation‑ready**, while still allowing feature growth.
