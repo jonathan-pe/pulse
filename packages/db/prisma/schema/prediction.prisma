@@ -1,0 +1,22 @@
+// prediction.prisma — Prediction enum + model
+
+enum PredictionType {
+  MONEYLINE
+  SPREAD
+  TOTAL
+}
+
+model Prediction {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId      String
+  game        Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  type        PredictionType
+  pick        String
+  stakePoints Int            @default(1)
+  createdAt   DateTime       @default(now())
+  lockedAt    DateTime?
+
+  @@index([userId, gameId])
+}

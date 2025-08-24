@@ -1,0 +1,23 @@
+// user.prisma — User-related models
+
+model User {
+  // Use Clerk user id as the primary key
+  id        String   @id
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  predictions Prediction[]
+  ledger      PointsLedger[]
+}
+
+model PointsLedger {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int
+  reason    String
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

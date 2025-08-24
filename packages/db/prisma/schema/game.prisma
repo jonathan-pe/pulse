@@ -1,0 +1,41 @@
+// game.prisma — Game, GameOdds, Result
+
+model Game {
+  id       String   @id @default(cuid())
+  league   String
+  startsAt DateTime
+  homeTeam String
+  awayTeam String
+  status   String   @default("scheduled")
+
+  odds        GameOdds[]
+  predictions Prediction[]
+  result      Result?
+
+  @@index([league, startsAt])
+}
+
+model GameOdds {
+  id     String @id @default(cuid())
+  gameId String
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  provider      String
+  moneylineHome Int?
+  moneylineAway Int?
+  spread        Float?
+  total         Float?
+
+  updatedAt DateTime @default(now())
+
+  @@index([gameId, provider])
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  gameId    String   @unique
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  homeScore Int
+  awayScore Int
+  settledAt DateTime @default(now())
+}
