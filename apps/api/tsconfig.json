@@ -16,6 +16,9 @@
   "references": [
     {
       "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/db"
     }
   ]
 }

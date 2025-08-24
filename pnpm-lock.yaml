@@ -29,6 +29,9 @@ importers:
       '@clerk/express':
         specifier: ^1.7.24
         version: 1.7.24(express@5.1.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@pulse/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@pulse/types':
         specifier: workspace:*
         version: link:../../packages/types

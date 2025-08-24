@@ -1,8 +1,8 @@
-// apps/api/src/routers/user.ts
+// import { User } from '@pulse/types'
 import { protectedProcedure, router } from '../trpc'
-import { User, userSchema } from '@pulse/types'
+import { User } from '@pulse/types'
 
-export const userRouter = router({
+export const authRouter = router({
   me: protectedProcedure.query(({ ctx }) => {
     const user: Partial<User> = {
       id: ctx.userId ?? '',
