@@ -78,3 +78,5 @@ Desktop.ini
 **/tsconfig.tsbuildinfo
 # or ignore all .tsbuildinfo files:
 *.tsbuildinfo
+
+*.d.ts.map
