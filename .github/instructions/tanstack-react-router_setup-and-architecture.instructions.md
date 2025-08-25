@@ -1,5 +1,5 @@
 ---
-applyTo: '/apps/web/**'
+applyTo: 'apps/web/**'
 ---
 
 # setup-and-architecture

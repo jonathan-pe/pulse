@@ -15,7 +15,7 @@ app.use(cors({ origin: CORS_ORIGIN, credentials: true }))
 app.use(express.json())
 
 // Attach Clerk only when configured; this adds req.auth and more
-if (process.env.CLERK_FRONTEND_API || process.env.CLERK_API_KEY) {
+if (process.env.CLERK_PUBLISHABLE_KEY || process.env.CLERK_SECRET_KEY) {
   app.use(clerkMiddleware())
 } else {
   // Helpful message during local development when Clerk isn't configured

@@ -1,5 +1,5 @@
 ---
-applyTo: '/apps/web/**'
+applyTo: 'apps/web/**'
 ---
 
 # api

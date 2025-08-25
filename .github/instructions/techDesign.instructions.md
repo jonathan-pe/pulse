@@ -141,6 +141,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 
 - Tailwind utility‑first; theme via tokens.
 - shadcn/ui for primitives; avoid ad‑hoc component APIs without design tokens.
+- Default to using shadcn/ui components for new UI elements.
 
 **Naming**
 

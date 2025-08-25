@@ -1,3 +1,4 @@
+import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
@@ -6,8 +7,9 @@ export const Route = createFileRoute('/')({
 
 function Index() {
   return (
-    <div className='p-2'>
-      <h3>Welcome Home!</h3>
-    </div>
+    <>
+      <SignedIn>Signed In!</SignedIn>
+      <SignedOut>Signed Out!</SignedOut>
+    </>
   )
 }

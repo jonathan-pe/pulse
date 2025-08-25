@@ -1,5 +1,5 @@
 ---
-applyTo: '/apps/web/**'
+applyTo: 'apps/web/**'
 ---
 
 # shadcn/ui LLM UI Development Instructions (2025)
