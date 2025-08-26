@@ -27,6 +27,7 @@ pnpm dev
 ```
 
 ### shadcn/ui
+
 Once the web app is running, you can install shadcn/ui components:
 
 ```bash
@@ -55,3 +56,11 @@ pnpm run update-and-verify
 
 If anything breaks after updating, revert changes in `pnpm-lock.yaml` or restore from Git, then update individual packages selectively.
 
+## Gotchas
+
+1. For local dev, you might need to edit your `/etc/hosts` file in order to get the subdomains working
+
+```bash
+127.0.0.1      www.playpulse.test      # marketing site
+127.0.0.1      app.playpulse.test      # actual app
+```
