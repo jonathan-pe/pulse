@@ -141,7 +141,7 @@ const SignUpForm = ({ setVerifying }: SignUpFormProps) => {
           )}
         />
         <Button type='submit' disabled={loading || !isLoaded} className='w-full'>
-          {loading ? 'Signing up...' : 'Submit'}
+          {loading ? 'Signing up...' : 'Sign up'}
         </Button>
       </form>
     </Form>
