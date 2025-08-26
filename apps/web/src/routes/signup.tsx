@@ -22,17 +22,11 @@ function SignUp() {
   return (
     <div className='p-4 max-w-md mx-auto'>
       <h2 className='text-2xl mb-4'>Sign Up</h2>
-      {verifying ? (
-        <EmailVerificationForm setVerifying={setVerifying} />
-      ) : (
-        <>
-          <SignUpForm setVerifying={setVerifying} />
-          <Button variant='ghost' onClick={() => navigate({ to: '/login' })}>
-            Already have an account? Log in
-          </Button>
-          <GoogleOneTap />
-        </>
-      )}
+      {verifying ? <EmailVerificationForm setVerifying={setVerifying} /> : <SignUpForm setVerifying={setVerifying} />}
+      <Button variant='ghost' onClick={() => navigate({ to: '/login' })} className='w-full mt-2'>
+        Already have an account? Log in
+      </Button>
+      <GoogleOneTap />
     </div>
   )
 }

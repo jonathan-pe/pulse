@@ -140,7 +140,7 @@ const SignUpForm = ({ setVerifying }: SignUpFormProps) => {
             </FormItem>
           )}
         />
-        <Button type='submit' disabled={loading}>
+        <Button type='submit' disabled={loading || !isLoaded} className='w-full'>
           {loading ? 'Signing up...' : 'Submit'}
         </Button>
       </form>
