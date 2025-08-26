@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { useSignIn, GoogleOneTap, SignedOut } from '@clerk/clerk-react'
+import { useSignIn, GoogleOneTap } from '@clerk/clerk-react'
 import OAuthButton from '@/components/auth/OAuthButton'
 import { Button } from '@/components/ui/button'
 import type { OAuthStrategy } from '@clerk/types'
@@ -57,9 +57,7 @@ function Login() {
         </Button>
       </div>
 
-      <SignedOut>
-        <GoogleOneTap />
-      </SignedOut>
+      <GoogleOneTap />
     </div>
   )
 }
