@@ -1,13 +1,21 @@
 import { Button } from '@/components/ui/button'
+import ThemeToggle from '@/components/ui/theme-toggle'
 
 const WEB_APP_DEV_URL = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
 
 export default function App() {
   return (
     <div id='marketing-root' className='p-8 text-center max-w-4xl mx-auto'>
-      <header className='mb-8'>
-        <h1 className='text-4xl font-extrabold mb-2'>Pulse</h1>
-        <p className='text-lg text-muted-foreground'>Predict, compete, and climb the leaderboards — purely for fun.</p>
+      <header className='mb-8 flex items-start justify-between'>
+        <div>
+          <h1 className='text-4xl font-extrabold mb-2'>Pulse</h1>
+          <p className='text-lg text-muted-foreground'>
+            Predict, compete, and climb the leaderboards — purely for fun.
+          </p>
+        </div>
+        <div className='mt-2'>
+          <ThemeToggle />
+        </div>
       </header>
 
       <main>
