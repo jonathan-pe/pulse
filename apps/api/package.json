@@ -14,23 +14,24 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "prebuild": "pnpm -w run db:generate && pnpm --filter @pulse/types build && pnpm --filter @pulse/db build",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --clean --sourcemap",
     "start": "NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
+    "@pulse/db": "workspace:*",
+    "@pulse/types": "workspace:*",
     "@trpc/server": "^11.5.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "zod": "^4.0.17",
-    "@pulse/db": "workspace:*",
-    "@pulse/types": "workspace:*"
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "ts-node": "^10.9.1",
+    "tsup": "^8.5.0",
     "tsx": "^3.12.7"
   }
 }
