@@ -15,7 +15,7 @@
     "dev": "tsx watch src/index.ts",
     "prebuild": "pnpm -w run db:generate",
   "build": "pnpm run build:bundle && pnpm run build:types",
-  "build:bundle": "tsup",
+  "build:bundle": "tsup || tsc -p tsconfig.json",
   "build:types": "tsc -b tsconfig.json",
     "prestart": "pnpm -w run db:generate",
     "start": "NODE_ENV=production node --enable-source-maps --unhandled-rejections=strict dist/index.js"
@@ -28,12 +28,12 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "zod": "^4.0.17",
-    "@pulse/db": "workspace:*"
+  "@pulse/db": "workspace:*",
+  "tsup": "^6.6.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "tsup": "^6.6.0",
     "ts-node": "^10.9.1",
     "tsx": "^3.12.7"
   }
