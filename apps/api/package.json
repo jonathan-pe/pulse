@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc --build tsconfig.json"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
