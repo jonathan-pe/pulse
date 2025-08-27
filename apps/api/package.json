@@ -13,9 +13,11 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "prebuild": "pnpm -w run db:generate",
     "build": "pnpm run build:bundle && pnpm run build:types",
     "build:bundle": "tsup",
   "build:types": "tsc -p tsconfig.json",
+    "prestart": "pnpm -w run db:generate",
     "start": "NODE_ENV=production node --enable-source-maps --unhandled-rejections=strict dist/index.js"
   },
   "dependencies": {
