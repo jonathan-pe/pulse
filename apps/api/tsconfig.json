@@ -5,10 +5,14 @@
     "rootDir": "src",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": false,
+    "noEmit": true,
     "declaration": true,
     "declarationMap": true,
-    "composite": true
+    "composite": true,
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
   },
   "include": [
     "src/**/*"

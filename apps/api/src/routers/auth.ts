@@ -1,6 +1,6 @@
 // import { User } from '@pulse/types'
 import { protectedProcedure, router } from '../trpc'
-import { User } from '@pulse/types'
+import type { User } from '@pulse/types'
 
 export const authRouter = router({
   me: protectedProcedure.query(({ ctx }) => {

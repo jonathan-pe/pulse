@@ -3,11 +3,11 @@
   "compilerOptions": {
     "declaration": true,
     "declarationMap": false,
-    "emitDeclarationOnly": true,
+    "emitDeclarationOnly": false,
     "outDir": "dist",
     "declarationDir": "dist"
   },
   "include": [
-    "src"
+    "src/**/*"
   ]
 }
