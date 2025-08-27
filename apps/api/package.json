@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "prebuild": "pnpm -w run db:generate",
-    "build": "tsc -b tsconfig.json",
+    "build": "pnpm install; tsc -b tsconfig.json",
     "start": "NODE_ENV=production node --enable-source-maps --unhandled-rejections=strict dist/index.js"
   },
   "dependencies": {
