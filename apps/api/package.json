@@ -13,8 +13,10 @@
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc --build tsconfig.json",
-    "start": "node --enable-source-maps dist/index.js"
+    "build": "pnpm run build:bundle && pnpm run build:types",
+    "build:bundle": "tsup",
+  "build:types": "tsc -p tsconfig.json",
+    "start": "NODE_ENV=production node --enable-source-maps --unhandled-rejections=strict dist/index.js"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
@@ -28,6 +30,9 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3"
+    "@types/express": "^5.0.3",
+    "tsup": "^6.6.0",
+    "ts-node": "^10.9.1",
+    "tsx": "^3.12.7"
   }
 }
