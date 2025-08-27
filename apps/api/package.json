@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "prebuild": "pnpm -w run db:generate && pnpm --filter @pulse/types build",
-    "build": "tsc -b tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "start": "NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
