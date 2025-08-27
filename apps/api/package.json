@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
-    "@pulse/types": "workspace:*",
     "@trpc/server": "^11.5.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -30,6 +29,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@pulse/types": "workspace:*",
     "ts-node": "^10.9.1",
     "tsx": "^3.12.7"
   }
