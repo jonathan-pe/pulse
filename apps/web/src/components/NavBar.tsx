@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
-import ThemeToggle from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
+import AccountMenu from '@/components/AccountMenu'
+import ThemeToggle from '@/components/ui/theme-toggle'
 
 export default function Navbar() {
   return (
@@ -13,24 +14,15 @@ export default function Navbar() {
           </Link>
 
           <nav className='ml-6 hidden md:flex items-center gap-4 text-sm'>
-            <Link to='/' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
-              Home
-            </Link>
             <Link to='/about' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
               About
             </Link>
           </nav>
 
           <div className='ml-auto flex items-center gap-2'>
-            <div className='hidden sm:flex items-center gap-2'>
-              <Link to='/login'>
-                <Button variant='ghost' size='sm'>
-                  Log in
-                </Button>
-              </Link>
-            </div>
-
             <ThemeToggle />
+
+            <AccountMenu />
           </div>
         </div>
       </div>

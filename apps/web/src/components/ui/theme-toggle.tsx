@@ -2,6 +2,8 @@ import { Sun, Moon, Laptop } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/lib/useTheme'
 
+const THEME_TOGGLE_SIZE = 16
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
 
@@ -15,7 +17,13 @@ export function ThemeToggle() {
       onClick={() => setTheme(next as any)}
       title={`Theme: ${theme}`}
     >
-      {theme === 'light' ? <Sun size={16} /> : theme === 'dark' ? <Moon size={16} /> : <Laptop size={16} />}
+      {theme === 'light' ? (
+        <Sun size={THEME_TOGGLE_SIZE} />
+      ) : theme === 'dark' ? (
+        <Moon size={THEME_TOGGLE_SIZE} />
+      ) : (
+        <Laptop size={THEME_TOGGLE_SIZE} />
+      )}
     </Button>
   )
 }
