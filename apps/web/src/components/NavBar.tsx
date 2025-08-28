@@ -1,5 +1,4 @@
 import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
 import AccountMenu from '@/components/AccountMenu'
 import ThemeToggle from '@/components/ui/theme-toggle'
 

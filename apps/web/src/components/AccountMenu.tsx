@@ -1,5 +1,4 @@
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import ThemeToggle from '@/components/ui/theme-toggle'
 import { useUser, useClerk } from '@clerk/clerk-react'
 import { SignedOut } from '@clerk/clerk-react'
 import { Link } from '@tanstack/react-router'
