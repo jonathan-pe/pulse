@@ -1,29 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "sourceMap": true,
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "target": "es2022",
-    "lib": [
-      "es2022"
-    ]
+    "types": [
+      "node"
+    ],
+    "noEmit": true
   },
   "include": [
     "src/**/*"
-  ],
-  "references": [
-    {
-      "path": "../../packages/types"
-    },
-    {
-      "path": "../../packages/db"
-    }
-  ],
+  ]
 }
