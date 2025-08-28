@@ -12,11 +12,11 @@ export interface PulseRouterContext {
 
 export const Route = createRootRouteWithContext<PulseRouterContext>()({
   component: () => (
-    <>
+    <div className='min-h-screen mx-auto'>
       <Navbar />
       <Outlet />
       <Toaster richColors />
       <TanStackRouterDevtools />
-    </>
+    </div>
   ),
 })

@@ -11,10 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthenticatedRouteImport } from './routes/_unauthenticated'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as UnauthenticatedSignupRouteImport } from './routes/_unauthenticated/signup'
 import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
 import { Route as UnauthenticatedLoginIndexRouteImport } from './routes/_unauthenticated/login/index'
+import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/_home/index'
 import { Route as UnauthenticatedLoginSsoCallbackRouteImport } from './routes/_unauthenticated/login/sso-callback'
 
 const UnauthenticatedRoute = UnauthenticatedRouteImport.update({
@@ -23,11 +23,6 @@ const UnauthenticatedRoute = UnauthenticatedRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UnauthenticatedSignupRoute = UnauthenticatedSignupRouteImport.update({
@@ -46,6 +41,11 @@ const UnauthenticatedLoginIndexRoute =
     path: '/login/',
     getParentRoute: () => UnauthenticatedRoute,
   } as any)
+const AuthenticatedHomeIndexRoute = AuthenticatedHomeIndexRouteImport.update({
+  id: '/_home/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const UnauthenticatedLoginSsoCallbackRoute =
   UnauthenticatedLoginSsoCallbackRouteImport.update({
     id: '/login/sso-callback',
@@ -54,47 +54,46 @@ const UnauthenticatedLoginSsoCallbackRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/about': typeof AuthenticatedAboutRoute
   '/signup': typeof UnauthenticatedSignupRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
+  '/': typeof AuthenticatedHomeIndexRoute
   '/login': typeof UnauthenticatedLoginIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/about': typeof AuthenticatedAboutRoute
   '/signup': typeof UnauthenticatedSignupRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
+  '/': typeof AuthenticatedHomeIndexRoute
   '/login': typeof UnauthenticatedLoginIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_unauthenticated': typeof UnauthenticatedRouteWithChildren
   '/_authenticated/about': typeof AuthenticatedAboutRoute
   '/_unauthenticated/signup': typeof UnauthenticatedSignupRoute
   '/_unauthenticated/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
+  '/_authenticated/_home/': typeof AuthenticatedHomeIndexRoute
   '/_unauthenticated/login/': typeof UnauthenticatedLoginIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/signup' | '/login/sso-callback' | '/login'
+  fullPaths: '/about' | '/signup' | '/login/sso-callback' | '/' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/signup' | '/login/sso-callback' | '/login'
+  to: '/about' | '/signup' | '/login/sso-callback' | '/' | '/login'
   id:
     | '__root__'
-    | '/'
     | '/_authenticated'
     | '/_unauthenticated'
     | '/_authenticated/about'
     | '/_unauthenticated/signup'
     | '/_unauthenticated/login/sso-callback'
+    | '/_authenticated/_home/'
     | '/_unauthenticated/login/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   UnauthenticatedRoute: typeof UnauthenticatedRouteWithChildren
 }
@@ -113,13 +112,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AuthenticatedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_unauthenticated/signup': {
@@ -143,6 +135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnauthenticatedLoginIndexRouteImport
       parentRoute: typeof UnauthenticatedRoute
     }
+    '/_authenticated/_home/': {
+      id: '/_authenticated/_home/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedHomeIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_unauthenticated/login/sso-callback': {
       id: '/_unauthenticated/login/sso-callback'
       path: '/login/sso-callback'
@@ -155,10 +154,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -182,7 +183,6 @@ const UnauthenticatedRouteWithChildren = UnauthenticatedRoute._addFileChildren(
 )
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   UnauthenticatedRoute: UnauthenticatedRouteWithChildren,
 }
