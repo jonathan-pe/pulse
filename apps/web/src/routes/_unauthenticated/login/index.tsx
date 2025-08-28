@@ -8,7 +8,7 @@ import type { OAuthStrategy } from '@clerk/types'
 import LoginForm from '@/components/auth/LoginForm'
 import { toast } from 'sonner'
 
-export const Route = createFileRoute('/login/')({
+export const Route = createFileRoute('/_unauthenticated/login/')({
   component: Login,
 })
 

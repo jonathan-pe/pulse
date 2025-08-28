@@ -8,7 +8,7 @@ import EmailVerificationForm from '@/components/auth/EmailVerificationForm'
 
 // The project's generated route types are available at build-time; cast to any to avoid
 // a compile-time type error in the editor environment.
-export const Route = createFileRoute('/signup')({
+export const Route = createFileRoute('/_unauthenticated/signup')({
   component: SignUp,
 })
 

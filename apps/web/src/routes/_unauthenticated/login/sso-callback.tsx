@@ -2,7 +2,7 @@ import { useClerk } from '@clerk/clerk-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
-export const Route = createFileRoute('/login/sso-callback')({
+export const Route = createFileRoute('/_unauthenticated/login/sso-callback')({
   component: RouteComponent,
 })
 
