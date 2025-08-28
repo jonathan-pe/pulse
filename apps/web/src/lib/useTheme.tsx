@@ -43,6 +43,25 @@ function getCookieDomainForPlaypulse() {
   return undefined
 }
 
+// Apply the initial theme synchronously. This is safe to call before React mounts
+// and mirrors the logic used inside the hook's initial state and apply callback.
+export function applyInitialTheme() {
+  try {
+    const c = readCookie(COOKIE_NAME)
+    let t: Theme = 'system'
+    if (isValidTheme(c)) t = c
+    else {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
+      if (isValidTheme(raw)) t = raw as Theme
+    }
+
+    const root = document.documentElement
+    const isDark = t === 'dark' || (t === 'system' && getSystemPrefersDark())
+    if (isDark) root.classList.add('dark')
+    else root.classList.remove('dark')
+  } catch {}
+}
+
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {

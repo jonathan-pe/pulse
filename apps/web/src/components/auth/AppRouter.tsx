@@ -1,3 +1,5 @@
+import ErrorFallback from '@/components/ErrorFallback'
+import NotFound from '@/components/NotFound'
 import { useClerkAuth } from '@/hooks/useClerkAuth'
 
 // Import the generated route tree
@@ -30,7 +32,14 @@ const AppRouter = () => {
     )
   }
 
-  return <RouterProvider router={router} context={{ auth }} />
+  return (
+    <RouterProvider
+      router={router}
+      context={{ auth }}
+      defaultNotFoundComponent={() => <NotFound />}
+      defaultErrorComponent={() => <ErrorFallback />}
+    />
+  )
 }
 
 export default AppRouter
