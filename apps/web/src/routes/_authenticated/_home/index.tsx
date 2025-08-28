@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { SignedIn, SignedOut, SignOutButton } from '@clerk/clerk-react'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/_home/')({
