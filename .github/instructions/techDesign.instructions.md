@@ -11,7 +11,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 ## 1) Objectives
 
 - Provide a **deterministic** scaffolding and coding standard so generated code composes cleanly.
-- Ensure tight **type‑safety end‑to‑end** via tRPC + Zod.
+- Ensure tight **type‑safety end‑to‑end** via Zod.
 - Keep a **monorepo** with clear boundaries, local dev parity, and simple CI/CD.
 - Make auth **first‑class** with Clerk across web + API.
 
@@ -33,15 +33,14 @@ This document tells an AI code generator **exactly** what technology choices, pa
 - Styling: **Tailwind CSS**
 - UI: **shadcn/ui** (radix‑based components), **lucide-react** icons
 - Routing: **Tanstack Router**
-- Data fetching/state: **tRPC React** + **TanStack Query**
+- Data fetching/state: **TanStack Query**
 - Forms & validation: **react-hook-form** + **zod**
 - Auth: **Clerk** (`@clerk/clerk-react`)
 
 **Backend (apps/api)**
 
 - Runtime: **Node.js (ESM)**, Server: **Express**
-- RPC: **tRPC** (Express adapter) with **Zod** validation
-- Auth: **Clerk** (`@clerk/express`) middleware → auth in tRPC context
+- Auth: **Clerk** (`@clerk/express`) middleware → protected routes
 - CORS enabled for `apps/web` dev origin
 - Persistence: **Prisma** ORM + **PostgreSQL** (primary DB)
 - Background jobs (lightweight): in‑process schedulers or external cron → call API endpoint(s)
@@ -62,24 +61,23 @@ This document tells an AI code generator **exactly** what technology choices, pa
 ├─ tsconfig.base.json # shared TS config
 ├─ .eslintrc.cjs + .prettierrc # lint/format
 ├─ apps/
-│ ├─ api/ # Express + tRPC + Clerk + Prisma
+│ ├─ api/ # Express + Clerk + Prisma
 │ │ ├─ src/
 │ │ │ ├─ index.ts # express server bootstrap
-│ │ │ ├─ trpc/ # context, router, procedures
 │ │ │ ├─ routers/ # domain routers (odds, users, admin, etc.)
 │ │ │ ├─ integrators/ # external providers (natstat, etc.)
 │ │ │ ├─ jobs/ # orchestration entry points
 │ │ │ └─ services/ # persistence and domain services
 │ │ ├─ prisma/ # schema.prisma, migrations, seed
 │ │ └─ .env.example
-│ └─ web/ # Vite + React + Tailwind + shadcn + tRPC client
+│ └─ web/ # Vite + React + Tailwind + shadcn
 │ ├─ src/
 │ │ ├─ app/ # routing/layout shell
-│ │ ├─ components/ # ui, shared widgets, hooks
-│ │ ├─ features/ # feature folders (games, odds, auth)
-│ │ ├─ lib/ # trpc client, utils
+│ │ ├─ components/ # ui, shared widgets, hooks, route-specific components
+│ │ ├─ routes/ # route components
+│ │ ├─ lib/ # utils
 │ │ └─ styles/ # tailwind entry
-│ └─ .env.example
+│ │ └─ .env.example
 └─ packages/
 └─ config/ (optional) # shared eslint, tsconfig, tailwind presets
 
@@ -95,7 +93,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 **Frontend (`apps/web/.env`)**
 
 - `VITE_CLERK_PUBLISHABLE_KEY`
-- `VITE_API_URL` (e.g., `http://localhost:4000/trpc`)
+- `VITE_API_URL` (e.g., `http://localhost:4000`)
 
 **Backend (`apps/api/.env`)**
 
@@ -120,12 +118,6 @@ This document tells an AI code generator **exactly** what technology choices, pa
 
 - `strict` mode on; no `any` in production code.
 - Shared types live near their domain; avoid “god” types package.
-
-**tRPC**
-
-- Define a **root router** (`appRouter`) composed of domain routers.
-- Export **types** (`AppRouter`) for client inference; do **not** re‑export runtime server code to the web.
-- Use `publicProcedure` and `protectedProcedure` with a Clerk‑derived auth guard.
 
 **Validation**
 
@@ -158,7 +150,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 
 **App shell**
 
-- `App` sets up query client, ClerkProvider, router, and tRPC provider.
+- `App` sets up query client, ClerkProvider, and router.
 - Routing via Tanstack Router, `createBrowserRouter`.
 
 **Auth**
@@ -166,7 +158,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 - Gate routes with `<SignedIn>` / `<SignedOut>` (Clerk).
 - Use `<SignInButton/>`, `<UserButton/>` for defaults; can be themed.
 
-**tRPC client**
+**Express client**
 
 - Use `httpBatchLink` targeting `VITE_API_URL`.
 - Add `Authorization: Bearer <token>` header from Clerk session token when available.
@@ -188,7 +180,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 **Testing (web)**
 
 - Component tests with **Vitest** + **Testing Library**.
-- Basic route rendering tests; mock tRPC client responses.
+- Basic route rendering tests; mock express.js client responses.
 
 ---
 
@@ -197,13 +189,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 **Server**
 
 - Express app with JSON body parser and CORS configured for web origin.
-- **Clerk** middleware added _before_ tRPC to populate `req.auth`.
-- tRPC mounted at `/trpc` using the Express adapter.
-
-**tRPC context & procedures**
-
-- `createContext({ req })` returns `{ auth }` derived from Clerk middleware.
-- `publicProcedure` is unauthenticated; `protectedProcedure` requires `auth.userId`.
+- **Clerk** middleware added _before_ express routes to populate `req.auth`.
 
 **Persistence**
 
@@ -218,7 +204,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 **Testing (api)**
 
 - Unit tests: routers/procedures with mocked services.
-- Integration: spin up a test DB (or use `DATABASE_URL` pointing to ephemeral database), run Prisma migrations, test end‑to‑end tRPC calls.
+- Integration: spin up a test DB (or use `DATABASE_URL` pointing to ephemeral database), run Prisma migrations, test end‑to‑end express.js calls.
 
 ---
 
@@ -268,16 +254,10 @@ This document tells an AI code generator **exactly** what technology choices, pa
 
 ## 11) Minimal Contracts (Must‑Keep)
 
-**tRPC**
-
-- `appRouter` is the only server contract the web imports (as **types**).
-- Each domain feature has its own router in `apps/api/src/routers/*`.
-- Zod schemas define input/output; no untyped I/O.
-
 **Auth contract**
 
 - Clerk session token forwarded by the web client as a Bearer token.
-- tRPC context must expose `{ auth }` with `userId` for `protectedProcedure`.
+- Express middleware populates `req.auth` with user information.
 
 **DB contract**
 
@@ -287,7 +267,7 @@ This document tells an AI code generator **exactly** what technology choices, pa
 
 ## 12) Acceptance Criteria (for the Stack)
 
-- `pnpm dev` starts both servers; web can sign in via Clerk and call protected tRPC procedures successfully.
+- `pnpm dev` starts both servers; web can sign in via Clerk and call protected express.js procedures successfully.
 - Type inference works end‑to‑end: when a router schema changes, web auto‑types update without manual typings.
 - New features can be generated by adding:
   - a router in `apps/api/src/routers/<feature>.ts`
@@ -303,14 +283,13 @@ This document tells an AI code generator **exactly** what technology choices, pa
 - **Always** put Zod schemas next to procedures and reuse them across client/server when helpful.
 - **Do not** import runtime server code into web; only import **types** (e.g., `AppRouter`) for client inference.
 - **When adding a feature**:
-  1. Create a tRPC router file in `apps/api/src/routers/<feature>.ts`
+  1. Create an express router file in `apps/api/src/routers/<feature>.ts`
   2. Add it to `appRouter` composition.
-  3. Scaffold a feature directory in `apps/web/src/features/<feature>/` with:
-     - `routes.tsx` (route components)
+  3. Scaffold a feature directory in `apps/web/src/routes/<feature>/` with:
+     - `<feature>.tsx` (route component)
      - `queries.ts` (tRPC hooks)
      - `components/` (UI pieces using shadcn)
   4. Wire links in the app shell navigation.
-- **Keep endpoints predictable**: only `/trpc` for RPC; other admin utilities under `/admin/*` with API key.
 
 ---
 

@@ -41,6 +41,7 @@ export default tseslint.config([
           argsIgnorePattern: '^_',
         },
       ],
+      'no-console': 'warn',
       'react-refresh/only-export-components': 'warn',
     },
   },

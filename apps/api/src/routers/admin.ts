@@ -1,22 +1,37 @@
-import { router, publicProcedure } from '../trpc'
-import { z } from 'zod'
+import { Router, Request, Response } from 'express'
 import { ingestNatStat } from '../jobs/ingest-natstat'
 
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY ?? ''
+// /admin
+export const adminRouter: import('express').Router = Router()
 
-const ingestInput = z.object({
-  date: z.string().optional(),
-  league: z.string().optional(),
-  apiKey: z.string().optional(),
-})
+const LOOKAHEAD_DAYS = 7
 
-export const adminRouter = router({
-  ingestNatstat: publicProcedure.input(ingestInput).mutation(async ({ input }) => {
-    if (ADMIN_API_KEY && input.apiKey !== ADMIN_API_KEY) {
-      throw new Error('unauthorized')
-    }
+// POST /admin/ingest-natstat
+adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
+  const CRON_TOKEN = process.env.CRON_TOKEN
+  const key = req.headers['x-cron-token'] ?? req.query.cronToken ?? req.body.cronToken
+  if (CRON_TOKEN && key !== CRON_TOKEN) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' })
+  }
 
-    const res = await ingestNatStat({ date: input.date, league: input.league })
-    return res
-  }),
+  const { league } = req.body ?? {}
+  try {
+    // Build a single comma-separated date range: today -> 7 days ahead
+    const start = new Date()
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(start)
+    end.setDate(start.getDate() + LOOKAHEAD_DAYS)
+
+    const isoStart = start.toISOString().slice(0, 10)
+    const isoEnd = end.toISOString().slice(0, 10)
+    const range = `${isoStart},${isoEnd}`
+
+    console.info(`[admin] ingesting natstat range ${range} league=${league ?? 'all'}`)
+    const result = await ingestNatStat({ date: range, league })
+    return res.json({ ok: true, range, result })
+  } catch (err: any) {
+    // eslint-disable-next-line no-console
+    console.error('[admin] ingest error', err)
+    return res.status(500).json({ ok: false, error: String(err?.message ?? err) })
+  }
 })

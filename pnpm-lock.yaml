@@ -41,9 +41,6 @@ importers:
       '@pulse/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@trpc/server':
-        specifier: ^11.5.0
-        version: 11.5.0(typescript@5.9.2)
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -1737,11 +1734,6 @@ packages:
   '@tanstack/virtual-file-routes@1.131.2':
     resolution: {integrity: sha512-VEEOxc4mvyu67O+Bl0APtYjwcNRcL9it9B4HKbNgcBTIOEalhk+ufBl4kiqc8WP1sx1+NAaiS+3CcJBhrqaSRg==}
     engines: {node: '>=12'}
-
-  '@trpc/server@11.5.0':
-    resolution: {integrity: sha512-0IBtkmUCeO2ycn4K45/cqsujnlCQrSvkCo7lFDpg3kGMIPiLyLRciID5IiS7prEjRjeITa+od2aaHTIwONApVw==}
-    peerDependencies:
-      typescript: '>=5.7.2'
 
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
@@ -4995,10 +4987,6 @@ snapshots:
   '@tanstack/store@0.7.4': {}
 
   '@tanstack/virtual-file-routes@1.131.2': {}
-
-  '@trpc/server@11.5.0(typescript@5.9.2)':
-    dependencies:
-      typescript: 5.9.2
 
   '@tsconfig/node10@1.0.11': {}
 

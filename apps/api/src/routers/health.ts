@@ -1,6 +1,8 @@
 // apps/api/src/routers/health.ts
-import { publicProcedure, router } from '../trpc'
+import { Router, Request, Response } from 'express'
 
-export const healthRouter = router({
-  ping: publicProcedure.query(() => ({ pong: true })),
+export const healthRouter: import('express').Router = Router()
+
+healthRouter.get('/', (_req: Request, res: Response) => {
+  res.json({ healthy: true })
 })

@@ -1,29 +1,36 @@
-import { publicProcedure, router } from '../trpc'
+import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { prisma } from '@pulse/db'
 
-const listInput = z.object({
-  league: z.string().optional(),
-  limit: z.number().optional(),
+export const gamesRouter: import('express').Router = Router()
+
+const listInput = z.object({ league: z.string().optional(), limit: z.number().optional() })
+
+gamesRouter.get('/list-upcoming', async (req: Request, res: Response) => {
+  const parsed = listInput.safeParse({
+    league: req.query.league,
+    limit: req.query.limit ? Number(req.query.limit) : undefined,
+  })
+  if (!parsed.success) return res.status(400).json({ error: 'invalid input', details: parsed.error.format() })
+
+  const input = parsed.data
+  const where: any = { status: 'scheduled' }
+  if (input.league) where.league = input.league
+
+  const games = await prisma.game.findMany({
+    where,
+    orderBy: { startsAt: 'asc' },
+    take: input.limit ?? 50,
+    include: { odds: true },
+  })
+
+  return res.json(games)
 })
 
-export const gamesRouter = router({
-  listUpcoming: publicProcedure.input(listInput).query(async ({ input }) => {
-    const where: any = { status: 'scheduled' }
-    if (input.league) where.league = input.league
+gamesRouter.get('/by-id/:id', async (req: Request, res: Response) => {
+  const id = req.params.id
+  if (!id) return res.status(400).json({ error: 'missing id' })
 
-    const games = await prisma.game.findMany({
-      where,
-      orderBy: { startsAt: 'asc' },
-      take: input.limit ?? 50,
-      include: { odds: true },
-    })
-
-    return games
-  }),
-
-  byId: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    const game = await prisma.game.findUnique({ where: { id: input.id }, include: { odds: true, result: true } })
-    return game
-  }),
+  const game = await prisma.game.findUnique({ where: { id }, include: { odds: true, result: true } })
+  return res.json(game)
 })

@@ -1,9 +1,9 @@
-# Pulse – tRPC + Clerk starter
+# Pulse
 
 This is a minimal monorepo scaffold for **Pulse** using:
 
 - **Frontend**: Vite, React, TypeScript, Tailwind CSS, (ready for shadcn/ui)
-- **Backend**: Express + tRPC
+- **Backend**: Express
 - **Auth**: Clerk
 
 ## Quick start
