@@ -29,9 +29,9 @@ adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
     console.info(`[admin] ingesting natstat range ${range} league=${league ?? 'all'}`)
     const result = await ingestNatStat({ date: range, league })
     return res.json({ ok: true, range, result })
-  } catch (err: any) {
-    // eslint-disable-next-line no-console
-    console.error('[admin] ingest error', err)
-    return res.status(500).json({ ok: false, error: String(err?.message ?? err) })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[admin] ingest error', message)
+    return res.status(500).json({ ok: false, error: message })
   }
 })

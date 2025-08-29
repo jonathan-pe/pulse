@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
-import { prisma } from '@pulse/db'
+import { type Prisma, prisma } from '@pulse/db'
 
 export const gamesRouter: import('express').Router = Router()
 
@@ -14,7 +14,7 @@ gamesRouter.get('/list-upcoming', async (req: Request, res: Response) => {
   if (!parsed.success) return res.status(400).json({ error: 'invalid input', details: parsed.error.format() })
 
   const input = parsed.data
-  const where: any = { status: 'scheduled' }
+  const where: Prisma.GameWhereInput = { status: 'scheduled' }
   if (input.league) where.league = input.league
 
   const games = await prisma.game.findMany({

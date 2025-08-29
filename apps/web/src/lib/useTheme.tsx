@@ -39,7 +39,9 @@ function getCookieDomainForPlaypulse() {
     const parts = host.split('.')
     const idx = parts.findIndex((p) => p.includes('playpulse'))
     if (idx !== -1) return '.' + parts.slice(idx).join('.')
-  } catch {}
+  } catch {
+    console.error('error determining cookie domain for playpulse.com')
+  }
   return undefined
 }
 
@@ -59,7 +61,9 @@ export function applyInitialTheme() {
     const isDark = t === 'dark' || (t === 'system' && getSystemPrefersDark())
     if (isDark) root.classList.add('dark')
     else root.classList.remove('dark')
-  } catch {}
+  } catch {
+    console.error('error applying initial theme')
+  }
 }
 
 export function useTheme() {
@@ -86,10 +90,14 @@ export function useTheme() {
     try {
       const domain = getCookieDomainForPlaypulse()
       writeCookie(COOKIE_NAME, t, { days: 365, domain })
-    } catch {}
+    } catch {
+      console.error('error writing theme cookie')
+    }
     try {
       localStorage.setItem(STORAGE_KEY, t)
-    } catch {}
+    } catch {
+      console.error('error writing theme localStorage')
+    }
   }, [])
 
   useEffect(() => apply(theme), [theme, apply])
@@ -105,7 +113,9 @@ export function useTheme() {
           const raw = localStorage.getItem(STORAGE_KEY)
           if (isValidTheme(raw) && raw !== theme) setThemeState(raw as Theme)
         }
-      } catch {}
+      } catch {
+        console.error('error reading theme cookie')
+      }
     }
     document.addEventListener('visibilitychange', onVisibility)
 
@@ -129,11 +139,15 @@ export function useTheme() {
     }
     try {
       m?.addEventListener?.('change', onChange)
-    } catch {}
+    } catch {
+      console.error('error adding prefers-color-scheme listener')
+    }
     return () => {
       try {
         m?.removeEventListener?.('change', onChange)
-      } catch {}
+      } catch {
+        console.error('error removing prefers-color-scheme listener')
+      }
     }
   }, [theme])
 
