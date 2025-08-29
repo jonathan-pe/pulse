@@ -16,11 +16,12 @@ model Game {
 }
 
 model GameOdds {
-  id     String @id @default(cuid())
-  gameId String
-  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
-
+  id            String  @id @default(cuid())
+  gameId        String
+  game          Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
   provider      String
+  market        String?
+  book          String?
   moneylineHome Int?
   moneylineAway Int?
   spread        Float?
@@ -28,6 +29,7 @@ model GameOdds {
 
   updatedAt DateTime @default(now())
 
+  @@unique([gameId, book, market])
   @@index([gameId, provider])
 }
 
