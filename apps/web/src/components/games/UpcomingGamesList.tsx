@@ -32,7 +32,7 @@ const UpcomingGamesList = () => {
               {games.map((game) => {
                 return (
                   <TableRow key={game.id}>
-                    <TableCell>{game.startsAt}</TableCell>
+                    <TableCell>{game.startsAt.toLocaleString()}</TableCell>
                     <TableCell>{game.homeTeam}</TableCell>
                     <TableCell>{game.awayTeam}</TableCell>
                     <TableCell>{game.status}</TableCell>

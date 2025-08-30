@@ -2,6 +2,7 @@ import { initTRPC, TRPCError } from '@trpc/server'
 import type { CreateExpressContextOptions } from '@trpc/server/adapters/express'
 import { getAuth } from '@clerk/express'
 import type { AuthObject } from '@clerk/express'
+import superjson from 'superjson'
 
 export type Context = {
   auth: AuthObject | null
@@ -14,7 +15,9 @@ export const createContext = ({ req }: CreateExpressContextOptions): Context => 
   return { auth, userId: auth.userId }
 }
 
-const t = initTRPC.context<Context>().create()
+const t = initTRPC.context<Context>().create({
+  transformer: superjson,
+})
 
 const isAuthed = t.middleware(({ ctx, next }) => {
   // `userId` is extracted in `createContext` so the middleware is a simple
