@@ -9,7 +9,7 @@ const listInput = z.object({
 
 export const gamesRouter = router({
   listUpcoming: publicProcedure.input(listInput).query(async ({ input }) => {
-    const where: Prisma.GameWhereInput = { status: 'scheduled' }
+    const where: Prisma.GameWhereInput = { status: 'scheduled', startsAt: { gte: new Date() } }
     if (input.league) where.league = input.league
 
     const games = await prisma.game.findMany({

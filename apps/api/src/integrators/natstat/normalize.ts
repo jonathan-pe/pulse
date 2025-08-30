@@ -1,3 +1,4 @@
+import { natstatToUtcISOString } from '../../utils/natstat'
 import { eventIdentityKey } from './client'
 
 export type NormalizedEvent = {
@@ -46,7 +47,8 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
     if (map) {
       const items = Object.values(map)
       return items.map((it: any) => {
-        const startsAt = it['gamedate'] ?? it.gamedate ?? undefined
+        const startsAtRaw = it['gamedate'] ?? it.gamedate ?? undefined
+        const startsAt = natstatToUtcISOString(startsAtRaw)
         const home = it.home ?? it['home'] ?? it['home-team'] ?? undefined
         const away = it.visitor ?? it['visitor'] ?? it['away'] ?? undefined
         // prefer provider 'game-code' when available
@@ -66,7 +68,7 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
         const moneylineAway = parseOdd(it.vismoneyline ?? it.visMoneyline ?? it.away_price)
 
         const processedAtRaw = raw?.meta?.['processed-at'] ?? it.updatedAt ?? undefined
-        const updatedAt = processedAtRaw ? String(processedAtRaw) : undefined
+        const updatedAt = natstatToUtcISOString(processedAtRaw)
 
         return {
           provider: 'natstat' as const,
@@ -96,7 +98,8 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
     if (map) {
       const items = Object.values(map)
       return items.map((it: any) => {
-        const startsAt = it['gamedate'] ?? it.gamedate ?? undefined
+        const startsAtRaw = it['gamedate'] ?? it.gamedate ?? undefined
+        const startsAt = natstatToUtcISOString(startsAtRaw)
         const home = it.home ?? it['home'] ?? undefined
         const away = it.visitor ?? it['visitor'] ?? undefined
         const externalEventId = it['game-code'] ?? it['game_code'] ?? it.id ?? undefined
@@ -106,14 +109,14 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
 
         const parseNumber = (v: any) => {
           if (v == null || v === '') return undefined
-          const n = Number(String(v).replace(/[^0-9\-\.]/g, ''))
+          const n = Number(String(v).replace(/[^0-9.-]/g, ''))
           return Number.isFinite(n) ? n : undefined
         }
 
         const spread = parseNumber(it.spread ?? it.pointspread ?? it.pointSpread)
 
         const processedAtRaw = raw?.meta?.['processed-at'] ?? it.updatedAt ?? undefined
-        const updatedAt = processedAtRaw ? String(processedAtRaw) : undefined
+        const updatedAt = natstatToUtcISOString(processedAtRaw)
 
         return {
           provider: 'natstat' as const,
@@ -143,7 +146,8 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
     if (map) {
       const items = Object.values(map)
       return items.map((it: any) => {
-        const startsAt = it['gamedate'] ?? it.gamedate ?? undefined
+        const startsAtRaw = it['gamedate'] ?? it.gamedate ?? undefined
+        const startsAt = natstatToUtcISOString(startsAtRaw)
         const home = it.home ?? it['home'] ?? undefined
         const away = it.visitor ?? it['visitor'] ?? undefined
         const externalEventId = it['game-code'] ?? it['game_code'] ?? it.id ?? undefined
@@ -153,14 +157,14 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
 
         const parseNumber = (v: any) => {
           if (v == null || v === '') return undefined
-          const n = Number(String(v).replace(/[^0-9\-\.]/g, ''))
+          const n = Number(String(v).replace(/[^0-9.-]/g, ''))
           return Number.isFinite(n) ? n : undefined
         }
 
         const total = parseNumber(it.overunder ?? it.total ?? it.line)
 
         const processedAtRaw = raw?.meta?.['processed-at'] ?? it.updatedAt ?? undefined
-        const updatedAt = processedAtRaw ? String(processedAtRaw) : undefined
+        const updatedAt = natstatToUtcISOString(processedAtRaw)
 
         return {
           provider: 'natstat' as const,
@@ -194,7 +198,7 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
       externalEventId: it.eventId ?? it.id ?? undefined,
       identity,
       league: it.league ?? it.sport ?? undefined,
-      startsAt: it.startsAt ?? it.date ?? undefined,
+      startsAt: natstatToUtcISOString(it.startsAt ?? it.date ?? undefined),
       homeTeam: it.home ?? it.homeTeam ?? undefined,
       awayTeam: it.away ?? it.awayTeam ?? undefined,
       lines: [] as NormalizedEvent['lines'],
@@ -208,7 +212,7 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
         book: book,
         moneylineHome: it.moneylineHome ?? it.homePrice ?? undefined,
         moneylineAway: it.moneylineAway ?? it.awayPrice ?? undefined,
-        updatedAt: it.updatedAt ?? it.timestamp ?? undefined,
+        updatedAt: natstatToUtcISOString(it.updatedAt ?? it.timestamp ?? undefined),
       })
     }
 
@@ -219,7 +223,7 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
         spread: it.spread ?? it.pointSpread ?? undefined,
         spreadHomePrice: it.spreadHomePrice ?? it.homePrice ?? undefined,
         spreadAwayPrice: it.spreadAwayPrice ?? it.awayPrice ?? undefined,
-        updatedAt: it.updatedAt ?? it.timestamp ?? undefined,
+        updatedAt: natstatToUtcISOString(it.updatedAt ?? it.timestamp ?? undefined),
       })
     }
 
@@ -230,7 +234,7 @@ export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
         total: it.total ?? it.line ?? undefined,
         overPrice: it.overPrice ?? it.over ?? undefined,
         underPrice: it.underPrice ?? it.under ?? undefined,
-        updatedAt: it.updatedAt ?? it.timestamp ?? undefined,
+        updatedAt: natstatToUtcISOString(it.updatedAt ?? it.timestamp ?? undefined),
       })
     }
 
