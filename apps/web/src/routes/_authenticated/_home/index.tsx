@@ -1,3 +1,4 @@
+import UpcomingGamesList from '@/components/games/UpcomingGamesList'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/_home/')({
@@ -7,7 +8,7 @@ export const Route = createFileRoute('/_authenticated/_home/')({
 function Index() {
   return (
     <div className='max-w-7xl flex flex-col mx-auto px-4 sm:px-6 lg:px-8 py-4'>
-      <h2>Upcoming Games</h2>
+      <UpcomingGamesList />
     </div>
   )
 }

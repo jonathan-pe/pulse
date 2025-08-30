@@ -39,3 +39,5 @@ app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.info(`[api] listening on http://localhost:${PORT}`)
 })
+
+export type { AppRouter } from './trpcRouter'

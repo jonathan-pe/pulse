@@ -22,7 +22,6 @@
     "@clerk/express": "^1.7.24",
     "@pulse/db": "workspace:*",
     "@pulse/types": "workspace:*",
-    "@trpc/server": "^11.5.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
