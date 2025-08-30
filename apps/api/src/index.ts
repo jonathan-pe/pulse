@@ -2,13 +2,11 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import { clerkMiddleware, requireAuth } from '@clerk/express'
-import { healthRouter } from './routers/health'
-import { authRouter } from './routers/auth'
-import { gamesRouter } from './routers/games'
-import { predictionsRouter } from './routers/predictions'
-import { pointsRouter } from './routers/points'
-import { adminRouter } from './routers/admin'
+import { clerkMiddleware } from '@clerk/express'
+import { expressRouter } from 'apps/api/src/expressRouter'
+import * as trpcExpress from '@trpc/server/adapters/express'
+import { appRouter } from './trpcRouter'
+import { createContext } from 'apps/api/src/trpc'
 
 const PORT = Number(process.env.PORT ?? 4000)
 const CORS_ORIGIN = process.env.CORS_ORIGIN ?? 'http://localhost:5173'
@@ -28,13 +26,14 @@ if (process.env.CLERK_PUBLISHABLE_KEY || process.env.CLERK_SECRET_KEY) {
   console.info('[api] CLERK not configured - skipping clerk middleware')
 }
 
-// Mount express routers
-app.use('/health', healthRouter)
-app.use('/admin', adminRouter)
-app.use('/auth', requireAuth(), authRouter)
-app.use('/games', requireAuth(), gamesRouter)
-app.use('/predictions', requireAuth(), predictionsRouter)
-app.use('/points', requireAuth(), pointsRouter)
+app.use(expressRouter)
+app.use(
+  '/trpc',
+  trpcExpress.createExpressMiddleware({
+    router: appRouter,
+    createContext,
+  })
+)
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

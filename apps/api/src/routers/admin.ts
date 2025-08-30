@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { ingestNatStat } from '../jobs/ingest-natstat'
 
-// /admin
+// Express
 export const adminRouter: import('express').Router = Router()
 
 const LOOKAHEAD_DAYS = 7
