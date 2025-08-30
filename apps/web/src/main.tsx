@@ -4,6 +4,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { applyInitialTheme } from '@/lib/useTheme'
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -17,10 +19,14 @@ import { ClerkWrapper } from '@/auth/clerk'
 // Apply the user's saved theme synchronously so the initial loader matches it
 applyInitialTheme()
 
+const queryClient = new QueryClient()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkWrapper>
-      <AppRouter />
-    </ClerkWrapper>
+    <QueryClientProvider client={queryClient}>
+      <ClerkWrapper>
+        <AppRouter />
+      </ClerkWrapper>
+    </QueryClientProvider>
   </StrictMode>
 )
