@@ -1,7 +1,6 @@
 import { Toaster } from '@/components/ui/sonner'
 import type { useClerkAuth } from '@/hooks/useClerkAuth'
 import { createRootRouteWithContext, Outlet } from '@tanstack/react-router'
-import Navbar from '@/routes/_authenticated/-components/NavBar'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query'
 import type { AppRouter } from '@pulse/types'
@@ -18,7 +17,6 @@ export interface PulseRouterContext {
 export const Route = createRootRouteWithContext<PulseRouterContext>()({
   component: () => (
     <div className='min-h-screen mx-auto'>
-      <Navbar />
       <Outlet />
       <Toaster richColors />
       <TanStackRouterDevtools />
