@@ -1,5 +1,5 @@
-import ErrorFallback from '@/components/ErrorFallback'
-import NotFound from '@/components/NotFound'
+import ErrorFallback from '@/routes/-components/ErrorFallback'
+import NotFound from '@/routes/-components/NotFound'
 import { useClerkAuth } from '@/hooks/useClerkAuth'
 import { queryClient, trpc } from '@/lib/trpc'
 

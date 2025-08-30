@@ -12,7 +12,7 @@ if (!PUBLISHABLE_KEY) {
   throw new Error('Add your Clerk Publishable Key to the .env file')
 }
 
-import AppRouter from '@/components/auth/AppRouter'
+import AppRouter from '@/routes/_unauthenticated/-components/auth/AppRouter'
 import { ClerkWrapper } from '@/auth/clerk'
 import { queryClient } from '@/lib/trpc'
 

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import AccountMenu from '@/components/AccountMenu'
+import AccountMenu from '@/routes/_authenticated/-components/AccountMenu'
 import ThemeToggle from '@/components/ui/theme-toggle'
 
 export default function Navbar() {
