@@ -1,4 +1,4 @@
-import UpcomingGamesList from '@/routes/_authenticated/_home/-components/UpcomingGamesList'
+import UpcomingGamesTable from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/_home/')({
@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_authenticated/_home/')({
 function Index() {
   return (
     <div className='max-w-7xl flex flex-col mx-auto px-4 sm:px-6 lg:px-8 py-4'>
-      <UpcomingGamesList />
+      <UpcomingGamesTable />
     </div>
   )
 }
