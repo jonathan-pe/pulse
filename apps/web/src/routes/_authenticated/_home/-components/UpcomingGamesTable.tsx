@@ -4,6 +4,8 @@ import { type ColumnDef, type CellContext } from '@tanstack/react-table'
 import type { inferOutput } from '@trpc/tanstack-react-query'
 import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { ArrowUp, MinusIcon, PlusIcon } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import ExpandedGameTableContent from '@/routes/_authenticated/_home/-components/ExpandedGameTableContent'
@@ -20,14 +22,13 @@ const columns: ColumnDef<UpcomingGame>[] = [
         {table.getIsAllRowsExpanded() ? <MinusIcon /> : <PlusIcon />}
       </Button>
     ),
-    cell: ({ row }) => {
-      return row.getCanExpand() ? (
+    cell: ({ row }) =>
+      row.getCanExpand() ? (
         <Button
           onClick={(e) => {
-            e.stopPropagation() // prevent row onClick
-
+            e.stopPropagation()
             const toggle = row.getToggleExpandedHandler()
-            if (toggle) toggle() // invoke it
+            if (toggle) toggle()
           }}
           variant='outline'
           size='icon'
@@ -36,71 +37,136 @@ const columns: ColumnDef<UpcomingGame>[] = [
         </Button>
       ) : (
         ''
-      )
-    },
+      ),
   },
   {
     accessorKey: 'startsAt',
-    header: ({ column }) => {
-      return (
-        <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Date
-          {column.getIsSorted() === 'asc' ? (
-            <ArrowUp className='ml-2 h-4 w-4' />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
-          ) : null}
-        </Button>
-      )
-    },
+    header: ({ column }) => (
+      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Date
+        {column.getIsSorted() === 'asc' ? (
+          <ArrowUp className='ml-2 h-4 w-4' />
+        ) : column.getIsSorted() === 'desc' ? (
+          <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
+        ) : null}
+      </Button>
+    ),
     cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
       const value = row.getValue('startsAt') as string | Date
       const date = typeof value === 'string' ? new Date(value) : value
-      return date?.toLocaleString()
+      if (!date) return null
+
+      const day = date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+      const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+      return (
+        <div className='flex flex-col'>
+          <span className='font-medium'>{day}</span>
+          <span className='text-xs text-muted-foreground'>{time}</span>
+        </div>
+      )
     },
   },
   {
     accessorKey: 'homeTeam',
-    header: ({ column }) => {
+    header: ({ column }) => (
+      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Home
+        {column.getIsSorted() === 'asc' ? (
+          <ArrowUp className='ml-2 h-4 w-4' />
+        ) : column.getIsSorted() === 'desc' ? (
+          <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
+        ) : null}
+      </Button>
+    ),
+    cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
+      const team = row.getValue('homeTeam') as string
+      const initials = team
+        ? team
+            .split(' ')
+            .map((s) => s[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase()
+        : ''
+
       return (
-        <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Home
-          {column.getIsSorted() === 'asc' ? (
-            <ArrowUp className='ml-2 h-4 w-4' />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
-          ) : null}
-        </Button>
+        <div className='flex items-center gap-3'>
+          <Avatar className='bg-gradient-to-br from-indigo-500 to-violet-500'>
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <span className='font-medium'>{team}</span>
+        </div>
       )
     },
   },
   {
     accessorKey: 'awayTeam',
-    header: ({ column }) => {
+    header: ({ column }) => (
+      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Away
+        {column.getIsSorted() === 'asc' ? (
+          <ArrowUp className='ml-2 h-4 w-4' />
+        ) : column.getIsSorted() === 'desc' ? (
+          <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
+        ) : null}
+      </Button>
+    ),
+    cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
+      const team = row.getValue('awayTeam') as string
+      const initials = team
+        ? team
+            .split(' ')
+            .map((s) => s[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase()
+        : ''
+
       return (
-        <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Away
-          {column.getIsSorted() === 'asc' ? (
-            <ArrowUp className='ml-2 h-4 w-4' />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
-          ) : null}
-        </Button>
+        <div className='flex items-center gap-3'>
+          <Avatar className='bg-gradient-to-br from-emerald-400 to-green-600'>
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <span className='font-medium'>{team}</span>
+        </div>
       )
     },
   },
   {
     accessorKey: 'status',
-    header: ({ column }) => {
+    header: ({ column }) => (
+      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Status
+        {column.getIsSorted() === 'asc' ? (
+          <ArrowUp className='ml-2 h-4 w-4' />
+        ) : column.getIsSorted() === 'desc' ? (
+          <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
+        ) : null}
+      </Button>
+    ),
+    cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
+      const status = (row.getValue('status') as string) ?? 'unknown'
+      const oddsCount = (row.original as UpcomingGame).odds?.length ?? 0
+
+      const variant =
+        status === 'scheduled'
+          ? 'outline'
+          : status === 'in_progress'
+          ? 'secondary'
+          : status === 'final'
+          ? 'destructive'
+          : 'default'
+
       return (
-        <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Status
-          {column.getIsSorted() === 'asc' ? (
-            <ArrowUp className='ml-2 h-4 w-4' />
-          ) : column.getIsSorted() === 'desc' ? (
-            <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
-          ) : null}
-        </Button>
+        <div className='flex items-center gap-2'>
+          <Badge variant={variant}>{status.replace('_', ' ')}</Badge>
+          {oddsCount > 0 && (
+            <Badge variant='secondary' className='ml-1'>
+              {oddsCount} market{oddsCount > 1 ? 's' : ''}
+            </Badge>
+          )}
+        </div>
       )
     },
   },
