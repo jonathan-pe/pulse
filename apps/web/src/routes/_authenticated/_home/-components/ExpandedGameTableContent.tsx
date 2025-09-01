@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { UpcomingGame } from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
 
@@ -10,25 +11,25 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead />
-          <TableHead>Moneyline</TableHead>
-          <TableHead>Spread</TableHead>
-          <TableHead>Over/Under</TableHead>
+          <TableHead className='w-[40%]' />
+          <TableHead className='w-[20%]'>Moneyline</TableHead>
+          <TableHead className='w-[20%]'>Spread</TableHead>
+          <TableHead className='w-[20%]'>Over/Under</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         <TableRow>
           <TableHead>{game.homeTeam}</TableHead>
-          <TableHead>{odds.moneylineHome ? odds.moneylineHome : '-'}</TableHead>
-          <TableHead>{odds.spread ? odds.spread : '-'}</TableHead>
-          <TableHead>{odds.total ? `Over ${odds.total}` : '-'}</TableHead>
+          <TableHead>{odds.moneylineHome ? <Button variant='outline'>{odds.moneylineHome}</Button> : '-'}</TableHead>
+          <TableHead>{odds.spread ? <Button variant='outline'>{odds.spread}</Button> : '-'}</TableHead>
+          <TableHead>{odds.total ? <Button variant='outline'>{`Over ${odds.total}`}</Button> : '-'}</TableHead>
         </TableRow>
 
         <TableRow>
           <TableHead>{game.awayTeam}</TableHead>
-          <TableHead>{odds.moneylineAway ? odds.moneylineAway : '-'}</TableHead>
-          <TableHead>{odds.spread ? odds.spread * -1 : '-'}</TableHead>
-          <TableHead>{odds.total ? `Under ${odds.total}` : '-'}</TableHead>
+          <TableHead>{odds.moneylineAway ? <Button variant='outline'>{odds.moneylineAway}</Button> : '-'}</TableHead>
+          <TableHead>{odds.spread ? <Button variant='outline'>{odds.spread * -1}</Button> : '-'}</TableHead>
+          <TableHead>{odds.total ? <Button variant='outline'>{`Under ${odds.total}`}</Button> : '-'}</TableHead>
         </TableRow>
       </TableBody>
     </Table>
