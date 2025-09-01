@@ -15,7 +15,11 @@ export type UpcomingGame = inferOutput<typeof trpc.games.listUpcoming>[number]
 const columns: ColumnDef<UpcomingGame>[] = [
   {
     id: 'odds',
-    header: '',
+    header: ({ table }) => (
+      <Button onClick={() => table.toggleAllRowsExpanded()} variant='outline' size='icon'>
+        {table.getIsAllRowsExpanded() ? <MinusIcon /> : <PlusIcon />}
+      </Button>
+    ),
     cell: ({ row }) => {
       return row.getCanExpand() ? (
         <Button
