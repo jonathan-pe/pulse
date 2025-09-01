@@ -6,8 +6,11 @@ import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { ArrowUp, MinusIcon, PlusIcon } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
+import ExpandedGameTableContent from '@/routes/_authenticated/_home/-components/ExpandedGameTableContent'
+import { toast } from 'sonner'
+import { useEffect } from 'react'
 
-type UpcomingGame = inferOutput<typeof trpc.games.listUpcoming>[number]
+export type UpcomingGame = inferOutput<typeof trpc.games.listUpcoming>[number]
 
 const columns: ColumnDef<UpcomingGame>[] = [
   {
@@ -104,25 +107,25 @@ const UpcomingGamesTable = () => {
 
   const { isLoading, error, data } = useQuery(trpc.games.listUpcoming.queryOptions({}))
 
-  if (isLoading) return <div>Loading...</div>
-  if (error) return <div>Error loading upcoming games</div>
+  useEffect(() => {
+    if (error) {
+      toast.error('Error loading upcoming games. Please try again.', { id: 'query-upcoming-games-error' })
+    }
+  }, [error])
 
   const games = Array.isArray(data) ? data : []
 
   return (
     <div className='flex flex-col gap-4'>
-      <h2>Upcoming Games</h2>
+      <h2 className='text-lg font-semibold'>Upcoming Games</h2>
 
       <DataTable
         columns={columns}
         data={games}
         onRowClick={(row) => navigate({ to: `/games/${row.id}` })}
         rowCanExpand={(row) => row.odds.length > 0}
-        renderExpandedContent={(row) => (
-          <div>
-            Expanded content for {row.homeTeam} vs {row.awayTeam}
-          </div>
-        )}
+        renderExpandedContent={(row) => <ExpandedGameTableContent game={row} />}
+        isLoading={isLoading}
       />
     </div>
   )

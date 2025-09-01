@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Fragment, useState } from 'react'
 import { DataTablePagination } from '@/components/ui/data-table/pagination'
 import { cn } from '@/lib/utils'
+import { Loader2Icon } from 'lucide-react'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -25,6 +26,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: TData) => void
   rowCanExpand?: (row: TData) => boolean
   renderExpandedContent?: (row: TData) => React.ReactNode
+  isLoading?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -33,11 +35,12 @@ export function DataTable<TData, TValue>({
   onRowClick,
   rowCanExpand,
   renderExpandedContent,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0, //initial page index
-    pageSize: 20, //default page size
+    pageSize: 10, //default page size
   })
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [expanded, setExpanded] = useState<ExpandedState>({})
@@ -79,34 +82,44 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Fragment key={row.id}>
-                  <TableRow
-                    data-state={row.getIsSelected() && 'selected'}
-                    onClick={() => onRowClick?.(row.original)}
-                    className={cn(!!onRowClick && 'cursor-pointer')}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                  {renderExpandedContent && row.getIsExpanded() && (
-                    <TableRow>
-                      <TableCell colSpan={columns.length}>{renderExpandedContent(row.original)}</TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              ))
-            ) : (
+          {isLoading ? (
+            <TableBody>
               <TableRow>
                 <TableCell colSpan={columns.length} className='h-24 text-center'>
-                  No results.
+                  <Loader2Icon className='animate-spin mx-auto' />
                 </TableCell>
               </TableRow>
-            )}
-          </TableBody>
+            </TableBody>
+          ) : (
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <Fragment key={row.id}>
+                    <TableRow
+                      data-state={row.getIsSelected() && 'selected'}
+                      onClick={() => onRowClick?.(row.original)}
+                      className={cn(!!onRowClick && 'cursor-pointer')}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      ))}
+                    </TableRow>
+                    {renderExpandedContent && row.getIsExpanded() && (
+                      <TableRow>
+                        <TableCell colSpan={columns.length}>{renderExpandedContent(row.original)}</TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className='h-24 text-center'>
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          )}
         </Table>
       </div>
       <div className='flex items-center justify-end space-x-2 py-4'>

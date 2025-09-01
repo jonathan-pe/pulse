@@ -1,6 +1,7 @@
 import { publicProcedure, router } from '../trpc'
 import { z } from 'zod'
 import { type Prisma, prisma } from '@pulse/db'
+import { normalizeOddsForGame } from '../utils/natstat'
 
 const listInput = z.object({
   league: z.string().optional(),
@@ -19,11 +20,15 @@ export const gamesRouter = router({
       include: { odds: true },
     })
 
-    return games
+    const gamesNormalized = games.map((g) => ({ ...g, odds: normalizeOddsForGame(g.odds) }))
+
+    return gamesNormalized
   }),
 
   byId: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
     const game = await prisma.game.findUnique({ where: { id: input.id }, include: { odds: true, result: true } })
-    return game
+    if (!game) return game
+
+    return { ...game, odds: normalizeOddsForGame(game.odds) }
   }),
 })
