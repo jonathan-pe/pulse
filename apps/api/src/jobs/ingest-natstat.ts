@@ -49,6 +49,9 @@ export async function ingestNatStat({ date, league }: JobInput) {
       continue
     }
 
+    // Normalize provider-specific league codes: treat 'PFB' as 'NFL'
+    if (ev.league === 'PFB') ev.league = 'NFL'
+
     // Upsert game by deterministic unique key: use a synthetic externalId stored in a custom column? Prisma schema doesn't have externalId, so use a lookup by unique fields (league, startsAt, teams)
     const gameWhere = {
       league: ev.league ?? 'unknown',
