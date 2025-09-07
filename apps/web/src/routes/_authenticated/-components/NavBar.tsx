@@ -13,8 +13,28 @@ export default function Navbar() {
           </Link>
 
           <nav className='ml-6 hidden md:flex items-center gap-4 text-sm'>
-            <Link to='/about' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
-              About
+            <Link
+              to='/leagues/$league'
+              params={{ league: 'nfl' }}
+              className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'
+            >
+              NFL
+            </Link>
+
+            <Link
+              to='/leagues/$league'
+              params={{ league: 'mlb' }}
+              className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'
+            >
+              MLB
+            </Link>
+
+            <Link
+              to='/leagues/$league'
+              params={{ league: 'wnba' }}
+              className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'
+            >
+              WNBA
             </Link>
           </nav>
 

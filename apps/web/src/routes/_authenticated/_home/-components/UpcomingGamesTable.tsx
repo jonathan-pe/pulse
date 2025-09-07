@@ -172,10 +172,10 @@ const columns: ColumnDef<UpcomingGame>[] = [
   },
 ]
 
-const UpcomingGamesTable = () => {
+const UpcomingGamesTable = ({ league }: { league?: string }) => {
   const navigate = useNavigate()
 
-  const { isLoading, error, data } = useQuery(trpc.games.listUpcoming.queryOptions({}))
+  const { isLoading, error, data } = useQuery(trpc.games.listUpcoming.queryOptions({ league }))
 
   useEffect(() => {
     if (error) {

@@ -16,6 +16,7 @@ import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/
 import { Route as UnauthenticatedLoginIndexRouteImport } from './routes/_unauthenticated/login/index'
 import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/_home/index'
 import { Route as UnauthenticatedLoginSsoCallbackRouteImport } from './routes/_unauthenticated/login/sso-callback'
+import { Route as AuthenticatedLeaguesLeagueRouteImport } from './routes/_authenticated/leagues/$league'
 
 const UnauthenticatedRoute = UnauthenticatedRouteImport.update({
   id: '/_unauthenticated',
@@ -52,10 +53,17 @@ const UnauthenticatedLoginSsoCallbackRoute =
     path: '/login/sso-callback',
     getParentRoute: () => UnauthenticatedRoute,
   } as any)
+const AuthenticatedLeaguesLeagueRoute =
+  AuthenticatedLeaguesLeagueRouteImport.update({
+    id: '/leagues/$league',
+    path: '/leagues/$league',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/about': typeof AuthenticatedAboutRoute
   '/signup': typeof UnauthenticatedSignupRoute
+  '/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
   '/': typeof AuthenticatedHomeIndexRoute
   '/login': typeof UnauthenticatedLoginIndexRoute
@@ -63,6 +71,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/about': typeof AuthenticatedAboutRoute
   '/signup': typeof UnauthenticatedSignupRoute
+  '/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
   '/': typeof AuthenticatedHomeIndexRoute
   '/login': typeof UnauthenticatedLoginIndexRoute
@@ -73,21 +82,35 @@ export interface FileRoutesById {
   '/_unauthenticated': typeof UnauthenticatedRouteWithChildren
   '/_authenticated/about': typeof AuthenticatedAboutRoute
   '/_unauthenticated/signup': typeof UnauthenticatedSignupRoute
+  '/_authenticated/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/_unauthenticated/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
   '/_authenticated/_home/': typeof AuthenticatedHomeIndexRoute
   '/_unauthenticated/login/': typeof UnauthenticatedLoginIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/about' | '/signup' | '/login/sso-callback' | '/' | '/login'
+  fullPaths:
+    | '/about'
+    | '/signup'
+    | '/leagues/$league'
+    | '/login/sso-callback'
+    | '/'
+    | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/about' | '/signup' | '/login/sso-callback' | '/' | '/login'
+  to:
+    | '/about'
+    | '/signup'
+    | '/leagues/$league'
+    | '/login/sso-callback'
+    | '/'
+    | '/login'
   id:
     | '__root__'
     | '/_authenticated'
     | '/_unauthenticated'
     | '/_authenticated/about'
     | '/_unauthenticated/signup'
+    | '/_authenticated/leagues/$league'
     | '/_unauthenticated/login/sso-callback'
     | '/_authenticated/_home/'
     | '/_unauthenticated/login/'
@@ -149,16 +172,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnauthenticatedLoginSsoCallbackRouteImport
       parentRoute: typeof UnauthenticatedRoute
     }
+    '/_authenticated/leagues/$league': {
+      id: '/_authenticated/leagues/$league'
+      path: '/leagues/$league'
+      fullPath: '/leagues/$league'
+      preLoaderRoute: typeof AuthenticatedLeaguesLeagueRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedLeaguesLeagueRoute: typeof AuthenticatedLeaguesLeagueRoute
   AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedLeaguesLeagueRoute: AuthenticatedLeaguesLeagueRoute,
   AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
 }
 
