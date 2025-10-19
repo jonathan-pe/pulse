@@ -11,6 +11,7 @@ The fastest way to get started:
 ```
 
 This script will:
+
 1. Install all dependencies
 2. Set up environment files
 3. Start the PostgreSQL database
@@ -59,14 +60,16 @@ pnpm db:seed
 
 ### 4. Configure Clerk Authentication
 
-Get your Clerk keys from https://dashboard.clerk.com
+Get your Clerk keys from <https://dashboard.clerk.com>
 
 **In `apps/api/.env`:**
+
 ```bash
 CLERK_SECRET_KEY=sk_test_...
 ```
 
 **In `apps/web/.env`:**
+
 ```bash
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
@@ -78,22 +81,27 @@ pnpm dev
 ```
 
 This starts:
-- **API** on http://localhost:4000
-- **Web** on http://localhost:5173
-- **Marketing** on http://localhost:5174
+
+- **API** on <http://localhost:4000>
+- **Web** on <http://localhost:5173>
+- **Marketing** on <http://localhost:5174>
 
 ## 🛠️ Development Tools
 
 ### Prisma Studio
+
 Visual database editor:
+
 ```bash
 pnpm db:studio
 # Opens at http://localhost:5555
 ```
 
 ### Adminer
+
 Lightweight database UI:
-- URL: http://localhost:8080
+
+- URL: <http://localhost:8080>
 - Server: `postgres`
 - Username: `pulse`
 - Password: `pulse_dev_password`
@@ -113,7 +121,7 @@ Lightweight database UI:
 
 ## 📁 Project Structure
 
-```
+```text
 pulse/
 ├── apps/
 │   ├── api/          # Express API server
@@ -132,9 +140,11 @@ pulse/
 
 1. Edit schema in `packages/db/prisma/schema/*.prisma`
 2. Create migration:
+
    ```bash
    pnpm db:migrate
    ```
+
 3. Prisma Client is auto-generated
 4. Use updated types in your code
 
@@ -156,6 +166,7 @@ pnpm dlx shadcn@latest add button card input
 ### Port 5432 Already in Use
 
 Stop local PostgreSQL:
+
 ```bash
 # macOS
 brew services stop postgresql
@@ -200,7 +211,7 @@ pnpm -r build
 2. ✅ Verify with `./verify-setup.sh`
 3. 📝 Update Clerk keys
 4. 🚀 Run `pnpm dev`
-5. 🌐 Open http://localhost:5173
+5. 🌐 Open <http://localhost:5173>
 6. 🎉 Start building!
 
 ## 💡 Tips
@@ -220,6 +231,7 @@ pnpm -r build
 ## 🔐 Security Notes
 
 **⚠️ Important:**
+
 - Never commit `.env` files (already in `.gitignore`)
 - Default credentials are for LOCAL DEVELOPMENT ONLY
 - Use strong, unique passwords in production

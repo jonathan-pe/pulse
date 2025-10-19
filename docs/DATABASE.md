@@ -5,18 +5,22 @@ This project uses PostgreSQL as its database. For local development, we use Dock
 ## Quick Start (Local Development)
 
 ### Prerequisites
+
 - Docker and Docker Compose installed
 - pnpm installed
 
 ### Setup Steps
 
 1. **Start the PostgreSQL database**
+
    ```bash
    pnpm db:up
    ```
+
    This starts a PostgreSQL container on port 5432 and Adminer (database UI) on port 8080.
 
 2. **Copy environment files**
+
    ```bash
    # For the database package
    cp packages/db/.env.example packages/db/.env
@@ -24,28 +28,33 @@ This project uses PostgreSQL as its database. For local development, we use Dock
    # For the API
    cp apps/api/.env.example apps/api/.env
    ```
-   
+
    The default DATABASE_URL is already configured for local development:
-   ```
+
+   ```text
    postgresql://pulse:pulse_dev_password@localhost:5432/pulse_dev
    ```
 
 3. **Generate Prisma Client**
+
    ```bash
    pnpm db:generate
    ```
 
 4. **Run database migrations**
+
    ```bash
    pnpm db:migrate
    ```
 
 5. **(Optional) Seed the database**
+
    ```bash
    pnpm db:seed
    ```
 
 6. **Start developing!**
+
    ```bash
    pnpm dev
    ```
@@ -65,17 +74,20 @@ This project uses PostgreSQL as its database. For local development, we use Dock
 ## Database Tools
 
 ### Adminer (Web UI)
-- URL: http://localhost:8080
+
+- URL: <http://localhost:8080>
 - Server: `postgres`
 - Username: `pulse`
 - Password: `pulse_dev_password`
 - Database: `pulse_dev`
 
 ### Prisma Studio
+
 ```bash
 pnpm db:studio
 ```
-Opens at http://localhost:5555
+
+Opens at <http://localhost:5555>
 
 ## Docker Compose Services
 
@@ -97,6 +109,7 @@ The `docker-compose.yml` file defines:
 When you're ready to use a hosted database like Supabase:
 
 1. **Update environment variables**
+
    ```bash
    # In apps/api/.env and packages/db/.env
    DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@[PROJECT-REF].supabase.co:5432/postgres"
@@ -104,6 +117,7 @@ When you're ready to use a hosted database like Supabase:
    ```
 
 2. **Run migrations on production**
+
    ```bash
    # Make sure DATABASE_URL points to production
    pnpm db:migrate
@@ -115,7 +129,9 @@ When you're ready to use a hosted database like Supabase:
 ## Troubleshooting
 
 ### Port 5432 already in use
+
 If you have another PostgreSQL instance running:
+
 ```bash
 # Stop local PostgreSQL (macOS)
 brew services stop postgresql
@@ -126,6 +142,7 @@ ports:
 ```
 
 ### Container won't start
+
 ```bash
 # Check logs
 docker-compose logs postgres
@@ -135,6 +152,7 @@ pnpm db:reset
 ```
 
 ### Cannot connect to database
+
 ```bash
 # Check if container is running
 docker ps
@@ -144,6 +162,7 @@ docker-compose ps
 ```
 
 ### Reset database completely
+
 ```bash
 # This deletes all data and volumes
 pnpm db:reset
@@ -168,7 +187,7 @@ pnpm db:migrate
 
 ## Security Notes
 
-**⚠️ These credentials are for LOCAL DEVELOPMENT ONLY**
+### These credentials are for LOCAL DEVELOPMENT ONLY
 
 - Never commit `.env` files to git (already in `.gitignore`)
 - Never use these credentials in production

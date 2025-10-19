@@ -17,6 +17,7 @@ This guide walks you through migrating from the local PostgreSQL database to Sup
    - **Direct connection** (for `DIRECT_URL`) - Uses port 5432
 
 Example:
+
 ```bash
 # Connection pooling (for queries)
 postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
@@ -37,7 +38,8 @@ DATABASE_URL="postgresql://postgres.[project-ref]:[password]@aws-0-[region].pool
 DIRECT_URL="postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres"
 ```
 
-**Important:** 
+**Important:**
+
 - Replace `[password]` with your actual database password
 - Replace `[project-ref]` with your Supabase project reference
 - Replace `[region]` with your project's region
@@ -78,6 +80,7 @@ psql "postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgre
 ### Option C: Fresh Start
 
 Just seed your Supabase database:
+
 ```bash
 # With DATABASE_URL pointing to Supabase
 pnpm db:seed
@@ -88,7 +91,8 @@ pnpm db:seed
 For your deployed API (Vercel, Railway, etc.):
 
 1. Add environment variables in your hosting platform:
-   ```
+
+   ```text
    DATABASE_URL=<supabase-pooler-url>
    DIRECT_URL=<supabase-direct-url>
    ```
@@ -104,6 +108,7 @@ You can still use local PostgreSQL for development:
    - `.env.local` - Points to local database (for development)
 
 2. Use `.env.local` when developing:
+
    ```bash
    # In packages/db and apps/api
    cp .env .env.production
