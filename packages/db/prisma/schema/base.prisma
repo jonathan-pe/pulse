@@ -3,7 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // Optional: Only needed for connection pooling (e.g., Supabase, PgBouncer)
+  // For local dev, this can be omitted from your .env file
+  // directUrl = env("DIRECT_URL")
 }

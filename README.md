@@ -4,26 +4,65 @@ This is a minimal monorepo scaffold for **Pulse** using:
 
 - **Frontend**: Vite, React, TypeScript, Tailwind CSS, (ready for shadcn/ui)
 - **Backend**: Express
+- **Database**: PostgreSQL with Prisma ORM
 - **Auth**: Clerk
 
 ## Quick start
 
+### Automated Setup (Recommended)
+
 ```bash
-# 1) Install dependencies (use pnpm preferred)
+# Run the setup script - it handles everything!
+./setup-dev.sh
+```
+
+This script will:
+
+- Install all dependencies
+- Copy environment files
+- Start the PostgreSQL database
+- Run migrations
+- Optionally seed the database
+
+### Manual Setup
+
+```bash
+# 1) Install dependencies
 pnpm install
 
 # 2) Copy env files
+cp packages/db/.env.example packages/db/.env
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 
-# 3) Fill your Clerk keys
+# 3) Start PostgreSQL database
+pnpm db:up
+
+# 4) Run database migrations
+pnpm db:migrate
+
+# 5) Fill your Clerk keys
 #   - apps/api/.env -> CLERK_SECRET_KEY=sk_...
 #   - apps/web/.env -> VITE_CLERK_PUBLISHABLE_KEY=pk_...
 
-# 4) Dev servers
+# 6) Start dev servers
 pnpm dev
 # API on http://localhost:4000
 # Web on http://localhost:5173
+```
+
+## Database Management
+
+See [DATABASE.md](./DATABASE.md) for comprehensive database documentation.
+
+Quick commands:
+
+```bash
+pnpm db:up          # Start PostgreSQL container
+pnpm db:down        # Stop PostgreSQL container
+pnpm db:migrate     # Run migrations
+pnpm db:studio      # Open Prisma Studio
+pnpm db:seed        # Seed the database
 ```
 
 ### shadcn/ui
