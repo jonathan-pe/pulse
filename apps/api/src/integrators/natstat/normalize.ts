@@ -33,8 +33,12 @@ export type NormalizedEvent = {
 /**
  * Normalize the unified /forecasts endpoint response.
  * This endpoint provides all markets (moneyline, spread, over/under) in one response.
+ *
+ * @param raw - The raw forecast response from NatStat API
+ * @param league - The league code (e.g., 'NFL', 'NBA')
+ * @param teamCodeToName - Optional map of team codes to full team names from the database
  */
-export function normalizeForecasts(raw: any, league?: string): NormalizedEvent[] {
+export function normalizeForecasts(raw: any, league?: string, teamCodeToName?: Map<string, string>): NormalizedEvent[] {
   // Extract forecasts map: { forecast_17118: {...}, forecast_17119: {...}, ... }
   const forecasts = raw?.forecasts
   if (!forecasts || typeof forecasts !== 'object') {
@@ -45,11 +49,17 @@ export function normalizeForecasts(raw: any, league?: string): NormalizedEvent[]
   const normalizedLeague = league?.toUpperCase() === 'PFB' ? 'NFL' : league?.toUpperCase()
 
   return items.map(([forecastId, forecast]: [string, any]) => {
-    // Parse basic game info
-    const home = forecast.home ?? forecast['home-code']
-    const away = forecast.visitor ?? forecast['visitor-code']
+    // Parse team codes first
     const homeCode = forecast['home-code']
     const awayCode = forecast['visitor-code']
+
+    // Use team codes to look up full team names from database if available
+    // Otherwise fall back to the names provided in the forecast data
+    const homeFromApi = forecast.home ?? homeCode
+    const awayFromApi = forecast.visitor ?? awayCode
+
+    const home = (homeCode && teamCodeToName?.get(homeCode)) ?? homeFromApi
+    const away = (awayCode && teamCodeToName?.get(awayCode)) ?? awayFromApi
     const startsAtRaw = forecast.gamedate
     const startsAt = natstatToUtcISOString(startsAtRaw)
 

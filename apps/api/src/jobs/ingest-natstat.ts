@@ -27,14 +27,17 @@ export async function ingestNatStat({ date, league }: JobInput) {
   const natstatLeague = leagueMap[league.toUpperCase()] ?? league.toLowerCase()
   const normalizedLeague = league.toUpperCase()
 
-  // Load team ID to code mapping from database
-  // This is used to determine which team is favored for spread adjustments
+  // Load team data from database
+  // This is used for:
+  // 1. Mapping team codes to full team names for normalization
+  // 2. Mapping team IDs to codes for spread adjustments
   const teams = await prisma.natStatTeam.findMany({
     where: { league: normalizedLeague },
-    select: { id: true, code: true },
+    select: { id: true, code: true, name: true },
   })
 
   const teamIdToCode = new Map(teams.map((t) => [t.id, t.code]))
+  const teamCodeToName = new Map(teams.map((t) => [t.code, t.name]))
 
   // Parse date parameter - can be single date or range "start,end"
   const dates: string[] = []
@@ -70,8 +73,8 @@ export async function ingestNatStat({ date, league }: JobInput) {
       // 1) Load forecasts from unified endpoint
       const forecastsRaw = await loadForecasts({ league: natstatLeague, date: currentDate })
 
-      // 2) Normalize the response
-      let events = normalizeForecasts(forecastsRaw, league)
+      // 2) Normalize the response with team code to name mapping
+      let events = normalizeForecasts(forecastsRaw, league, teamCodeToName)
 
       // 3) Adjust spread signs based on favorite team
       events = adjustSpreadSigns(events, teamIdToCode)
