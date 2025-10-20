@@ -133,43 +133,6 @@ const columns: ColumnDef<UpcomingGame>[] = [
       )
     },
   },
-  {
-    accessorKey: 'status',
-    header: ({ column }) => (
-      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-        Status
-        {column.getIsSorted() === 'asc' ? (
-          <ArrowUp className='ml-2 h-4 w-4' />
-        ) : column.getIsSorted() === 'desc' ? (
-          <ArrowUp className='ml-2 h-4 w-4 rotate-180' />
-        ) : null}
-      </Button>
-    ),
-    cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
-      const status = (row.getValue('status') as string) ?? 'unknown'
-      const oddsCount = (row.original as UpcomingGame).odds?.length ?? 0
-
-      const variant =
-        status === 'scheduled'
-          ? 'outline'
-          : status === 'in_progress'
-          ? 'secondary'
-          : status === 'final'
-          ? 'destructive'
-          : 'default'
-
-      return (
-        <div className='flex items-center gap-2'>
-          <Badge variant={variant}>{status.replace('_', ' ')}</Badge>
-          {oddsCount > 0 && (
-            <Badge variant='secondary' className='ml-1'>
-              {oddsCount} market{oddsCount > 1 ? 's' : ''}
-            </Badge>
-          )}
-        </div>
-      )
-    },
-  },
 ]
 
 const UpcomingGamesTable = ({ league }: { league?: string }) => {
