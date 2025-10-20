@@ -54,7 +54,7 @@ export function normalizeForecasts(raw: any, league?: string): NormalizedEvent[]
     const startsAt = natstatToUtcISOString(startsAtRaw)
 
     // Extract status and scores
-    const status = forecast.gamestatus ?? 'scheduled'
+    const status = typeof forecast.gamestatus === 'string' ? forecast.gamestatus : 'scheduled'
     const homeScore = forecast['score-home'] ? parseInt(forecast['score-home'], 10) : undefined
     const awayScore = forecast['score-vis'] ? parseInt(forecast['score-vis'], 10) : undefined
 
