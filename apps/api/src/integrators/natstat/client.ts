@@ -58,6 +58,43 @@ async function fetchWithRetry(url: string, opts: any = {}, retries = 1): Promise
 
 export type RawNatStatLine = any
 
+/**
+ * Load forecasts from NatStat's unified /forecasts endpoint.
+ * This endpoint provides moneyline, spread, and over/under all in one response.
+ * @param league - Sport code (e.g., 'pfb' for NFL, 'nba', 'mlb', 'nhl')
+ * @param date - Date in YYYY-MM-DD format (optional, defaults to today)
+ */
+export async function loadForecasts({ league, date }: { league: string; date?: string }): Promise<any> {
+  // Build URL: https://api3.natst.at/{API_KEY}/forecasts/{league}/{date}
+  const parts = [NATSTAT_BASE_URL, NATSTAT_API_KEY, 'forecasts', league.toLowerCase()]
+  if (date) parts.push(date)
+
+  const url = parts.join('/')
+
+  const json = await fetchWithRetry(url, { method: 'GET' })
+
+  // Return the full JSON payload
+  return json
+}
+
+/**
+ * Load team codes from NatStat's /teamcodes endpoint.
+ * This endpoint provides team IDs, codes, names, and metadata.
+ * @param league - Sport code (e.g., 'pfb' for NFL, 'nba', 'mlb', 'nhl')
+ */
+export async function loadTeamCodes({ league }: { league: string }): Promise<any> {
+  // Build URL: https://api3.natst.at/{API_KEY}/teamcodes/{league}
+  const url = `${NATSTAT_BASE_URL}/${NATSTAT_API_KEY}/teamcodes/${league.toLowerCase()}`
+
+  const json = await fetchWithRetry(url, { method: 'GET' })
+
+  // Return the full JSON payload
+  return json
+}
+
+/**
+ * @deprecated Use loadForecasts instead - the /forecasts endpoint provides all markets in one call
+ */
 export async function loadMarket({
   market,
   league,

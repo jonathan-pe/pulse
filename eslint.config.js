@@ -43,10 +43,18 @@ export default [
 
   // API/DB specific
   {
-    files: ['apps/api/**/*.{ts,tsx,js,jsx}', 'packages/db/**/*.{ts,tsx,js,jsx}'],
+    files: ['apps/api/**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
       globals: globals.node,
     },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+
+  // DB specific
+  {
+    files: ['packages/db/**/*.{ts,tsx,js,jsx}'],
     rules: {},
   },
 

@@ -6,238 +6,221 @@ export type NormalizedEvent = {
   externalEventId?: string
   identity: string
   league?: string
-  startsAt?: string
+  startsAt?: string | null
   homeTeam?: string
   awayTeam?: string
+  homeTeamCode?: string // Team code for home team
+  awayTeamCode?: string // Team code for away team
+  status?: string
+  homeScore?: number
+  awayScore?: number
   lines: Array<{
     market: 'moneyline' | 'pointspread' | 'overunder'
     book: string
     moneylineHome?: number
     moneylineAway?: number
     spread?: number
+    spreadFavouriteId?: string // NatStat team ID of the favorite (for post-processing)
     spreadHomePrice?: number
     spreadAwayPrice?: number
     total?: number
     overPrice?: number
     underPrice?: number
-    updatedAt?: string
+    updatedAt?: string | null
   }>
 }
 
-export function normalizeMarket(raw: any, market: string): NormalizedEvent[] {
-  // Helper to extract a map of game objects from either raw.<plural> or raw itself
-  const extractMap = (pluralKey: string) => {
-    if (raw?.[pluralKey] && typeof raw[pluralKey] === 'object') return raw[pluralKey]
-    // if raw looks like a map of games (keys like game_123)
-    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-      const keys = Object.keys(raw)
-      if (keys.length > 0) {
-        const first = raw[keys[0]]
-        if (first && typeof first === 'object' && ('game-code' in first || 'visitor' in first || 'home' in first)) {
-          return raw
-        }
-      }
-    }
-    return null
+/**
+ * Normalize the unified /forecasts endpoint response.
+ * This endpoint provides all markets (moneyline, spread, over/under) in one response.
+ */
+export function normalizeForecasts(raw: any, league?: string): NormalizedEvent[] {
+  // Extract forecasts map: { forecast_17118: {...}, forecast_17119: {...}, ... }
+  const forecasts = raw?.forecasts
+  if (!forecasts || typeof forecasts !== 'object') {
+    return []
   }
 
-  // NatStat moneyline payload shape: { moneylines: { moneyline_123: { ... } }, ... }
-  if (market === 'moneyline') {
-    const map = extractMap('moneylines')
-    if (map) {
-      const items = Object.values(map)
-      return items.map((it: any) => {
-        const startsAtRaw = it['gamedate'] ?? it.gamedate ?? undefined
-        const startsAt = natstatToUtcISOString(startsAtRaw)
-        const home = it.home ?? it['home'] ?? it['home-team'] ?? undefined
-        const away = it.visitor ?? it['visitor'] ?? it['away'] ?? undefined
-        // prefer provider 'game-code' when available
-        const externalEventId = it['game-code'] ?? it['game_code'] ?? it.id ?? undefined
+  const items = Object.entries(forecasts)
+  const normalizedLeague = league?.toUpperCase() === 'PFB' ? 'NFL' : league?.toUpperCase()
 
-        const identity = eventIdentityKey({ startsAt, home, away, league: raw?.query?.scope ?? it.league })
+  return items.map(([forecastId, forecast]: [string, any]) => {
+    // Parse basic game info
+    const home = forecast.home ?? forecast['home-code']
+    const away = forecast.visitor ?? forecast['visitor-code']
+    const homeCode = forecast['home-code']
+    const awayCode = forecast['visitor-code']
+    const startsAtRaw = forecast.gamedate
+    const startsAt = natstatToUtcISOString(startsAtRaw)
 
-        const book = raw?.query?.uri ?? raw?.query?.endpoint ?? raw?.source ?? 'natstat'
+    // Extract status and scores
+    const status = forecast.gamestatus ?? 'scheduled'
+    const homeScore = forecast['score-home'] ? parseInt(forecast['score-home'], 10) : undefined
+    const awayScore = forecast['score-vis'] ? parseInt(forecast['score-vis'], 10) : undefined
 
+    // Generate identity key
+    const identity = eventIdentityKey({
+      startsAt,
+      home,
+      away,
+      league: normalizedLeague,
+    })
+
+    // External event ID from the forecast key (e.g., "forecast_17118" -> "17118")
+    const externalEventId = forecastId.replace('forecast_', '')
+
+    // Use the API metadata for the book/source
+    const book = raw?.query?.uri ?? raw?.meta?.api ?? 'natstat'
+    const processedAt = raw?.meta?.['processed-at']
+    const updatedAt = natstatToUtcISOString(processedAt)
+
+    const lines: NormalizedEvent['lines'] = []
+
+    // Parse forecast data
+    const forecastData = forecast.forecast
+    if (forecastData) {
+      // Parse moneyline
+      const moneylineData = forecastData.moneyline
+      if (moneylineData) {
         const parseOdd = (v: any) => {
           if (v == null) return undefined
-          const n = parseInt(String(v).replace(/[^0-9\-+]/g, ''), 10)
+          const str = String(v).replace(/[^0-9\-+]/g, '')
+          const n = parseInt(str, 10)
           return Number.isNaN(n) ? undefined : n
         }
 
-        const moneylineHome = parseOdd(it.homemoneyline ?? it.homeMoneyline ?? it.home_price)
-        const moneylineAway = parseOdd(it.vismoneyline ?? it.visMoneyline ?? it.away_price)
+        const moneylineHome = parseOdd(moneylineData.homemoneyline)
+        const moneylineAway = parseOdd(moneylineData.vismoneyline)
 
-        const processedAtRaw = raw?.meta?.['processed-at'] ?? it.updatedAt ?? undefined
-        const updatedAt = natstatToUtcISOString(processedAtRaw)
-
-        return {
-          provider: 'natstat' as const,
-          externalEventId: externalEventId ? String(externalEventId) : undefined,
-          identity,
-          league: raw?.query?.scope ?? it.league ?? undefined,
-          startsAt,
-          homeTeam: home,
-          awayTeam: away,
-          lines: [
-            {
-              market: 'moneyline',
-              book: String(book ?? 'natstat'),
-              moneylineHome,
-              moneylineAway,
-              updatedAt,
-            },
-          ],
+        if (moneylineHome !== undefined || moneylineAway !== undefined) {
+          lines.push({
+            market: 'moneyline',
+            book: String(book),
+            moneylineHome,
+            moneylineAway,
+            updatedAt,
+          })
         }
-      })
-    }
-  }
+      }
 
-  // NatStat point spread payload: { spreads: { spread_123: { ... } } }
-  if (market === 'pointspread') {
-    const map = extractMap('spreads')
-    if (map) {
-      const items = Object.values(map)
-      return items.map((it: any) => {
-        const startsAtRaw = it['gamedate'] ?? it.gamedate ?? undefined
-        const startsAt = natstatToUtcISOString(startsAtRaw)
-        const home = it.home ?? it['home'] ?? undefined
-        const away = it.visitor ?? it['visitor'] ?? undefined
-        const externalEventId = it['game-code'] ?? it['game_code'] ?? it.id ?? undefined
-
-        const identity = eventIdentityKey({ startsAt, home, away, league: raw?.query?.scope ?? it.league })
-        const book = raw?.query?.uri ?? raw?.query?.endpoint ?? raw?.source ?? 'natstat'
-
+      // Parse spread (point spread)
+      // IMPORTANT: We always store the spread relative to the home team.
+      // NatStat provides the spread and a `favourite` team ID in the spread object.
+      // We need to determine if the home or away team is favored, then adjust the sign.
+      // - If home team is favored: spread should be negative (e.g., -3.5)
+      // - If away team is favored: spread should be positive (e.g., +3.5)
+      const spreadData = forecastData.spread
+      if (spreadData) {
         const parseNumber = (v: any) => {
           if (v == null || v === '') return undefined
           const n = Number(String(v).replace(/[^0-9.-]/g, ''))
           return Number.isFinite(n) ? n : undefined
         }
 
-        const spread = parseNumber(it.spread ?? it.pointspread ?? it.pointSpread)
+        let spread = parseNumber(spreadData.spread)
 
-        const processedAtRaw = raw?.meta?.['processed-at'] ?? it.updatedAt ?? undefined
-        const updatedAt = natstatToUtcISOString(processedAtRaw)
+        if (spread !== undefined) {
+          // Store the raw favourite ID for later processing
+          // The job will look up team codes and adjust spread sign accordingly
+          const favouriteId = spreadData.favourite
 
-        return {
-          provider: 'natstat' as const,
-          externalEventId: externalEventId ? String(externalEventId) : undefined,
-          identity,
-          league: raw?.query?.scope ?? it.league ?? undefined,
-          startsAt,
-          homeTeam: home,
-          awayTeam: away,
-          lines: [
-            {
-              market: 'pointspread',
-              book: String(book ?? 'natstat'),
-              spread,
-              // NatStat pointspread responses often don't include prices in this endpoint
-              updatedAt,
-            },
-          ],
+          lines.push({
+            market: 'pointspread',
+            book: String(book),
+            spread,
+            spreadFavouriteId: favouriteId, // Store for later processing
+            updatedAt,
+          })
         }
-      })
-    }
-  }
+      }
 
-  // NatStat over/under payload: { overunders: { game_123: { ... } } }
-  if (market === 'overunder' || market === 'total') {
-    const map = extractMap('overunders')
-    if (map) {
-      const items = Object.values(map)
-      return items.map((it: any) => {
-        const startsAtRaw = it['gamedate'] ?? it.gamedate ?? undefined
-        const startsAt = natstatToUtcISOString(startsAtRaw)
-        const home = it.home ?? it['home'] ?? undefined
-        const away = it.visitor ?? it['visitor'] ?? undefined
-        const externalEventId = it['game-code'] ?? it['game_code'] ?? it.id ?? undefined
-
-        const identity = eventIdentityKey({ startsAt, home, away, league: raw?.query?.scope ?? it.league })
-        const book = raw?.query?.uri ?? raw?.query?.endpoint ?? raw?.source ?? 'natstat'
-
+      // Parse over/under (total)
+      const ouData = forecastData.overunder
+      if (ouData) {
         const parseNumber = (v: any) => {
           if (v == null || v === '') return undefined
           const n = Number(String(v).replace(/[^0-9.-]/g, ''))
           return Number.isFinite(n) ? n : undefined
         }
 
-        const total = parseNumber(it.overunder ?? it.total ?? it.line)
+        const total = parseNumber(ouData.overunder)
 
-        const processedAtRaw = raw?.meta?.['processed-at'] ?? it.updatedAt ?? undefined
-        const updatedAt = natstatToUtcISOString(processedAtRaw)
-
-        return {
-          provider: 'natstat' as const,
-          externalEventId: externalEventId ? String(externalEventId) : undefined,
-          identity,
-          league: raw?.query?.scope ?? it.league ?? undefined,
-          startsAt,
-          homeTeam: home,
-          awayTeam: away,
-          lines: [
-            {
-              market: 'overunder',
-              book: String(book ?? 'natstat'),
-              total,
-              // prices for O/U may be absent in this endpoint
-              updatedAt,
-            },
-          ],
+        if (total !== undefined) {
+          lines.push({
+            market: 'overunder',
+            book: String(book),
+            total,
+            // NatStat forecasts don't typically include over/under prices
+            updatedAt,
+          })
         }
-      })
+      }
     }
-  }
 
-  // Fallback: best-effort mapping; provider payloads vary. Expect `events` or root array.
-  const items = Array.isArray(raw) ? raw : raw?.events ?? raw?.data ?? []
-
-  return items.map((it: any) => {
-    const identity = eventIdentityKey(it)
-    const base = {
+    return {
       provider: 'natstat' as const,
-      externalEventId: it.eventId ?? it.id ?? undefined,
+      externalEventId,
       identity,
-      league: it.league ?? it.sport ?? undefined,
-      startsAt: natstatToUtcISOString(it.startsAt ?? it.date ?? undefined),
-      homeTeam: it.home ?? it.homeTeam ?? undefined,
-      awayTeam: it.away ?? it.awayTeam ?? undefined,
-      lines: [] as NormalizedEvent['lines'],
+      league: normalizedLeague,
+      startsAt: startsAt ?? undefined,
+      homeTeam: home,
+      awayTeam: away,
+      homeTeamCode: homeCode,
+      awayTeamCode: awayCode,
+      status,
+      homeScore,
+      awayScore,
+      lines,
     }
+  })
+}
 
-    const book = it.book ?? it.source ?? it.provider ?? 'natstat'
+/**
+ * Helper to adjust spread signs based on which team is favored.
+ * Spreads should always be stored relative to the home team:
+ * - Negative spread = home team is favored
+ * - Positive spread = away team is favored (home is underdog)
+ *
+ * @param teamIdToCode - Map of NatStat team IDs to team codes
+ */
+export function adjustSpreadSigns(events: NormalizedEvent[], teamIdToCode: Map<string, string>): NormalizedEvent[] {
+  return events.map((event) => {
+    const adjustedLines = event.lines.map((line) => {
+      if (line.market !== 'pointspread' || line.spread === undefined || !line.spreadFavouriteId) {
+        return line
+      }
 
-    if (market === 'moneyline') {
-      base.lines.push({
-        market: 'moneyline',
-        book: book,
-        moneylineHome: it.moneylineHome ?? it.homePrice ?? undefined,
-        moneylineAway: it.moneylineAway ?? it.awayPrice ?? undefined,
-        updatedAt: natstatToUtcISOString(it.updatedAt ?? it.timestamp ?? undefined),
-      })
+      // Look up the favorite team's code
+      const favouriteCode = teamIdToCode.get(line.spreadFavouriteId)
+      if (!favouriteCode) {
+        // Can't determine favorite, keep spread as-is
+        return line
+      }
+
+      const homeIsFavorite = favouriteCode === event.homeTeamCode
+      const awayIsFavorite = favouriteCode === event.awayTeamCode
+
+      let adjustedSpread = line.spread
+
+      if (homeIsFavorite) {
+        // Home team is favored, spread should be negative
+        adjustedSpread = -Math.abs(line.spread)
+      } else if (awayIsFavorite) {
+        // Away team is favored, spread should be positive (home is underdog)
+        adjustedSpread = Math.abs(line.spread)
+      }
+
+      // Remove the favouriteId from the final line
+      const { spreadFavouriteId, ...rest } = line
+      return {
+        ...rest,
+        spread: adjustedSpread,
+      }
+    })
+
+    return {
+      ...event,
+      lines: adjustedLines,
     }
-
-    if (market === 'pointspread') {
-      base.lines.push({
-        market: 'pointspread',
-        book: book,
-        spread: it.spread ?? it.pointSpread ?? undefined,
-        spreadHomePrice: it.spreadHomePrice ?? it.homePrice ?? undefined,
-        spreadAwayPrice: it.spreadAwayPrice ?? it.awayPrice ?? undefined,
-        updatedAt: natstatToUtcISOString(it.updatedAt ?? it.timestamp ?? undefined),
-      })
-    }
-
-    if (market === 'overunder' || market === 'total') {
-      base.lines.push({
-        market: 'overunder',
-        book: book,
-        total: it.total ?? it.line ?? undefined,
-        overPrice: it.overPrice ?? it.over ?? undefined,
-        underPrice: it.underPrice ?? it.under ?? undefined,
-        updatedAt: natstatToUtcISOString(it.updatedAt ?? it.timestamp ?? undefined),
-      })
-    }
-
-    return base
   })
 }

@@ -16,7 +16,9 @@
     "test": "vitest run",
     "prebuild": "pnpm -w run db:generate && pnpm --filter @pulse/types build && pnpm --filter @pulse/db build",
     "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --clean --sourcemap",
-    "start": "NODE_ENV=production node dist/index.js"
+    "start": "NODE_ENV=production node dist/index.js",
+    "ingest": "tsx src/cli/ingest.ts",
+    "sync-teams": "tsx src/cli/sync-teams.ts"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",
