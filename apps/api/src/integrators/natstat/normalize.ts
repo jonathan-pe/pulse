@@ -20,7 +20,7 @@ export type NormalizedEvent = {
     moneylineHome?: number
     moneylineAway?: number
     spread?: number
-    spreadFavouriteId?: string // NatStat team ID of the favorite (for post-processing)
+    spreadFavouriteId?: string // NatStat team ID that the spread applies to (for post-processing)
     spreadHomePrice?: number
     spreadAwayPrice?: number
     total?: number
@@ -105,10 +105,10 @@ export function normalizeForecasts(raw: any, league?: string): NormalizedEvent[]
 
       // Parse spread (point spread)
       // IMPORTANT: We always store the spread relative to the home team.
-      // NatStat provides the spread and a `favourite` team ID in the spread object.
-      // We need to determine if the home or away team is favored, then adjust the sign.
-      // - If home team is favored: spread should be negative (e.g., -3.5)
-      // - If away team is favored: spread should be positive (e.g., +3.5)
+      // NatStat provides:
+      // - spread: The spread value (e.g., +5.5 or -3.5)
+      // - favourite: The team ID that this spread applies to
+      // The adjustSpreadSigns function will convert it to be relative to home team
       const spreadData = forecastData.spread
       if (spreadData) {
         const parseNumber = (v: any) => {
@@ -176,10 +176,20 @@ export function normalizeForecasts(raw: any, league?: string): NormalizedEvent[]
 }
 
 /**
- * Helper to adjust spread signs based on which team is favored.
- * Spreads should always be stored relative to the home team:
- * - Negative spread = home team is favored
- * - Positive spread = away team is favored (home is underdog)
+ * Helper to adjust spreads to be relative to the home team.
+ *
+ * NatStat provides:
+ * - `spread`: The spread value (e.g., +5.5 or -3.5)
+ * - `favourite`: The team ID that the spread applies to
+ *
+ * We need to convert this to always be relative to the home team:
+ * - If the spread applies to the home team, use it as-is
+ * - If the spread applies to the away team, negate it
+ *
+ * Example:
+ * - Spread: +5.5, Favourite: Away Team → Home team gets -5.5 (home is underdog by 5.5)
+ * - Spread: -3.5, Favourite: Home Team → Home team gets -3.5 (home favored by 3.5)
+ * - Spread: +7, Favourite: Home Team → Home team gets +7 (home is underdog by 7)
  *
  * @param teamIdToCode - Map of NatStat team IDs to team codes
  */
@@ -190,24 +200,24 @@ export function adjustSpreadSigns(events: NormalizedEvent[], teamIdToCode: Map<s
         return line
       }
 
-      // Look up the favorite team's code
-      const favouriteCode = teamIdToCode.get(line.spreadFavouriteId)
-      if (!favouriteCode) {
-        // Can't determine favorite, keep spread as-is
+      // Look up which team the spread applies to
+      const spreadAppliesTo = teamIdToCode.get(line.spreadFavouriteId)
+      if (!spreadAppliesTo) {
+        // Can't determine which team, keep spread as-is
         return line
       }
 
-      const homeIsFavorite = favouriteCode === event.homeTeamCode
-      const awayIsFavorite = favouriteCode === event.awayTeamCode
+      const spreadAppliesToHome = spreadAppliesTo === event.homeTeamCode
+      const spreadAppliesToAway = spreadAppliesTo === event.awayTeamCode
 
       let adjustedSpread = line.spread
 
-      if (homeIsFavorite) {
-        // Home team is favored, spread should be negative
-        adjustedSpread = -Math.abs(line.spread)
-      } else if (awayIsFavorite) {
-        // Away team is favored, spread should be positive (home is underdog)
-        adjustedSpread = Math.abs(line.spread)
+      if (spreadAppliesToHome) {
+        // The spread already applies to home team, use as-is
+        adjustedSpread = line.spread
+      } else if (spreadAppliesToAway) {
+        // The spread applies to away team, negate it to make it relative to home
+        adjustedSpread = -line.spread
       }
 
       // Remove the favouriteId from the final line
