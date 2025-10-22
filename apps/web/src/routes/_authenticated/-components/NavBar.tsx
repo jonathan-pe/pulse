@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import AccountMenu from '@/routes/_authenticated/-components/AccountMenu'
 import ThemeToggle from '@/components/ui/theme-toggle'
+import CartDropdown from '@/components/cart/CartDropdown'
 
 export default function Navbar() {
   return (
@@ -40,6 +41,8 @@ export default function Navbar() {
 
           <div className='ml-auto flex items-center gap-2'>
             <ThemeToggle />
+
+            <CartDropdown />
 
             <AccountMenu />
           </div>

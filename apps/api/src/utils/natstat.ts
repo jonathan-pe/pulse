@@ -9,8 +9,6 @@
 //   times are in EDT by default.
 // - Accepts strings like "2025-08-30 19:15:00", ISO strings with offsets,
 
-import { GameOdds } from '@pulse/db'
-
 //   numeric timestamps (seconds or milliseconds), and Date objects.
 export function natstatToUtcISOString(value: unknown): string | null {
   if (value == null) return null
@@ -61,29 +59,4 @@ export function natstatToUtcISOString(value: unknown): string | null {
 
   // Unknown input type
   return null
-}
-
-// Group odds by provider so each provider appears once with merged markets
-export const normalizeOddsForGame = (odds: Array<GameOdds>) => {
-  const byProvider: Record<string, Partial<GameOdds>> = {}
-  for (const o of odds) {
-    const provider = o.provider ?? 'default'
-    const entry = byProvider[provider] ?? { book: o.book, provider }
-
-    // merge moneyline
-    if (o.moneylineHome != null) entry.moneylineHome = o.moneylineHome
-    if (o.moneylineAway != null) entry.moneylineAway = o.moneylineAway
-
-    // merge spread/total (pick the latest non-null by updatedAt)
-    if (o.spread != null) entry.spread = o.spread
-    if (o.total != null) entry.total = o.total
-
-    // preserve updatedAt as the newest seen
-    if (!entry.updatedAt || (o.updatedAt && entry.updatedAt && new Date(o.updatedAt) > new Date(entry.updatedAt)))
-      entry.updatedAt = o.updatedAt
-
-    byProvider[provider] = entry
-  }
-
-  return Object.values(byProvider)
 }
