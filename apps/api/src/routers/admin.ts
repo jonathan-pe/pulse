@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express'
 import { ingestNatStat } from '../jobs/ingest-natstat'
+import { createLogger } from '../lib/logger'
+
+const logger = createLogger('AdminRouter')
 
 // Express
 export const adminRouter: import('express').Router = Router()
@@ -26,12 +29,13 @@ adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
     const isoEnd = end.toISOString().slice(0, 10)
     const range = `${isoStart},${isoEnd}`
 
-    console.info(`[admin] ingesting natstat range ${range} league=${league ?? 'all'}`)
+    logger.info('Starting NatStat ingestion', { range, league: league ?? 'all', lookaheadDays: LOOKAHEAD_DAYS })
     const result = await ingestNatStat({ date: range, league })
+    logger.info('NatStat ingestion completed', { range, league, counts: result.counts })
     return res.json({ ok: true, range, result })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
-    console.error('[admin] ingest error', message)
+    logger.error('NatStat ingestion failed', err instanceof Error ? err : undefined, { league, range: 'unknown' })
     return res.status(500).json({ ok: false, error: message })
   }
 })

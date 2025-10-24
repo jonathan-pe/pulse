@@ -1,4 +1,7 @@
 import { prisma } from '@pulse/db'
+import { createLogger } from '../lib/logger'
+
+const logger = createLogger('OddsService')
 
 export type Market = 'moneyline' | 'pointspread' | 'overunder'
 
@@ -41,7 +44,7 @@ export class OddsService {
       if (marketData.total !== undefined) updateData.total = marketData.total
     }
 
-    await prisma.gameOdds.upsert({
+    const result = await prisma.gameOdds.upsert({
       where: {
         gameId_book_market: { gameId, book, market },
       },
@@ -57,6 +60,8 @@ export class OddsService {
         total: marketData.total ?? null,
       },
     })
+
+    logger.debug('Odds line upserted', { gameId, book, market, oddsId: result.id })
   }
 
   /**
@@ -67,6 +72,7 @@ export class OddsService {
     for (const line of lines) {
       await this.upsertOddsLine(line)
     }
+    logger.info('Batch odds lines upserted', { count: lines.length })
     return lines.length
   }
 }

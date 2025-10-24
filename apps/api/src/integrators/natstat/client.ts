@@ -1,4 +1,7 @@
 import crypto from 'crypto'
+import { createLogger } from '../../lib/logger'
+
+const logger = createLogger('NatStatClient')
 
 const NATSTAT_BASE_URL = process.env.NATSTAT_BASE_URL ?? 'https://api3.natst.at'
 const NATSTAT_API_KEY = process.env.NATSTAT_API_KEY ?? ''
@@ -28,29 +31,46 @@ async function fetchWithRetry(url: string, opts: any = {}, retries = 1): Promise
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), NATSTAT_TIMEOUT_MS)
 
+  const startTime = Date.now()
+
   try {
+    logger.debug('Making NatStat API request', { url, timeout: NATSTAT_TIMEOUT_MS })
+
     // Use global fetch (Node 18+) or a polyfill available in the runtime. Keep typing loose here.
     const res = await (globalThis as any).fetch(url, { ...opts, headers, signal: controller.signal })
+
+    const duration = Date.now() - startTime
 
     if (res.status === 429) {
       // caller should handle scheduling/backoff
       const text = await res.text().catch(() => '')
+      logger.warn('NatStat rate limit hit', { url, statusCode: 429, duration })
       throw new Error(`natstat: rate limited (429) ${text}`)
     }
 
     if (res.status >= 500 && retries > 0) {
       // jittered backoff
       const wait = 200 + Math.floor(Math.random() * 600)
+      logger.warn('NatStat server error, retrying', { url, statusCode: res.status, retryAfter: wait, duration })
       await new Promise((r) => setTimeout(r, wait))
       return fetchWithRetry(url, opts, retries - 1)
     }
 
     if (!res.ok) {
       const text = await res.text().catch(() => '')
+      logger.error('NatStat API error', undefined, { url, statusCode: res.status, duration, response: text })
       throw new Error(`natstat: ${res.status} ${text}`)
     }
 
+    logger.debug('NatStat API request successful', { url, statusCode: res.status, duration })
+
     return res.json()
+  } catch (error) {
+    const duration = Date.now() - startTime
+    if (error instanceof Error && error.name === 'AbortError') {
+      logger.error('NatStat API request timeout', error, { url, timeout: NATSTAT_TIMEOUT_MS, duration })
+    }
+    throw error
   } finally {
     clearTimeout(timeout)
   }
@@ -71,6 +91,8 @@ export async function loadForecasts({ league, date }: { league: string; date?: s
 
   const url = parts.join('/')
 
+  logger.info('Loading forecasts from NatStat', { league, date: date ?? 'today' })
+
   const json = await fetchWithRetry(url, { method: 'GET' })
 
   // Return the full JSON payload
@@ -85,6 +107,8 @@ export async function loadForecasts({ league, date }: { league: string; date?: s
 export async function loadTeamCodes({ league }: { league: string }): Promise<any> {
   // Build URL: https://api3.natst.at/{API_KEY}/teamcodes/{league}
   const url = `${NATSTAT_BASE_URL}/${NATSTAT_API_KEY}/teamcodes/${league.toLowerCase()}`
+
+  logger.info('Loading team codes from NatStat', { league })
 
   const json = await fetchWithRetry(url, { method: 'GET' })
 

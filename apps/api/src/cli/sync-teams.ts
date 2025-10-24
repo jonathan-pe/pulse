@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 import 'dotenv/config'
 import { syncNatStatTeams } from '../jobs/sync-natstat-teams.js'
+import { createLogger } from '../lib/logger.js'
+
+const logger = createLogger('CLI:SyncTeams')
 
 async function main() {
   const league = process.argv[2]
 
   if (!league) {
+    // Use console for usage instructions (not operational logging)
     // eslint-disable-next-line no-console
     console.error('Usage: pnpm sync-teams <league>')
     // eslint-disable-next-line no-console
@@ -21,21 +25,18 @@ async function main() {
     process.exit(1)
   }
 
-  // eslint-disable-next-line no-console
-  console.log(`Syncing NatStat teams for ${league}...`)
+  logger.info('Starting NatStat team sync CLI', { league })
 
   const res = await syncNatStatTeams({ league })
 
-  // eslint-disable-next-line no-console
-  console.log('\nSync completed:')
+  logger.info('Team sync completed successfully', res)
+
+  // Output result for script consumption
   // eslint-disable-next-line no-console
   console.log(JSON.stringify(res, null, 2))
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error('\nTeam sync failed:')
-  // eslint-disable-next-line no-console
-  console.error(err)
+  logger.error('Team sync failed', err instanceof Error ? err : undefined)
   process.exit(1)
 })

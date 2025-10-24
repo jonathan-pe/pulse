@@ -1,4 +1,7 @@
 import { prisma } from '@pulse/db'
+import { createLogger } from '../lib/logger'
+
+const logger = createLogger('GamesService')
 
 export interface GameInput {
   league: string
@@ -43,10 +46,11 @@ export class GamesService {
     const existing = await this.findGame(input)
 
     if (existing) {
+      logger.debug('Game found', { gameId: existing.id, league: input.league })
       return existing
     }
 
-    return prisma.game.create({
+    const game = await prisma.game.create({
       data: {
         league: input.league,
         startsAt: input.startsAt,
@@ -55,6 +59,15 @@ export class GamesService {
         status: input.status ?? 'scheduled',
       },
     })
+
+    logger.info('Game created', {
+      gameId: game.id,
+      league: game.league,
+      matchup: `${game.awayTeam} @ ${game.homeTeam}`,
+      startsAt: game.startsAt.toISOString(),
+    })
+
+    return game
   }
 
   /**
@@ -77,6 +90,7 @@ export class GamesService {
         where: { id: gameId },
         data: changes,
       })
+      logger.info('Game metadata updated', { gameId, changes })
       return true
     }
 
@@ -100,6 +114,7 @@ export class GamesService {
           awayScore: scores.awayScore,
         },
       })
+      logger.info('Game scores created', { gameId, ...scores })
       return true
     }
 
@@ -111,6 +126,7 @@ export class GamesService {
           awayScore: scores.awayScore,
         },
       })
+      logger.info('Game scores updated', { gameId, ...scores })
       return true
     }
 

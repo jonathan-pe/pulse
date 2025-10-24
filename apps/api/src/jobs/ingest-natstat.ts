@@ -3,6 +3,9 @@ import { normalizeForecasts, adjustSpreadSigns } from '../integrators/natstat/no
 import { prisma } from '@pulse/db'
 import { gamesService } from '../services/games.service.js'
 import { oddsService } from '../services/odds.service.js'
+import { createLogger } from '../lib/logger.js'
+
+const logger = createLogger('IngestNatStat')
 
 type JobInput = { date?: string; league?: string }
 
@@ -17,6 +20,8 @@ export async function ingestNatStat({ date, league }: JobInput) {
   if (!league) {
     throw new Error('League is required for NatStat forecasts ingestion')
   }
+
+  logger.info('Starting NatStat ingestion job', { date: date ?? 'today', league })
 
   // Map common league names to NatStat codes
   const leagueMap: Record<string, string> = {
@@ -37,6 +42,8 @@ export async function ingestNatStat({ date, league }: JobInput) {
     where: { league: normalizedLeague },
     select: { id: true, code: true, name: true },
   })
+
+  logger.debug('Loaded team mappings', { league: normalizedLeague, teamCount: teams.length })
 
   const teamIdToCode = new Map(teams.map((t) => [t.id, t.code]))
   const teamCodeToName = new Map(teams.map((t) => [t.code, t.name]))
@@ -72,6 +79,8 @@ export async function ingestNatStat({ date, league }: JobInput) {
   // Process each date
   for (const currentDate of dates) {
     try {
+      logger.debug('Processing date', { date: currentDate, league: natstatLeague })
+
       // 1) Load forecasts from unified endpoint
       const forecastsRaw = await loadForecasts({ league: natstatLeague, date: currentDate })
 
@@ -81,6 +90,8 @@ export async function ingestNatStat({ date, league }: JobInput) {
       // 3) Adjust spread signs based on favorite team
       events = adjustSpreadSigns(events, teamIdToCode)
       totalEvents += events.length
+
+      logger.info('Normalized events', { date: currentDate, eventCount: events.length })
 
       // 3) Upsert into DB
       for (const ev of events) {
@@ -141,23 +152,24 @@ export async function ingestNatStat({ date, league }: JobInput) {
       }
     } catch (error) {
       // Log error but continue with other dates
-      const message = error instanceof Error ? error.message : String(error)
-      // TODO: Replace with proper logger when available
-      // eslint-disable-next-line no-console
-      console.error(`[ingest-natstat] Error processing date ${currentDate}:`, message)
+      logger.error('Error processing date', error instanceof Error ? error : undefined, { date: currentDate, league })
       // Continue to next date
     }
   }
 
+  const counts = {
+    datesProcessed: dates.length,
+    events: totalEvents,
+    games: allResults.length,
+    oddsLines: allResults.reduce((sum, r) => sum + r.oddsUpserted, 0),
+    scoresUpdated: allResults.filter((r) => r.scoresUpdated).length,
+  }
+
+  logger.info('NatStat ingestion job completed', { league, ...counts })
+
   return {
     ok: true,
-    counts: {
-      datesProcessed: dates.length,
-      events: totalEvents,
-      games: allResults.length,
-      oddsLines: allResults.reduce((sum, r) => sum + r.oddsUpserted, 0),
-      scoresUpdated: allResults.filter((r) => r.scoresUpdated).length,
-    },
+    counts,
     details: allResults,
   }
 }
