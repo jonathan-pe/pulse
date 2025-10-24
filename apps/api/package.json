@@ -28,6 +28,7 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "superjson": "^2.2.2",
+    "winston": "^3.18.3",
     "zod": "^4.0.17"
   },
   "devDependencies": {
