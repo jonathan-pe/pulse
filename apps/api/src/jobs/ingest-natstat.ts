@@ -1,6 +1,8 @@
 import { loadForecasts } from '../integrators/natstat/client.js'
 import { normalizeForecasts, adjustSpreadSigns } from '../integrators/natstat/normalize.js'
 import { prisma } from '@pulse/db'
+import { gamesService } from '../services/games.service.js'
+import { oddsService } from '../services/odds.service.js'
 
 type JobInput = { date?: string; league?: string }
 
@@ -87,112 +89,48 @@ export async function ingestNatStat({ date, league }: JobInput) {
           continue
         }
 
-        // Find or create game by unique fields
-        const gameWhere = {
+        // Find or create game
+        const game = await gamesService.findOrCreateGame({
           league: ev.league ?? 'unknown',
           startsAt: new Date(ev.startsAt),
           homeTeam: ev.homeTeam,
           awayTeam: ev.awayTeam,
-        }
+          status: ev.status ?? 'scheduled',
+        })
 
-        let game = await prisma.game.findFirst({ where: gameWhere })
+        // Update game metadata (status, start time) if changed
+        await gamesService.updateGameMetadata(
+          game.id,
+          { status: game.status, startsAt: game.startsAt },
+          {
+            status: ev.status,
+            startsAt: ev.startsAt ? new Date(ev.startsAt) : undefined,
+          }
+        )
+
+        // Update scores if provided
         let scoresUpdated = false
-
-        if (!game) {
-          game = await prisma.game.create({
-            data: {
-              ...gameWhere,
-              status: ev.status ?? 'scheduled',
-            },
+        if (ev.homeScore !== undefined && ev.awayScore !== undefined) {
+          scoresUpdated = await gamesService.upsertGameScores(game.id, {
+            homeScore: ev.homeScore,
+            awayScore: ev.awayScore,
           })
-        } else {
-          // Update game status and start time if changed
-          const updates: Record<string, unknown> = {}
-
-          if (ev.status && ev.status !== game.status) {
-            updates.status = ev.status
-          }
-
-          if (ev.startsAt && new Date(ev.startsAt).getTime() !== game.startsAt.getTime()) {
-            updates.startsAt = new Date(ev.startsAt)
-          }
-
-          if (Object.keys(updates).length > 0) {
-            await prisma.game.update({
-              where: { id: game.id },
-              data: updates,
-            })
-          }
-
-          // Update scores if they exist and game is finished
-          if (ev.homeScore !== undefined && ev.awayScore !== undefined) {
-            const existingResult = await prisma.result.findUnique({
-              where: { gameId: game.id },
-            })
-
-            if (!existingResult) {
-              await prisma.result.create({
-                data: {
-                  gameId: game.id,
-                  homeScore: ev.homeScore,
-                  awayScore: ev.awayScore,
-                },
-              })
-              scoresUpdated = true
-            } else if (existingResult.homeScore !== ev.homeScore || existingResult.awayScore !== ev.awayScore) {
-              await prisma.result.update({
-                where: { gameId: game.id },
-                data: {
-                  homeScore: ev.homeScore,
-                  awayScore: ev.awayScore,
-                },
-              })
-              scoresUpdated = true
-            }
-          }
         }
 
         // Upsert odds lines
-        let oddsUpserted = 0
-        for (const line of ev.lines) {
-          const provider = 'natstat'
-          const book = line.book ?? 'natstat'
-          const market = line.market ?? 'moneyline'
-
-          // Build the update data object, only including non-null values
-          const updateData: Record<string, unknown> = {
-            provider,
-            updatedAt: line.updatedAt ? new Date(line.updatedAt) : new Date(),
-          }
-
-          // Add market-specific fields
-          if (market === 'moneyline') {
-            if (line.moneylineHome !== undefined) updateData.moneylineHome = line.moneylineHome
-            if (line.moneylineAway !== undefined) updateData.moneylineAway = line.moneylineAway
-          } else if (market === 'pointspread') {
-            if (line.spread !== undefined) updateData.spread = line.spread
-          } else if (market === 'overunder') {
-            if (line.total !== undefined) updateData.total = line.total
-          }
-
-          // Use Prisma upsert keyed by the composite unique ([gameId, book, market])
-          await prisma.gameOdds.upsert({
-            where: { gameId_book_market: { gameId: game.id, book, market } },
-            update: updateData,
-            create: {
-              gameId: game.id,
-              provider,
-              book,
-              market,
-              moneylineHome: line.moneylineHome ?? null,
-              moneylineAway: line.moneylineAway ?? null,
-              spread: line.spread ?? null,
-              total: line.total ?? null,
-            },
-          })
-
-          oddsUpserted++
-        }
+        const oddsUpserted = await oddsService.upsertOddsLines(
+          ev.lines.map((line) => ({
+            gameId: game.id,
+            provider: 'natstat',
+            book: line.book ?? 'natstat',
+            market: (line.market ?? 'moneyline') as 'moneyline' | 'pointspread' | 'overunder',
+            moneylineHome: line.moneylineHome,
+            moneylineAway: line.moneylineAway,
+            spread: line.spread,
+            total: line.total,
+            updatedAt: line.updatedAt ? new Date(line.updatedAt) : undefined,
+          }))
+        )
 
         allResults.push({
           identity: ev.identity,
@@ -204,6 +142,8 @@ export async function ingestNatStat({ date, league }: JobInput) {
     } catch (error) {
       // Log error but continue with other dates
       const message = error instanceof Error ? error.message : String(error)
+      // TODO: Replace with proper logger when available
+      // eslint-disable-next-line no-console
       console.error(`[ingest-natstat] Error processing date ${currentDate}:`, message)
       // Continue to next date
     }
