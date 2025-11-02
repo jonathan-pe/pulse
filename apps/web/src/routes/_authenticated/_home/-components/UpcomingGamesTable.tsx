@@ -41,7 +41,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
   {
     accessorKey: 'startsAt',
     header: ({ column }) => (
-      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+      <Button
+        variant='ghost'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className='-ml-2'
+        size='sm'
+      >
         Date
         {column.getIsSorted() === 'asc' ? (
           <ArrowUp className='ml-2 h-4 w-4' />
@@ -69,7 +74,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
   {
     accessorKey: 'homeTeam',
     header: ({ column }) => (
-      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+      <Button
+        variant='ghost'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className='-ml-2'
+        size='sm'
+      >
         Home
         {column.getIsSorted() === 'asc' ? (
           <ArrowUp className='ml-2 h-4 w-4' />
@@ -92,7 +102,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
   {
     accessorKey: 'awayTeam',
     header: ({ column }) => (
-      <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+      <Button
+        variant='ghost'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className='-ml-2'
+        size='sm'
+      >
         Away
         {column.getIsSorted() === 'asc' ? (
           <ArrowUp className='ml-2 h-4 w-4' />
