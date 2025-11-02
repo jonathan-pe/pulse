@@ -175,6 +175,97 @@ LEFT JOIN "Result" r ON r."gameId" = g.id
 WHERE g.league = 'NFL' AND g.status = 'Final' AND g."startsAt"::date = '2025-10-19';
 ```
 
+## Sync Teams Command
+
+Synchronize team metadata from NatStat and enrich with badge/logo URLs from TheSportsDB.
+
+### Usage
+
+```bash
+pnpm --filter @pulse/api sync-teams <league>
+
+# Or from the apps/api directory:
+cd apps/api
+pnpm sync-teams <league>
+```
+
+### Arguments
+
+- **`league`** (required) - Sport league code
+  - `NFL` - National Football League
+  - `NBA` - National Basketball Association
+  - `MLB` - Major League Baseball
+  - `NHL` - National Hockey League
+
+### Examples
+
+#### Sync NFL teams
+```bash
+pnpm --filter @pulse/api sync-teams NFL
+```
+
+#### Sync all leagues
+```bash
+pnpm --filter @pulse/api sync-teams NFL
+pnpm --filter @pulse/api sync-teams NBA
+pnpm --filter @pulse/api sync-teams MLB
+pnpm --filter @pulse/api sync-teams NHL
+```
+
+### Output
+
+The command outputs a JSON summary with:
+
+```json
+{
+  "ok": true,
+  "league": "NFL",
+  "teamsProcessed": 32,
+  "teamsEnriched": 32
+}
+```
+
+### Environment Variables
+
+Required in `.env`:
+
+```env
+NATSTAT_BASE_URL=https://api3.natst.at
+NATSTAT_API_KEY=your-api-key-here
+THESPORTSDB_BASE_URL=https://www.thesportsdb.com/api/v1/json
+THESPORTSDB_API_KEY=123
+DATABASE_URL=postgresql://...
+```
+
+### What It Does
+
+1. Fetches all teams for the specified league from NatStat
+2. For each team, queries TheSportsDB to find matching team metadata
+3. Extracts badge and logo URLs from TheSportsDB
+4. Upserts team data into the `NatStatTeam` table with enriched metadata
+
+### Common Use Cases
+
+#### Initial setup
+Run once per league to populate team metadata:
+```bash
+pnpm --filter @pulse/api sync-teams NFL
+```
+
+#### Refresh team data
+Re-run periodically to update team metadata (e.g., if logos change):
+```bash
+pnpm --filter @pulse/api sync-teams NFL
+```
+
+#### New season preparation
+Sync all leagues before a new season starts:
+```bash
+for league in NFL NBA MLB NHL; do
+  pnpm --filter @pulse/api sync-teams $league
+done
+```
+
 ## Future CLI Commands
 
 Planned additions:
