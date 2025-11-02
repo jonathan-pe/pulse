@@ -79,14 +79,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
       </Button>
     ),
     cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
-      const team = row.getValue('homeTeam') as string
-      const logoUrl = row.original.homeTeamLogo
-      const teamCode = row.original.homeTeamCode
+      const team = row.original.homeTeam
 
       return (
         <div className='flex items-center gap-3'>
-          <TeamLogo teamName={team} teamCode={teamCode} logoUrl={logoUrl} size='md' />
-          <span className='font-medium'>{team}</span>
+          <TeamLogo teamName={team.name} teamCode={team.code} logoUrl={team.logoUrl ?? null} size='md' />
+          <span className='font-medium'>{team.name}</span>
         </div>
       )
     },
@@ -104,14 +102,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
       </Button>
     ),
     cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
-      const team = row.getValue('awayTeam') as string
-      const logoUrl = row.original.awayTeamLogo
-      const teamCode = row.original.awayTeamCode
+      const team = row.original.awayTeam
 
       return (
         <div className='flex items-center gap-3'>
-          <TeamLogo teamName={team} teamCode={teamCode} logoUrl={logoUrl} size='md' />
-          <span className='font-medium'>{team}</span>
+          <TeamLogo teamName={team.name} teamCode={team.code} logoUrl={team.logoUrl ?? null} size='md' />
+          <span className='font-medium'>{team.name}</span>
         </div>
       )
     },

@@ -50,8 +50,8 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
     // Add the new selection
     const newSelection: CartSelection = {
       gameId: game.id,
-      homeTeam: game.homeTeam,
-      awayTeam: game.awayTeam,
+      homeTeam: game.homeTeam.name,
+      awayTeam: game.awayTeam.name,
       league: game.league,
       startsAt: typeof game.startsAt === 'string' ? new Date(game.startsAt) : game.startsAt,
       market,
@@ -85,7 +85,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
         <TableBody>
           {/* Home Team Row */}
           <TableRow>
-            <TableHead>{game.homeTeam}</TableHead>
+            <TableHead>{game.homeTeam.name}</TableHead>
 
             {/* Moneyline Home */}
             <TableHead>
@@ -95,7 +95,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('moneyline', 'home', moneylineHome, game.homeTeam)
+                    toggleSelection('moneyline', 'home', moneylineHome, game.homeTeam.name)
                   }}
                 >
                   {moneylineHome > 0 ? `+${moneylineHome}` : moneylineHome}
@@ -113,7 +113,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('spread', 'home', spreadValue, game.homeTeam)
+                    toggleSelection('spread', 'home', spreadValue, game.homeTeam.name)
                   }}
                 >
                   {spreadValue > 0 ? `+${spreadValue}` : spreadValue}
@@ -144,7 +144,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
           {/* Away Team Row */}
           <TableRow>
-            <TableHead>{game.awayTeam}</TableHead>
+            <TableHead>{game.awayTeam.name}</TableHead>
 
             {/* Moneyline Away */}
             <TableHead>
@@ -154,7 +154,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('moneyline', 'away', moneylineAway, game.awayTeam)
+                    toggleSelection('moneyline', 'away', moneylineAway, game.awayTeam.name)
                   }}
                 >
                   {moneylineAway > 0 ? `+${moneylineAway}` : moneylineAway}
@@ -173,7 +173,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                   onClick={(e) => {
                     e.stopPropagation()
                     // Invert the spread for away team
-                    toggleSelection('spread', 'away', spreadValue * -1, game.awayTeam)
+                    toggleSelection('spread', 'away', spreadValue * -1, game.awayTeam.name)
                   }}
                 >
                   {spreadValue > 0 ? `-${spreadValue}` : `+${Math.abs(spreadValue)}`}
