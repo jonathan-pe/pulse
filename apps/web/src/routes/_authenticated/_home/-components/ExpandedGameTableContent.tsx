@@ -125,7 +125,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('total', 'over', odds.total.value, game.homeTeam)
+                    toggleSelection('total', 'over', odds.total.value)
                   }}
                 >
                   {`Over ${odds.total.value}`}
@@ -185,7 +185,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('total', 'under', odds.total.value, game.awayTeam)
+                    toggleSelection('total', 'under', odds.total.value)
                   }}
                 >
                   {`Under ${odds.total.value}`}
