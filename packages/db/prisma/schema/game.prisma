@@ -4,15 +4,22 @@ model Game {
   id       String   @id @default(cuid())
   league   String
   startsAt DateTime
-  homeTeam String
-  awayTeam String
-  status   String   @default("scheduled")
+
+  // Team relations (foreign keys)
+  homeTeamId String
+  homeTeam   Team   @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId String
+  awayTeam   Team   @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  status String @default("scheduled")
 
   odds        GameOdds[]
   predictions Prediction[]
   result      Result?
 
   @@index([league, startsAt])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
 }
 
 model GameOdds {

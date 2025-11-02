@@ -1,0 +1,50 @@
+// team.prisma — Provider-agnostic Team and TeamProviderMapping models
+
+model Team {
+  id String @id @default(cuid())
+
+  // Core identifying fields
+  league String // NFL, NBA, MLB, NHL
+  code   String // Standard abbreviation (e.g., "JAX", "LAL")
+  name   String // Full name (e.g., "Jacksonville Jaguars")
+
+  // Optional metadata
+  city         String?
+  nickname     String? // e.g., "Jaguars" (without city)
+  logoUrl      String?
+  primaryColor String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  providerMappings TeamProviderMapping[]
+  homeGames        Game[]                @relation("HomeTeam")
+  awayGames        Game[]                @relation("AwayTeam")
+
+  @@unique([league, code])
+  @@index([league])
+}
+
+// Maps our core Team to provider-specific identifiers
+model TeamProviderMapping {
+  id     String @id @default(cuid())
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  provider     String // "natstat", "espn", "odds-api", etc.
+  externalId   String // Provider's team ID (e.g., NatStat's "2022531")
+  externalCode String? // Provider's code if different from ours
+  externalName String? // Provider's name if different
+
+  active   Boolean @default(true)
+  metadata Json? // Store provider-specific extras
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, externalId])
+  @@unique([teamId, provider])
+  @@index([provider, externalCode])
+}

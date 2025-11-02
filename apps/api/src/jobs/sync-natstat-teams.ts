@@ -110,7 +110,64 @@ export async function syncNatStatTeams({ league }: JobInput) {
       })
     }
 
-    // Upsert team record
+    // Extract nickname from full name (e.g., "Los Angeles Lakers" -> "Lakers")
+    const nameParts = name.split(' ')
+    const nickname = nameParts[nameParts.length - 1] || name
+
+    // Extract city (everything except the last word)
+    const city = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : null
+
+    // Create or update core Team record
+    const team = await prisma.team.upsert({
+      where: {
+        league_code: {
+          league: normalizedLeague,
+          code,
+        },
+      },
+      create: {
+        league: normalizedLeague,
+        code,
+        name,
+        city,
+        nickname,
+        logoUrl: logoUrl ?? undefined,
+        primaryColor: null,
+      },
+      update: {
+        name,
+        city,
+        nickname,
+        logoUrl: logoUrl ?? undefined,
+      },
+    })
+
+    // Create or update TeamProviderMapping for NatStat
+    await prisma.teamProviderMapping.upsert({
+      where: {
+        teamId_provider: {
+          teamId: team.id,
+          provider: 'natstat',
+        },
+      },
+      create: {
+        teamId: team.id,
+        provider: 'natstat',
+        externalId: teamId,
+        externalCode: code,
+        externalName: name,
+        active,
+        metadata: badgeUrl ? { badgeUrl } : undefined,
+      },
+      update: {
+        externalCode: code,
+        externalName: name,
+        active,
+        metadata: badgeUrl ? { badgeUrl } : undefined,
+      },
+    })
+
+    // Also update legacy NatStatTeam table for backwards compatibility
     const existing = await prisma.natStatTeam.findUnique({
       where: { id: teamId },
     })

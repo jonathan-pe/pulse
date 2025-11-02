@@ -100,12 +100,36 @@ export async function ingestNatStat({ date, league }: JobInput) {
           continue
         }
 
-        // Find or create game
+        // Look up teams by name to get team IDs
+        const homeTeam = await prisma.team.findFirst({
+          where: {
+            league: ev.league ?? 'unknown',
+            name: ev.homeTeam,
+          },
+        })
+
+        const awayTeam = await prisma.team.findFirst({
+          where: {
+            league: ev.league ?? 'unknown',
+            name: ev.awayTeam,
+          },
+        })
+
+        if (!homeTeam || !awayTeam) {
+          logger.warn('Teams not found for game, skipping', {
+            league: ev.league,
+            homeTeam: ev.homeTeam,
+            awayTeam: ev.awayTeam,
+          })
+          continue
+        }
+
+        // Find or create game using team IDs
         const game = await gamesService.findOrCreateGame({
           league: ev.league ?? 'unknown',
           startsAt: new Date(ev.startsAt),
-          homeTeam: ev.homeTeam,
-          awayTeam: ev.awayTeam,
+          homeTeamId: homeTeam.id,
+          awayTeamId: awayTeam.id,
           status: ev.status ?? 'scheduled',
         })
 

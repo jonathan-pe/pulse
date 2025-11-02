@@ -6,6 +6,15 @@ const logger = createLogger('GamesService')
 export interface GameInput {
   league: string
   startsAt: Date
+  homeTeamId: string
+  awayTeamId: string
+  status?: string
+}
+
+// Legacy interface for backwards compatibility during migration
+export interface LegacyGameInput {
+  league: string
+  startsAt: Date
   homeTeam: string
   awayTeam: string
   status?: string
@@ -33,9 +42,44 @@ export class GamesService {
       where: {
         league: input.league,
         startsAt: input.startsAt,
-        homeTeam: input.homeTeam,
-        awayTeam: input.awayTeam,
+        homeTeamId: input.homeTeamId,
+        awayTeamId: input.awayTeamId,
       },
+    })
+  }
+
+  /**
+   * Find a game using legacy string-based team names
+   * This will look up team IDs from the team names
+   * @deprecated Use findGame with team IDs instead
+   */
+  async findGameLegacy(input: LegacyGameInput) {
+    // Look up team IDs from names
+    const homeTeam = await prisma.team.findFirst({
+      where: {
+        league: input.league,
+        name: input.homeTeam,
+      },
+    })
+
+    const awayTeam = await prisma.team.findFirst({
+      where: {
+        league: input.league,
+        name: input.awayTeam,
+      },
+    })
+
+    if (!homeTeam || !awayTeam) {
+      return null
+    }
+
+    // Find game using team IDs
+    return this.findGame({
+      league: input.league,
+      startsAt: input.startsAt,
+      homeTeamId: homeTeam.id,
+      awayTeamId: awayTeam.id,
+      status: input.status,
     })
   }
 
@@ -54,20 +98,66 @@ export class GamesService {
       data: {
         league: input.league,
         startsAt: input.startsAt,
-        homeTeam: input.homeTeam,
-        awayTeam: input.awayTeam,
+        homeTeamId: input.homeTeamId,
+        awayTeamId: input.awayTeamId,
         status: input.status ?? 'scheduled',
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
       },
     })
 
     logger.info('Game created', {
       gameId: game.id,
       league: game.league,
-      matchup: `${game.awayTeam} @ ${game.homeTeam}`,
+      matchup: `${game.awayTeam.code} @ ${game.homeTeam.code}`,
       startsAt: game.startsAt.toISOString(),
     })
 
     return game
+  }
+
+  /**
+   * Find or create a game using legacy string-based team names
+   * This will look up team IDs from the team names and delegate to findOrCreateGame
+   * @deprecated Use findOrCreateGame with team IDs instead
+   */
+  async findOrCreateGameLegacy(input: LegacyGameInput) {
+    // First try to find existing game with legacy fields
+    const existing = await this.findGameLegacy(input)
+    if (existing) {
+      logger.debug('Game found (legacy)', { gameId: existing.id, league: input.league })
+      return existing
+    }
+
+    // Look up team IDs from names
+    const homeTeam = await prisma.team.findFirst({
+      where: {
+        league: input.league,
+        name: input.homeTeam,
+      },
+    })
+
+    const awayTeam = await prisma.team.findFirst({
+      where: {
+        league: input.league,
+        name: input.awayTeam,
+      },
+    })
+
+    if (!homeTeam || !awayTeam) {
+      throw new Error(`Cannot create game: Teams not found (home: ${input.homeTeam}, away: ${input.awayTeam})`)
+    }
+
+    // Create game with team IDs
+    return this.findOrCreateGame({
+      league: input.league,
+      startsAt: input.startsAt,
+      homeTeamId: homeTeam.id,
+      awayTeamId: awayTeam.id,
+      status: input.status,
+    })
   }
 
   /**
