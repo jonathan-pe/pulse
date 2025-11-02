@@ -53,7 +53,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
       homeTeam: game.homeTeam,
       awayTeam: game.awayTeam,
       league: game.league,
-      startsAt: game.startsAt,
+      startsAt: typeof game.startsAt === 'string' ? new Date(game.startsAt) : game.startsAt,
       market,
       side,
       odds: oddsValue,
@@ -64,6 +64,12 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
   }
 
   const odds = game.odds
+
+  // Extract odds values for type narrowing
+  const moneylineHome = odds.moneyline?.home
+  const moneylineAway = odds.moneyline?.away
+  const spreadValue = odds.spread?.value
+  const totalValue = odds.total?.value
 
   return (
     <div className='space-y-4'>
@@ -83,16 +89,16 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
             {/* Moneyline Home */}
             <TableHead>
-              {odds.moneyline?.home ? (
+              {moneylineHome ? (
                 <Button
                   variant={hasSelection(game.id, 'moneyline', 'home') ? 'default' : 'outline'}
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('moneyline', 'home', odds.moneyline.home, game.homeTeam)
+                    toggleSelection('moneyline', 'home', moneylineHome, game.homeTeam)
                   }}
                 >
-                  {odds.moneyline.home > 0 ? `+${odds.moneyline.home}` : odds.moneyline.home}
+                  {moneylineHome > 0 ? `+${moneylineHome}` : moneylineHome}
                 </Button>
               ) : (
                 '-'
@@ -101,16 +107,16 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
             {/* Spread Home */}
             <TableHead>
-              {odds.spread?.value !== undefined && odds.spread?.value !== null ? (
+              {spreadValue != null ? (
                 <Button
                   variant={hasSelection(game.id, 'spread', 'home') ? 'default' : 'outline'}
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('spread', 'home', odds.spread.value, game.homeTeam)
+                    toggleSelection('spread', 'home', spreadValue, game.homeTeam)
                   }}
                 >
-                  {odds.spread.value > 0 ? `+${odds.spread.value}` : odds.spread.value}
+                  {spreadValue > 0 ? `+${spreadValue}` : spreadValue}
                 </Button>
               ) : (
                 '-'
@@ -119,16 +125,16 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
             {/* Over */}
             <TableHead>
-              {odds.total?.value !== undefined && odds.total?.value !== null ? (
+              {totalValue != null ? (
                 <Button
                   variant={hasSelection(game.id, 'total', 'over') ? 'default' : 'outline'}
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('total', 'over', odds.total.value)
+                    toggleSelection('total', 'over', totalValue)
                   }}
                 >
-                  {`Over ${odds.total.value}`}
+                  {`Over ${totalValue}`}
                 </Button>
               ) : (
                 '-'
@@ -142,16 +148,16 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
             {/* Moneyline Away */}
             <TableHead>
-              {odds.moneyline?.away ? (
+              {moneylineAway ? (
                 <Button
                   variant={hasSelection(game.id, 'moneyline', 'away') ? 'default' : 'outline'}
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('moneyline', 'away', odds.moneyline.away, game.awayTeam)
+                    toggleSelection('moneyline', 'away', moneylineAway, game.awayTeam)
                   }}
                 >
-                  {odds.moneyline.away > 0 ? `+${odds.moneyline.away}` : odds.moneyline.away}
+                  {moneylineAway > 0 ? `+${moneylineAway}` : moneylineAway}
                 </Button>
               ) : (
                 '-'
@@ -160,17 +166,17 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
             {/* Spread Away */}
             <TableHead>
-              {odds.spread?.value !== undefined && odds.spread?.value !== null ? (
+              {spreadValue != null ? (
                 <Button
                   variant={hasSelection(game.id, 'spread', 'away') ? 'default' : 'outline'}
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
                     // Invert the spread for away team
-                    toggleSelection('spread', 'away', odds.spread.value * -1, game.awayTeam)
+                    toggleSelection('spread', 'away', spreadValue * -1, game.awayTeam)
                   }}
                 >
-                  {odds.spread.value > 0 ? `-${odds.spread.value}` : `+${Math.abs(odds.spread.value)}`}
+                  {spreadValue > 0 ? `-${spreadValue}` : `+${Math.abs(spreadValue)}`}
                 </Button>
               ) : (
                 '-'
@@ -179,16 +185,16 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
 
             {/* Under */}
             <TableHead>
-              {odds.total?.value !== undefined && odds.total?.value !== null ? (
+              {totalValue != null ? (
                 <Button
                   variant={hasSelection(game.id, 'total', 'under') ? 'default' : 'outline'}
                   size='sm'
                   onClick={(e) => {
                     e.stopPropagation()
-                    toggleSelection('total', 'under', odds.total.value)
+                    toggleSelection('total', 'under', totalValue)
                   }}
                 >
-                  {`Under ${odds.total.value}`}
+                  {`Under ${totalValue}`}
                 </Button>
               ) : (
                 '-'
