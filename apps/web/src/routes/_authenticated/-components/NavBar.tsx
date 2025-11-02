@@ -32,10 +32,18 @@ export default function Navbar() {
 
             <Link
               to='/leagues/$league'
-              params={{ league: 'wnba' }}
+              params={{ league: 'nba' }}
               className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'
             >
-              WNBA
+              NBA
+            </Link>
+
+            <Link
+              to='/leagues/$league'
+              params={{ league: 'nhl' }}
+              className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'
+            >
+              NHL
             </Link>
           </nav>
 
