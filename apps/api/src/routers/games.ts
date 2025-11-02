@@ -1,9 +1,9 @@
 import { publicProcedure, router } from '../trpc'
 import { z } from 'zod'
 import { type Prisma, prisma } from '@pulse/db'
-import type { GameWithUnifiedOdds } from '@pulse/types'
 import { createLogger } from '../lib/logger'
 import { oddsAggregationService } from '../services/odds-aggregation.service'
+import { getTeamMetadata } from '../services/teams.service'
 
 const logger = createLogger('GamesRouter')
 
@@ -29,16 +29,30 @@ export const gamesRouter = router({
       include: { odds: true },
     })
 
-    // Transform each game to have unified odds instead of provider-specific odds
-    const gamesWithUnifiedOdds: GameWithUnifiedOdds[] = games.map((game) => ({
-      id: game.id,
-      league: game.league,
-      startsAt: game.startsAt,
-      homeTeam: game.homeTeam,
-      awayTeam: game.awayTeam,
-      status: game.status,
-      odds: oddsAggregationService.aggregateOdds(game.odds),
-    }))
+    // Transform each game to have unified odds and team logos
+    const gamesWithUnifiedOdds = await Promise.all(
+      games.map(async (game) => {
+        // Fetch team metadata for logos
+        const [homeTeamData, awayTeamData] = await Promise.all([
+          getTeamMetadata(game.league, game.homeTeam),
+          getTeamMetadata(game.league, game.awayTeam),
+        ])
+
+        return {
+          id: game.id,
+          league: game.league,
+          startsAt: game.startsAt,
+          homeTeam: game.homeTeam,
+          awayTeam: game.awayTeam,
+          status: game.status,
+          odds: oddsAggregationService.aggregateOdds(game.odds),
+          homeTeamLogo: homeTeamData?.badgeUrl ?? null,
+          homeTeamCode: homeTeamData?.code ?? null,
+          awayTeamLogo: awayTeamData?.badgeUrl ?? null,
+          awayTeamCode: awayTeamData?.code ?? null,
+        }
+      })
+    )
 
     logger.info('Upcoming games fetched', { count: gamesWithUnifiedOdds.length, league: input.league })
     return gamesWithUnifiedOdds
@@ -54,8 +68,14 @@ export const gamesRouter = router({
       return null
     }
 
-    // Transform to unified odds
-    const gameWithUnifiedOdds: GameWithUnifiedOdds = {
+    // Fetch team metadata for logos
+    const [homeTeamData, awayTeamData] = await Promise.all([
+      getTeamMetadata(game.league, game.homeTeam),
+      getTeamMetadata(game.league, game.awayTeam),
+    ])
+
+    // Transform to unified odds with team logos
+    const gameWithUnifiedOdds = {
       id: game.id,
       league: game.league,
       startsAt: game.startsAt,
@@ -64,6 +84,10 @@ export const gamesRouter = router({
       status: game.status,
       odds: oddsAggregationService.aggregateOdds(game.odds),
       result: game.result,
+      homeTeamLogo: homeTeamData?.badgeUrl ?? null,
+      homeTeamCode: homeTeamData?.code ?? null,
+      awayTeamLogo: awayTeamData?.badgeUrl ?? null,
+      awayTeamCode: awayTeamData?.code ?? null,
     }
 
     logger.info('Game found', { gameId: input.id, league: game.league })

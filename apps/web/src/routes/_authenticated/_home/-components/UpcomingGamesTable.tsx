@@ -4,7 +4,7 @@ import { type ColumnDef, type CellContext } from '@tanstack/react-table'
 import type { inferOutput } from '@trpc/tanstack-react-query'
 import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { TeamLogo } from '@/components/TeamLogo'
 import { ArrowUp, MinusIcon, PlusIcon } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import ExpandedGameTableContent from '@/routes/_authenticated/_home/-components/ExpandedGameTableContent'
@@ -80,20 +80,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
     ),
     cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
       const team = row.getValue('homeTeam') as string
-      const initials = team
-        ? team
-            .split(' ')
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase()
-        : ''
+      const logoUrl = row.original.homeTeamLogo
+      const teamCode = row.original.homeTeamCode
 
       return (
         <div className='flex items-center gap-3'>
-          <Avatar className='bg-gradient-to-br from-indigo-500 to-violet-500'>
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <TeamLogo teamName={team} teamCode={teamCode} logoUrl={logoUrl} size='md' />
           <span className='font-medium'>{team}</span>
         </div>
       )
@@ -113,20 +105,12 @@ const columns: ColumnDef<UpcomingGame>[] = [
     ),
     cell: ({ row }: CellContext<UpcomingGame, unknown>) => {
       const team = row.getValue('awayTeam') as string
-      const initials = team
-        ? team
-            .split(' ')
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase()
-        : ''
+      const logoUrl = row.original.awayTeamLogo
+      const teamCode = row.original.awayTeamCode
 
       return (
         <div className='flex items-center gap-3'>
-          <Avatar className='bg-gradient-to-br from-emerald-400 to-green-600'>
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
+          <TeamLogo teamName={team} teamCode={teamCode} logoUrl={logoUrl} size='md' />
           <span className='font-medium'>{team}</span>
         </div>
       )
