@@ -1,260 +1,202 @@
 import { Button } from '@/components/ui/button'
 import useCartStore from '@/store/cart'
-import type { Odd } from '@/store/cart'
+import type { CartSelection } from '@/store/cart'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { UpcomingGame } from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
 
 const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
-  const addOdds = useCartStore((s) => s.addOdds)
-  const removeOdds = useCartStore((s) => s.removeOdds)
-  const cartOdds = useCartStore((s) => s.odds)
+  const addSelection = useCartStore((s) => s.addSelection)
+  const removeSelection = useCartStore((s) => s.removeSelection)
+  const selections = useCartStore((s) => s.selections)
 
-  // Toggle selection helper:
-  // - If the exact same odd+side is already in the cart, remove it (deselect)
-  // - Otherwise remove any conflicting selection for the same game+market, then add the new one
-  const toggleOdd = (baseOdd: UpcomingGame['odds'][0], payload: Partial<Odd>) => {
-    const side = payload.side
-    const market = payload.market
+  // Check if a selection exists in the cart
+  const hasSelection = (gameId: string, market: CartSelection['market'], side: CartSelection['side']) => {
+    return selections.some((s) => s.gameId === gameId && s.market === market && s.side === side)
+  }
 
-    // Find exact match (same odds id and same chosen side)
-    const exact = cartOdds.find((c) => c.id === baseOdd.id && c.side === side)
-    if (exact && exact.id) {
-      removeOdds(exact.id)
+  // Toggle selection helper
+  const toggleSelection = (
+    market: 'moneyline' | 'spread' | 'total',
+    side: 'home' | 'away' | 'over' | 'under',
+    oddsValue: number,
+    teamName?: string
+  ) => {
+    // Check if this selection is already in cart
+    if (hasSelection(game.id, market, side)) {
+      // Remove if already selected
+      removeSelection(game.id, market, side)
       return
     }
 
-    // Remove conflicting selections for the same game and market
-    const conflicts = cartOdds.filter((c) => c.gameId === baseOdd.gameId && c.market === market)
-    conflicts.forEach((c) => c.id && removeOdds(c.id))
+    // Remove any conflicting selections for the same game and market
+    // For the same game/market, user can only have one side selected
+    const oppositeSide =
+      market === 'moneyline'
+        ? side === 'home'
+          ? 'away'
+          : 'home'
+        : market === 'spread'
+        ? side === 'home'
+          ? 'away'
+          : 'home'
+        : side === 'over'
+        ? 'under'
+        : 'over'
+
+    if (hasSelection(game.id, market, oppositeSide as typeof side)) {
+      removeSelection(game.id, market, oppositeSide as typeof side)
+    }
 
     // Add the new selection
-    const newOdd: Odd = { ...baseOdd, ...payload }
-    addOdds(newOdd)
+    const newSelection: CartSelection = {
+      gameId: game.id,
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      league: game.league,
+      startsAt: game.startsAt,
+      market,
+      side,
+      odds: oddsValue,
+      teamName,
+    }
+
+    addSelection(newSelection)
   }
 
-  // Group odds by provider and book for better organization
-  const groupedOdds = game.odds.reduce((acc: Record<string, UpcomingGame['odds']>, odd: UpcomingGame['odds'][0]) => {
-    const key = `${odd.provider}`
-    if (!acc[key]) {
-      acc[key] = []
-    }
-    acc[key].push(odd)
-    return acc
-  }, {} as Record<string, UpcomingGame['odds']>)
+  const odds = game.odds
 
   return (
     <div className='space-y-4'>
-      {Object.entries(groupedOdds).map(([key, odds]: [string, UpcomingGame['odds']]) => {
-        const provider = key
-        const mlOdd = odds.find((o: UpcomingGame['odds'][0]) => o.moneylineHome || o.moneylineAway)
-        const spreadOdd = odds.find((o: UpcomingGame['odds'][0]) => o.spread !== null && o.spread !== undefined)
-        const totalOdd = odds.find((o: UpcomingGame['odds'][0]) => o.total !== null && o.total !== undefined)
-        return (
-          <div key={key}>
-            <div className='mb-2'>
-              <span className='text-sm font-medium text-muted-foreground'>{provider}</span>
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className='w-[40%]' />
-                  <TableHead className='w-[20%]'>Moneyline</TableHead>
-                  <TableHead className='w-[20%]'>Spread</TableHead>
-                  <TableHead className='w-[20%]'>Over/Under</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableHead>{game.homeTeam}</TableHead>
-                  <TableHead>
-                    {mlOdd && mlOdd.moneylineHome ? (
-                      <div className='flex flex-wrap gap-1'>
-                        {(() => {
-                          const selected = cartOdds.some((c) => c.id === mlOdd.id && c.side === 'home')
-                          return (
-                            <Button
-                              key={`${mlOdd.id}-home-ml`}
-                              variant={selected ? 'default' : 'outline'}
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleOdd(mlOdd, {
-                                  market: 'moneyline',
-                                  teamName: game.homeTeam,
-                                  side: 'home',
-                                  selectedOdds: mlOdd.moneylineHome,
-                                })
-                              }}
-                            >
-                              {mlOdd.moneylineHome}
-                            </Button>
-                          )
-                        })()}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className='w-[40%]' />
+            <TableHead className='w-[20%]'>Moneyline</TableHead>
+            <TableHead className='w-[20%]'>Spread</TableHead>
+            <TableHead className='w-[20%]'>Over/Under</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {/* Home Team Row */}
+          <TableRow>
+            <TableHead>{game.homeTeam}</TableHead>
 
-                  <TableHead>
-                    {spreadOdd && spreadOdd.spread !== null && spreadOdd.spread !== undefined ? (
-                      <div className='flex flex-wrap gap-1'>
-                        {(() => {
-                          const selected = cartOdds.some((c) => c.id === spreadOdd.id && c.side === 'home')
-                          return (
-                            <Button
-                              key={`${spreadOdd.id}-home-spread`}
-                              variant={selected ? 'default' : 'outline'}
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleOdd(spreadOdd, {
-                                  market: 'pointspread',
-                                  teamName: game.homeTeam,
-                                  side: 'home',
-                                  selectedOdds: spreadOdd.spread,
-                                })
-                              }}
-                            >
-                              {spreadOdd.spread! > 0 ? `+${spreadOdd.spread}` : spreadOdd.spread}
-                            </Button>
-                          )
-                        })()}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableHead>
+            {/* Moneyline Home */}
+            <TableHead>
+              {odds.moneyline?.home ? (
+                <Button
+                  variant={hasSelection(game.id, 'moneyline', 'home') ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleSelection('moneyline', 'home', odds.moneyline.home, game.homeTeam)
+                  }}
+                >
+                  {odds.moneyline.home > 0 ? `+${odds.moneyline.home}` : odds.moneyline.home}
+                </Button>
+              ) : (
+                '-'
+              )}
+            </TableHead>
 
-                  <TableHead>
-                    {totalOdd && totalOdd.total !== null && totalOdd.total !== undefined ? (
-                      <div className='flex flex-wrap gap-1'>
-                        {(() => {
-                          const selected = cartOdds.some((c) => c.id === totalOdd.id && c.side === 'over')
-                          return (
-                            <Button
-                              key={`${totalOdd.id}-over`}
-                              variant={selected ? 'default' : 'outline'}
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleOdd(totalOdd, {
-                                  market: 'overunder',
-                                  teamName: game.homeTeam,
-                                  side: 'over',
-                                  selectedOdds: totalOdd.total,
-                                })
-                              }}
-                            >
-                              {`Over ${totalOdd.total}`}
-                            </Button>
-                          )
-                        })()}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableHead>
-                </TableRow>
+            {/* Spread Home */}
+            <TableHead>
+              {odds.spread?.value !== undefined && odds.spread?.value !== null ? (
+                <Button
+                  variant={hasSelection(game.id, 'spread', 'home') ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleSelection('spread', 'home', odds.spread.value, game.homeTeam)
+                  }}
+                >
+                  {odds.spread.value > 0 ? `+${odds.spread.value}` : odds.spread.value}
+                </Button>
+              ) : (
+                '-'
+              )}
+            </TableHead>
 
-                <TableRow>
-                  <TableHead>{game.awayTeam}</TableHead>
-                  <TableHead>
-                    {mlOdd && mlOdd.moneylineAway ? (
-                      <div className='flex flex-wrap gap-1'>
-                        {(() => {
-                          const selected = cartOdds.some((c) => c.id === mlOdd.id && c.side === 'away')
-                          return (
-                            <Button
-                              key={`${mlOdd.id}-away-ml`}
-                              variant={selected ? 'default' : 'outline'}
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleOdd(mlOdd, {
-                                  market: 'moneyline',
-                                  teamName: game.awayTeam,
-                                  side: 'away',
-                                  selectedOdds: mlOdd.moneylineAway,
-                                })
-                              }}
-                            >
-                              {mlOdd.moneylineAway}
-                            </Button>
-                          )
-                        })()}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableHead>
+            {/* Over */}
+            <TableHead>
+              {odds.total?.value !== undefined && odds.total?.value !== null ? (
+                <Button
+                  variant={hasSelection(game.id, 'total', 'over') ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleSelection('total', 'over', odds.total.value, game.homeTeam)
+                  }}
+                >
+                  {`Over ${odds.total.value}`}
+                </Button>
+              ) : (
+                '-'
+              )}
+            </TableHead>
+          </TableRow>
 
-                  <TableHead>
-                    {spreadOdd && spreadOdd.spread !== null && spreadOdd.spread !== undefined ? (
-                      <div className='flex flex-wrap gap-1'>
-                        {(() => {
-                          const selected = cartOdds.some((c) => c.id === spreadOdd.id && c.side === 'away')
-                          return (
-                            <Button
-                              key={`${spreadOdd.id}-away-spread`}
-                              variant={selected ? 'default' : 'outline'}
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleOdd(spreadOdd, {
-                                  market: 'pointspread',
-                                  spread: spreadOdd.spread! * -1,
-                                  teamName: game.awayTeam,
-                                  side: 'away',
-                                  selectedOdds: spreadOdd.spread! * -1,
-                                })
-                              }}
-                            >
-                              {spreadOdd.spread! > 0 ? `-${spreadOdd.spread}` : `+${Math.abs(spreadOdd.spread!)}`}
-                            </Button>
-                          )
-                        })()}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableHead>
+          {/* Away Team Row */}
+          <TableRow>
+            <TableHead>{game.awayTeam}</TableHead>
 
-                  <TableHead>
-                    {totalOdd && totalOdd.total !== null && totalOdd.total !== undefined ? (
-                      <div className='flex flex-wrap gap-1'>
-                        {(() => {
-                          const selected = cartOdds.some((c) => c.id === totalOdd.id && c.side === 'under')
-                          return (
-                            <Button
-                              key={`${totalOdd.id}-under`}
-                              variant={selected ? 'default' : 'outline'}
-                              size='sm'
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                toggleOdd(totalOdd, {
-                                  market: 'overunder',
-                                  teamName: game.awayTeam,
-                                  side: 'under',
-                                  selectedOdds: totalOdd.total,
-                                })
-                              }}
-                            >
-                              {`Under ${totalOdd.total}`}
-                            </Button>
-                          )
-                        })()}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableHead>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        )
-      })}
+            {/* Moneyline Away */}
+            <TableHead>
+              {odds.moneyline?.away ? (
+                <Button
+                  variant={hasSelection(game.id, 'moneyline', 'away') ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleSelection('moneyline', 'away', odds.moneyline.away, game.awayTeam)
+                  }}
+                >
+                  {odds.moneyline.away > 0 ? `+${odds.moneyline.away}` : odds.moneyline.away}
+                </Button>
+              ) : (
+                '-'
+              )}
+            </TableHead>
+
+            {/* Spread Away */}
+            <TableHead>
+              {odds.spread?.value !== undefined && odds.spread?.value !== null ? (
+                <Button
+                  variant={hasSelection(game.id, 'spread', 'away') ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // Invert the spread for away team
+                    toggleSelection('spread', 'away', odds.spread.value * -1, game.awayTeam)
+                  }}
+                >
+                  {odds.spread.value > 0 ? `-${odds.spread.value}` : `+${Math.abs(odds.spread.value)}`}
+                </Button>
+              ) : (
+                '-'
+              )}
+            </TableHead>
+
+            {/* Under */}
+            <TableHead>
+              {odds.total?.value !== undefined && odds.total?.value !== null ? (
+                <Button
+                  variant={hasSelection(game.id, 'total', 'under') ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleSelection('total', 'under', odds.total.value, game.awayTeam)
+                  }}
+                >
+                  {`Under ${odds.total.value}`}
+                </Button>
+              ) : (
+                '-'
+              )}
+            </TableHead>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
   )
 }

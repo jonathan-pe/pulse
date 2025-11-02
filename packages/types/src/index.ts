@@ -12,3 +12,6 @@ export type User = z.infer<typeof userSchema>
 export const typesVersion = 1 as const
 
 export type { AppRouter }
+
+// Re-export odds types
+export * from './odds'

@@ -155,7 +155,11 @@ const UpcomingGamesTable = ({ league }: { league?: string }) => {
         columns={columns}
         data={games}
         onRowClick={(row) => navigate({ to: `/games/${row.id}` })}
-        rowCanExpand={(row) => row.odds.length > 0}
+        rowCanExpand={(row) => {
+          // Check if any odds exist
+          const hasOdds = row.odds.moneyline || row.odds.spread || row.odds.total
+          return !!hasOdds
+        }}
         renderExpandedContent={(row) => <ExpandedGameTableContent game={row} />}
         isLoading={isLoading}
       />

@@ -3,3 +3,5 @@ export type { GameInput, GameUpdateInput, GameScoreInput } from './games.service
 
 export { oddsService, OddsService } from './odds.service.js'
 export type { OddsLineInput, Market } from './odds.service.js'
+
+export { oddsAggregationService, OddsAggregationService } from './odds-aggregation.service.js'

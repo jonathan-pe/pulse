@@ -1,7 +1,9 @@
 import { publicProcedure, router } from '../trpc'
 import { z } from 'zod'
 import { type Prisma, prisma } from '@pulse/db'
+import type { GameWithUnifiedOdds } from '@pulse/types'
 import { createLogger } from '../lib/logger'
+import { oddsAggregationService } from '../services/odds-aggregation.service'
 
 const logger = createLogger('GamesRouter')
 
@@ -27,8 +29,19 @@ export const gamesRouter = router({
       include: { odds: true },
     })
 
-    logger.info('Upcoming games fetched', { count: games.length, league: input.league })
-    return games
+    // Transform each game to have unified odds instead of provider-specific odds
+    const gamesWithUnifiedOdds: GameWithUnifiedOdds[] = games.map((game) => ({
+      id: game.id,
+      league: game.league,
+      startsAt: game.startsAt,
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      status: game.status,
+      odds: oddsAggregationService.aggregateOdds(game.odds),
+    }))
+
+    logger.info('Upcoming games fetched', { count: gamesWithUnifiedOdds.length, league: input.league })
+    return gamesWithUnifiedOdds
   }),
 
   byId: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
@@ -36,12 +49,24 @@ export const gamesRouter = router({
 
     const game = await prisma.game.findUnique({ where: { id: input.id }, include: { odds: true, result: true } })
 
-    if (game) {
-      logger.info('Game found', { gameId: input.id, league: game.league })
-    } else {
+    if (!game) {
       logger.warn('Game not found', { gameId: input.id })
+      return null
     }
 
-    return game
+    // Transform to unified odds
+    const gameWithUnifiedOdds: GameWithUnifiedOdds = {
+      id: game.id,
+      league: game.league,
+      startsAt: game.startsAt,
+      homeTeam: game.homeTeam,
+      awayTeam: game.awayTeam,
+      status: game.status,
+      odds: oddsAggregationService.aggregateOdds(game.odds),
+      result: game.result,
+    }
+
+    logger.info('Game found', { gameId: input.id, league: game.league })
+    return gameWithUnifiedOdds
   }),
 })
