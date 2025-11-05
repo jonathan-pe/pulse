@@ -1,0 +1,361 @@
+import { prisma } from '@pulse/db'
+import { createLogger } from '../lib/logger'
+import type { PredictionType } from '@pulse/db'
+
+const logger = createLogger('PredictionsService')
+
+// Constants from business rules
+const DAILY_BONUS_LIMIT = 5 // First 5 predictions per day get bonus multiplier
+const DAILY_TOTAL_LIMIT = 100
+
+export interface CreatePredictionInput {
+  userId: string
+  gameId: string
+  type: PredictionType
+  pick: string
+}
+
+export interface PredictionValidationError {
+  field: string
+  message: string
+}
+
+export interface CreatePredictionsResult {
+  created: Array<{
+    id: string
+    gameId: string
+    type: PredictionType
+    pick: string
+    createdAt: Date
+  }>
+  errors: Array<{
+    gameId: string
+    error: string
+  }>
+  dailyStats: {
+    totalToday: number
+    totalRemaining: number
+  }
+}
+
+/**
+ * PredictionsService - Handles all prediction-related business logic
+ */
+export class PredictionsService {
+  /**
+   * Get the start of the current day in UTC
+   */
+  private getStartOfDay(): Date {
+    const now = new Date()
+    now.setUTCHours(0, 0, 0, 0)
+    return now
+  }
+
+  /**
+   * Get daily prediction stats for a user
+   */
+  async getDailyStats(userId: string) {
+    const startOfDay = this.getStartOfDay()
+
+    const totalToday = await prisma.prediction.count({
+      where: {
+        userId,
+        createdAt: { gte: startOfDay },
+      },
+    })
+
+    return {
+      totalToday,
+      totalRemaining: Math.max(0, DAILY_TOTAL_LIMIT - totalToday),
+    }
+  }
+
+  /**
+   * Validate a single prediction before creation
+   */
+  async validatePrediction(input: CreatePredictionInput): Promise<PredictionValidationError | null> {
+    // 1. Check if game exists and hasn't started
+    const game = await prisma.game.findUnique({
+      where: { id: input.gameId },
+      select: {
+        id: true,
+        startsAt: true,
+        status: true,
+      },
+    })
+
+    if (!game) {
+      return { field: 'gameId', message: 'Game not found' }
+    }
+
+    if (game.status !== 'scheduled') {
+      return { field: 'gameId', message: 'Game has already started or finished' }
+    }
+
+    if (new Date(game.startsAt) <= new Date()) {
+      return { field: 'gameId', message: 'Game has already started' }
+    }
+
+    // 2. Check for duplicate prediction
+    const existing = await prisma.prediction.findFirst({
+      where: {
+        userId: input.userId,
+        gameId: input.gameId,
+      },
+    })
+
+    if (existing) {
+      return { field: 'gameId', message: 'You already have a prediction for this game' }
+    }
+
+    // 3. Validate pick format based on type
+    const pickValidation = this.validatePickFormat(input.type, input.pick)
+    if (pickValidation) {
+      return pickValidation
+    }
+
+    return null
+  }
+
+  /**
+   * Validate pick format based on prediction type
+   */
+  private validatePickFormat(type: PredictionType, pick: string): PredictionValidationError | null {
+    switch (type) {
+      case 'MONEYLINE':
+        // Pick should be "home" or "away"
+        if (pick !== 'home' && pick !== 'away') {
+          return { field: 'pick', message: 'Moneyline pick must be "home" or "away"' }
+        }
+        break
+
+      case 'SPREAD':
+        // Pick should be "home" or "away" (the team covering the spread)
+        if (pick !== 'home' && pick !== 'away') {
+          return { field: 'pick', message: 'Spread pick must be "home" or "away"' }
+        }
+        break
+
+      case 'TOTAL':
+        // Pick should be "over" or "under"
+        if (pick !== 'over' && pick !== 'under') {
+          return { field: 'pick', message: 'Total pick must be "over" or "under"' }
+        }
+        break
+
+      default:
+        return { field: 'type', message: 'Invalid prediction type' }
+    }
+
+    return null
+  }
+
+  /**
+   * Create a single prediction
+   */
+  async createPrediction(input: CreatePredictionInput) {
+    // Validate the prediction
+    const validationError = await this.validatePrediction(input)
+    if (validationError) {
+      throw new Error(validationError.message)
+    }
+
+    // Check daily limits
+    const stats = await this.getDailyStats(input.userId)
+    if (stats.totalRemaining <= 0) {
+      throw new Error('Daily prediction limit reached (100)')
+    }
+
+    // Create the prediction (bonus tier will be determined at scoring time)
+    const prediction = await prisma.prediction.create({
+      data: {
+        userId: input.userId,
+        gameId: input.gameId,
+        type: input.type,
+        pick: input.pick,
+      },
+    })
+
+    logger.info('Prediction created', {
+      predictionId: prediction.id,
+      userId: input.userId,
+      gameId: input.gameId,
+      type: input.type,
+    })
+
+    return prediction
+  }
+
+  /**
+   * Create multiple predictions at once (batch operation)
+   * Validates each prediction and returns both successes and errors
+   */
+  async createPredictions(
+    userId: string,
+    inputs: Omit<CreatePredictionInput, 'userId'>[]
+  ): Promise<CreatePredictionsResult> {
+    const created: CreatePredictionsResult['created'] = []
+    const errors: CreatePredictionsResult['errors'] = []
+
+    // Get current stats
+    const initialStats = await this.getDailyStats(userId)
+    let totalCreatedInBatch = 0
+
+    // Process each prediction
+    for (const input of inputs) {
+      // Check if we've hit limits during this batch
+      const currentTotal = initialStats.totalToday + totalCreatedInBatch
+      if (currentTotal >= DAILY_TOTAL_LIMIT) {
+        errors.push({
+          gameId: input.gameId,
+          error: 'Daily prediction limit reached (100)',
+        })
+        continue
+      }
+
+      try {
+        // Validate the prediction
+        const validationError = await this.validatePrediction({ ...input, userId })
+        if (validationError) {
+          errors.push({
+            gameId: input.gameId,
+            error: validationError.message,
+          })
+          continue
+        }
+
+        // Create the prediction (bonus tier will be determined at scoring time)
+        const prediction = await prisma.prediction.create({
+          data: {
+            userId,
+            gameId: input.gameId,
+            type: input.type,
+            pick: input.pick,
+          },
+        })
+
+        created.push({
+          id: prediction.id,
+          gameId: prediction.gameId,
+          type: prediction.type,
+          pick: prediction.pick,
+          createdAt: prediction.createdAt,
+        })
+
+        totalCreatedInBatch++
+
+        logger.info('Prediction created in batch', {
+          predictionId: prediction.id,
+          userId,
+          gameId: input.gameId,
+          type: input.type,
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        errors.push({
+          gameId: input.gameId,
+          error: message,
+        })
+        logger.warn('Failed to create prediction in batch', { userId, gameId: input.gameId, error: message })
+      }
+    }
+
+    // Get final stats
+    const finalStats = await this.getDailyStats(userId)
+
+    return {
+      created,
+      errors,
+      dailyStats: finalStats,
+    }
+  }
+
+  /**
+   * Get all predictions for a user
+   */
+  async getUserPredictions(userId: string, options?: { pending?: boolean }) {
+    const where: { userId: string; lockedAt?: null } = { userId }
+
+    if (options?.pending) {
+      where.lockedAt = null
+    }
+
+    return prisma.prediction.findMany({
+      where,
+      include: {
+        game: {
+          include: {
+            homeTeam: true,
+            awayTeam: true,
+            odds: true,
+            result: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  }
+
+  /**
+   * Lock predictions for a game when it starts
+   * This should be called when a game's status changes to in-progress
+   */
+  async lockPredictionsForGame(gameId: string) {
+    const result = await prisma.prediction.updateMany({
+      where: {
+        gameId,
+        lockedAt: null,
+      },
+      data: {
+        lockedAt: new Date(),
+      },
+    })
+
+    logger.info('Locked predictions for game', { gameId, count: result.count })
+    return result
+  }
+
+  /**
+   * Determine if a prediction qualifies for bonus tier at scoring time
+   * Returns true if this prediction was in the first DAILY_BONUS_LIMIT predictions for the day
+   * This should be called when calculating points for a correct prediction
+   */
+  async isBonusTierPrediction(predictionId: string): Promise<boolean> {
+    const prediction = await prisma.prediction.findUnique({
+      where: { id: predictionId },
+      select: {
+        userId: true,
+        createdAt: true,
+      },
+    })
+
+    if (!prediction) {
+      return false
+    }
+
+    // Get start of the day for this prediction
+    const startOfDay = new Date(prediction.createdAt)
+    startOfDay.setUTCHours(0, 0, 0, 0)
+
+    const endOfDay = new Date(startOfDay)
+    endOfDay.setUTCHours(23, 59, 59, 999)
+
+    // Count how many predictions were made before this one on the same day
+    const earlierPredictionsCount = await prisma.prediction.count({
+      where: {
+        userId: prediction.userId,
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+          lt: prediction.createdAt, // Strictly before this prediction
+        },
+      },
+    })
+
+    // If this is within the first DAILY_BONUS_LIMIT predictions, it's bonus tier
+    return earlierPredictionsCount < DAILY_BONUS_LIMIT
+  }
+}
+
+// Export singleton instance
+export const predictionsService = new PredictionsService()

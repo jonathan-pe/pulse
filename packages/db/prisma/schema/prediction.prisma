@@ -7,16 +7,19 @@ enum PredictionType {
 }
 
 model Prediction {
-  id          String         @id @default(cuid())
-  userId      String
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  gameId      String
-  game        Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  type        PredictionType
-  pick        String
-  stakePoints Int            @default(1)
-  createdAt   DateTime       @default(now())
-  lockedAt    DateTime?
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameId    String
+  game      Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  type      PredictionType
+  pick      String
+  createdAt DateTime       @default(now())
+  lockedAt  DateTime?
 
+  // Bonus tier is determined at scoring time based on daily order (first 5 = bonus)
+  // This prevents client-side abuse and centralizes business logic
+  @@unique([userId, gameId])
+  @@index([userId, createdAt]) // For daily ordering
   @@index([userId, gameId])
 }
