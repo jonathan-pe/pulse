@@ -34,8 +34,8 @@ describe('GamesService', () => {
         id: 'game-123',
         league: 'NFL',
         startsAt: new Date('2025-10-23T13:00:00Z'),
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
         status: 'scheduled',
       }
 
@@ -44,8 +44,8 @@ describe('GamesService', () => {
       const result = await service.findGame({
         league: 'NFL',
         startsAt: new Date('2025-10-23T13:00:00Z'),
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
       })
 
       expect(result).toEqual(mockGame)
@@ -53,8 +53,8 @@ describe('GamesService', () => {
         where: {
           league: 'NFL',
           startsAt: new Date('2025-10-23T13:00:00Z'),
-          homeTeam: 'Kansas City Chiefs',
-          awayTeam: 'San Francisco 49ers',
+          homeTeamId: 'team-kc',
+          awayTeamId: 'team-sf',
         },
       })
     })
@@ -65,8 +65,8 @@ describe('GamesService', () => {
       const result = await service.findGame({
         league: 'NFL',
         startsAt: new Date('2025-10-23T13:00:00Z'),
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
       })
 
       expect(result).toBeNull()
@@ -79,8 +79,8 @@ describe('GamesService', () => {
         id: 'game-123',
         league: 'NFL',
         startsAt: new Date('2025-10-23T13:00:00Z'),
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
         status: 'scheduled',
       }
 
@@ -89,8 +89,8 @@ describe('GamesService', () => {
       const result = await service.findOrCreateGame({
         league: 'NFL',
         startsAt: new Date('2025-10-23T13:00:00Z'),
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
       })
 
       expect(result).toEqual(mockGame)
@@ -102,9 +102,21 @@ describe('GamesService', () => {
         id: 'game-456',
         league: 'NBA',
         startsAt: new Date('2025-10-24T19:00:00Z'),
-        homeTeam: 'Los Angeles Lakers',
-        awayTeam: 'Boston Celtics',
+        homeTeamId: 'team-lal',
+        awayTeamId: 'team-bos',
         status: 'scheduled',
+        homeTeam: {
+          id: 'team-lal',
+          name: 'Los Angeles Lakers',
+          code: 'LAL',
+          league: 'NBA',
+        },
+        awayTeam: {
+          id: 'team-bos',
+          name: 'Boston Celtics',
+          code: 'BOS',
+          league: 'NBA',
+        },
       }
 
       vi.mocked(prisma.game.findFirst).mockResolvedValue(null)
@@ -113,8 +125,8 @@ describe('GamesService', () => {
       const result = await service.findOrCreateGame({
         league: 'NBA',
         startsAt: new Date('2025-10-24T19:00:00Z'),
-        homeTeam: 'Los Angeles Lakers',
-        awayTeam: 'Boston Celtics',
+        homeTeamId: 'team-lal',
+        awayTeamId: 'team-bos',
       })
 
       expect(result).toEqual(newGame)
@@ -122,9 +134,13 @@ describe('GamesService', () => {
         data: {
           league: 'NBA',
           startsAt: new Date('2025-10-24T19:00:00Z'),
-          homeTeam: 'Los Angeles Lakers',
-          awayTeam: 'Boston Celtics',
+          homeTeamId: 'team-lal',
+          awayTeamId: 'team-bos',
           status: 'scheduled',
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
         },
       })
     })
@@ -134,9 +150,21 @@ describe('GamesService', () => {
         id: 'game-789',
         league: 'NHL',
         startsAt: new Date('2025-10-25T20:00:00Z'),
-        homeTeam: 'Toronto Maple Leafs',
-        awayTeam: 'Montreal Canadiens',
+        homeTeamId: 'team-tor',
+        awayTeamId: 'team-mtl',
         status: 'final',
+        homeTeam: {
+          id: 'team-tor',
+          name: 'Toronto Maple Leafs',
+          code: 'TOR',
+          league: 'NHL',
+        },
+        awayTeam: {
+          id: 'team-mtl',
+          name: 'Montreal Canadiens',
+          code: 'MTL',
+          league: 'NHL',
+        },
       }
 
       vi.mocked(prisma.game.findFirst).mockResolvedValue(null)
@@ -145,8 +173,8 @@ describe('GamesService', () => {
       await service.findOrCreateGame({
         league: 'NHL',
         startsAt: new Date('2025-10-25T20:00:00Z'),
-        homeTeam: 'Toronto Maple Leafs',
-        awayTeam: 'Montreal Canadiens',
+        homeTeamId: 'team-tor',
+        awayTeamId: 'team-mtl',
         status: 'final',
       })
 
@@ -154,9 +182,13 @@ describe('GamesService', () => {
         data: {
           league: 'NHL',
           startsAt: new Date('2025-10-25T20:00:00Z'),
-          homeTeam: 'Toronto Maple Leafs',
-          awayTeam: 'Montreal Canadiens',
+          homeTeamId: 'team-tor',
+          awayTeamId: 'team-mtl',
           status: 'final',
+        },
+        include: {
+          homeTeam: true,
+          awayTeam: true,
         },
       })
     })
@@ -173,8 +205,8 @@ describe('GamesService', () => {
       vi.mocked(prisma.game.update).mockResolvedValue({
         id: gameId,
         league: 'NFL',
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
         ...currentGame,
         status: 'in_progress',
       })
@@ -201,8 +233,8 @@ describe('GamesService', () => {
       vi.mocked(prisma.game.update).mockResolvedValue({
         id: gameId,
         league: 'NFL',
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
         ...currentGame,
         startsAt: newStartsAt,
       })
@@ -229,8 +261,8 @@ describe('GamesService', () => {
       vi.mocked(prisma.game.update).mockResolvedValue({
         id: gameId,
         league: 'NFL',
-        homeTeam: 'Kansas City Chiefs',
-        awayTeam: 'San Francisco 49ers',
+        homeTeamId: 'team-kc',
+        awayTeamId: 'team-sf',
         status: 'in_progress',
         startsAt: newStartsAt,
       })
