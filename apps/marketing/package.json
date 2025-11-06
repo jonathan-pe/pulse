@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host www.playpulse.test --port 5174",
+    "typecheck": "tsc --noEmit",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

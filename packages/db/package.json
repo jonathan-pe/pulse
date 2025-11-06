@@ -20,6 +20,7 @@
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "typecheck": "tsc --noEmit",
     "build": "tsup src/index.ts --format esm,cjs --dts --clean"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "prisma": "^6.17.1",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
   }
 }
