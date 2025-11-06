@@ -30,21 +30,25 @@ pnpm ingest [date] <league>
 ### Examples
 
 #### Ingest today's games for NFL
+
 ```bash
 pnpm --filter @pulse/api ingest NFL
 ```
 
 #### Ingest specific date
+
 ```bash
 pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ```
 
 #### Ingest date range (7 days)
+
 ```bash
 pnpm --filter @pulse/api ingest "2025-10-19,2025-10-26" NFL
 ```
 
 #### Ingest multiple leagues (run separately)
+
 ```bash
 pnpm --filter @pulse/api ingest NFL
 pnpm --filter @pulse/api ingest NBA
@@ -92,13 +96,17 @@ DATABASE_URL=postgresql://...
 ### Common Use Cases
 
 #### Daily morning ingestion
+
 Run before peak prediction hours to load the day's games:
+
 ```bash
 pnpm --filter @pulse/api ingest NFL
 ```
 
 #### Weekly lookahead
+
 Load the next 7 days of games on Monday morning:
+
 ```bash
 TODAY=$(date +%Y-%m-%d)
 WEEK_OUT=$(date -v+7d +%Y-%m-%d)  # macOS
@@ -108,7 +116,9 @@ pnpm --filter @pulse/api ingest "$TODAY,$WEEK_OUT" NFL
 ```
 
 #### Post-game score updates
+
 After games complete, re-run to capture final scores:
+
 ```bash
 pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ```
@@ -116,12 +126,14 @@ pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ### Error Handling
 
 The command will:
+
 - Exit with code `1` on failure
 - Print error details to stderr
 - Continue processing remaining dates if one date fails
 
 Example error output:
-```
+
+```text
 Ingestion failed:
 Error: League is required for NatStat forecasts ingestion
 ```
@@ -129,7 +141,9 @@ Error: League is required for NatStat forecasts ingestion
 ### Troubleshooting
 
 #### "League is required" error
+
 Make sure to provide the league as the last argument:
+
 ```bash
 # ❌ Wrong
 pnpm --filter @pulse/api ingest 2025-10-19
@@ -139,11 +153,13 @@ pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ```
 
 #### "No games returned"
+
 - Verify the league code is correct (case matters: use `NFL` not `nfl`)
 - Check that games are actually scheduled for that date
 - Confirm your NatStat API key has access to that league
 
 #### Database connection errors
+
 - Verify `DATABASE_URL` is set in `.env`
 - Ensure the database is running
 - Check that migrations have been applied
@@ -151,12 +167,14 @@ pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ### Testing
 
 Test with a known date that has completed games:
+
 ```bash
 # Should return games with scores
 pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ```
 
 Verify in the database:
+
 ```sql
 -- Check games were created
 SELECT * FROM "Game" WHERE league = 'NFL' AND "startsAt"::date = '2025-10-19';
@@ -200,11 +218,13 @@ pnpm sync-teams <league>
 ### Examples
 
 #### Sync NFL teams
+
 ```bash
 pnpm --filter @pulse/api sync-teams NFL
 ```
 
 #### Sync all leagues
+
 ```bash
 pnpm --filter @pulse/api sync-teams NFL
 pnpm --filter @pulse/api sync-teams NBA
@@ -247,19 +267,25 @@ DATABASE_URL=postgresql://...
 ### Common Use Cases
 
 #### Initial setup
+
 Run once per league to populate team metadata:
+
 ```bash
 pnpm --filter @pulse/api sync-teams NFL
 ```
 
 #### Refresh team data
+
 Re-run periodically to update team metadata (e.g., if logos change):
+
 ```bash
 pnpm --filter @pulse/api sync-teams NFL
 ```
 
 #### New season preparation
+
 Sync all leagues before a new season starts:
+
 ```bash
 for league in NFL NBA MLB NHL; do
   pnpm --filter @pulse/api sync-teams $league
