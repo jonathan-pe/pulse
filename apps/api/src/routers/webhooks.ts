@@ -1,11 +1,12 @@
-import { Router, type Request, type Response } from 'express'
+import type { Router as ExpressRouter, Request, Response } from 'express'
+import { Router } from 'express'
 import { usersService } from '../services/users.service'
 import { createLogger } from '../lib/logger'
 import type { WebhookEvent } from '@clerk/express'
 
 const logger = createLogger('WebhooksRouter')
 
-export const webhooksRouter = Router()
+export const webhooksRouter: ExpressRouter = Router()
 
 /**
  * Verify Clerk webhook signature (production only)
