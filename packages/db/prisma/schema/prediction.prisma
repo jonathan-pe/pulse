@@ -19,7 +19,8 @@ model Prediction {
 
   // Bonus tier is determined at scoring time based on daily order (first 5 = bonus)
   // This prevents client-side abuse and centralizes business logic
-  @@unique([userId, gameId])
+  // Allow multiple predictions per game, but not duplicate type+pick combinations
+  @@unique([userId, gameId, type, pick])
   @@index([userId, createdAt]) // For daily ordering
   @@index([userId, gameId])
 }

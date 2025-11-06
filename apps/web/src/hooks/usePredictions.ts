@@ -51,6 +51,8 @@ export const useCreatePredictions = () => {
     onSuccess: (data) => {
       // Invalidate predictions queries to refetch
       queryClient.invalidateQueries({ queryKey: ['predictions'] })
+      // Also invalidate the predictions by game so UI updates immediately
+      queryClient.invalidateQueries({ queryKey: [['predictions', 'myPredictionsByGame']] })
 
       // Show success toast
       const successCount = data.created.length
@@ -97,4 +99,12 @@ export const usePendingPredictions = () => {
  */
 export const usePredictionHistory = () => {
   return useQuery(trpc.predictions.myHistory.queryOptions())
+}
+
+/**
+ * Hook to get user's predictions grouped by game and type
+ * Returns a map of gameId -> type -> pick for quick lookup
+ */
+export const usePredictionsByGame = () => {
+  return useQuery(trpc.predictions.myPredictionsByGame.queryOptions())
 }

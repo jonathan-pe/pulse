@@ -96,16 +96,18 @@ export class PredictionsService {
       return { field: 'gameId', message: 'Game has already started' }
     }
 
-    // 2. Check for duplicate prediction
-    const existing = await prisma.prediction.findFirst({
+    // 2. Check for exact duplicate prediction (same game, type, and pick)
+    const exactDuplicate = await prisma.prediction.findFirst({
       where: {
         userId: input.userId,
         gameId: input.gameId,
+        type: input.type,
+        pick: input.pick,
       },
     })
 
-    if (existing) {
-      return { field: 'gameId', message: 'You already have a prediction for this game' }
+    if (exactDuplicate) {
+      return { field: 'pick', message: 'You already have this exact prediction' }
     }
 
     // 3. Validate pick format based on type
@@ -151,6 +153,57 @@ export class PredictionsService {
   }
 
   /**
+   * Get the opposite pick for a given prediction type and pick
+   * Used to detect contradicting predictions
+   */
+  private getOppositePick(type: PredictionType, pick: string): string | null {
+    switch (type) {
+      case 'MONEYLINE':
+      case 'SPREAD':
+        return pick === 'home' ? 'away' : pick === 'away' ? 'home' : null
+      case 'TOTAL':
+        return pick === 'over' ? 'under' : pick === 'under' ? 'over' : null
+      default:
+        return null
+    }
+  }
+
+  /**
+   * Check if a contradicting prediction exists and delete it
+   * Returns true if a contradicting prediction was deleted
+   */
+  private async handleContradictingPrediction(input: CreatePredictionInput): Promise<boolean> {
+    const oppositePick = this.getOppositePick(input.type, input.pick)
+    if (!oppositePick) return false
+
+    const contradicting = await prisma.prediction.findFirst({
+      where: {
+        userId: input.userId,
+        gameId: input.gameId,
+        type: input.type,
+        pick: oppositePick,
+      },
+    })
+
+    if (contradicting) {
+      await prisma.prediction.delete({
+        where: { id: contradicting.id },
+      })
+      logger.info('Replaced contradicting prediction', {
+        oldPredictionId: contradicting.id,
+        userId: input.userId,
+        gameId: input.gameId,
+        type: input.type,
+        oldPick: oppositePick,
+        newPick: input.pick,
+      })
+      return true
+    }
+
+    return false
+  }
+
+  /**
    * Create a single prediction
    */
   async createPrediction(input: CreatePredictionInput) {
@@ -160,10 +213,15 @@ export class PredictionsService {
       throw new Error(validationError.message)
     }
 
-    // Check daily limits
-    const stats = await this.getDailyStats(input.userId)
-    if (stats.totalRemaining <= 0) {
-      throw new Error('Daily prediction limit reached (100)')
+    // Check for and handle contradicting predictions
+    const replacedContradiction = await this.handleContradictingPrediction(input)
+
+    // Check daily limits only if we're NOT replacing a contradicting prediction
+    if (!replacedContradiction) {
+      const stats = await this.getDailyStats(input.userId)
+      if (stats.totalRemaining <= 0) {
+        throw new Error('Daily prediction limit reached (100)')
+      }
     }
 
     // Create the prediction (bonus tier will be determined at scoring time)
@@ -181,6 +239,7 @@ export class PredictionsService {
       userId: input.userId,
       gameId: input.gameId,
       type: input.type,
+      replaced: replacedContradiction,
     })
 
     return prediction
@@ -200,11 +259,12 @@ export class PredictionsService {
     // Get current stats
     const initialStats = await this.getDailyStats(userId)
     let totalCreatedInBatch = 0
+    let totalReplacedInBatch = 0
 
     // Process each prediction
     for (const input of inputs) {
-      // Check if we've hit limits during this batch
-      const currentTotal = initialStats.totalToday + totalCreatedInBatch
+      // Check if we've hit limits during this batch (excluding replacements)
+      const currentTotal = initialStats.totalToday + totalCreatedInBatch - totalReplacedInBatch
       if (currentTotal >= DAILY_TOTAL_LIMIT) {
         errors.push({
           gameId: input.gameId,
@@ -222,6 +282,12 @@ export class PredictionsService {
             error: validationError.message,
           })
           continue
+        }
+
+        // Check for and handle contradicting predictions
+        const replacedContradiction = await this.handleContradictingPrediction({ ...input, userId })
+        if (replacedContradiction) {
+          totalReplacedInBatch++
         }
 
         // Create the prediction (bonus tier will be determined at scoring time)
@@ -249,6 +315,7 @@ export class PredictionsService {
           userId,
           gameId: input.gameId,
           type: input.type,
+          replaced: replacedContradiction,
         })
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
@@ -294,6 +361,19 @@ export class PredictionsService {
       },
       orderBy: { createdAt: 'desc' },
     })
+  }
+
+  /**
+   * Get game IDs that a user has already predicted on
+   * Returns an array for API serialization
+   */
+  async getUserPredictedGameIds(userId: string): Promise<string[]> {
+    const predictions = await prisma.prediction.findMany({
+      where: { userId },
+      select: { gameId: true },
+    })
+
+    return predictions.map((p) => p.gameId)
   }
 
   /**

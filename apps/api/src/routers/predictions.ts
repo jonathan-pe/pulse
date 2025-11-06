@@ -95,4 +95,40 @@ export const predictionsRouter = router({
 
     return predictionsService.getUserPredictions(userId)
   }),
+
+  /**
+   * Get game IDs that the user has already predicted on
+   */
+  myPredictedGameIds: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.userId
+    if (!userId) {
+      throw new Error('Unauthorized')
+    }
+
+    return predictionsService.getUserPredictedGameIds(userId)
+  }),
+
+  /**
+   * Get user's predictions grouped by game and type
+   * Returns a map of gameId -> type -> pick for quick lookup
+   */
+  myPredictionsByGame: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.userId
+    if (!userId) {
+      throw new Error('Unauthorized')
+    }
+
+    const predictions = await predictionsService.getUserPredictions(userId, { pending: true })
+
+    // Group by gameId -> type -> pick
+    const grouped: Record<string, Record<string, string>> = {}
+    for (const pred of predictions) {
+      if (!grouped[pred.gameId]) {
+        grouped[pred.gameId] = {}
+      }
+      grouped[pred.gameId][pred.type] = pred.pick
+    }
+
+    return grouped
+  }),
 })

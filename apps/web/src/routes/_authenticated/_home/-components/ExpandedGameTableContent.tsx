@@ -3,11 +3,21 @@ import useCartStore from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { UpcomingGame } from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
+import { usePredictionsByGame } from '@/hooks/usePredictions'
 
 const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
   const addSelection = useCartStore((s) => s.addSelection)
   const removeSelection = useCartStore((s) => s.removeSelection)
   const selections = useCartStore((s) => s.selections)
+
+  // Get user's predictions grouped by game and type
+  const { data: predictionsByGame } = usePredictionsByGame()
+
+  // Helper to check if user has already made a specific prediction
+  const hasPrediction = (type: 'MONEYLINE' | 'SPREAD' | 'TOTAL', pick: string): boolean => {
+    if (!predictionsByGame || !predictionsByGame[game.id]) return false
+    return predictionsByGame[game.id][type] === pick
+  }
 
   // Check if a selection exists in the cart
   const hasSelection = (gameId: string, market: CartSelection['market'], side: CartSelection['side']) => {
@@ -93,6 +103,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                 <Button
                   variant={hasSelection(game.id, 'moneyline', 'home') ? 'default' : 'outline'}
                   size='sm'
+                  disabled={hasPrediction('MONEYLINE', 'home')}
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleSelection('moneyline', 'home', moneylineHome, game.homeTeam.name)
@@ -111,6 +122,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                 <Button
                   variant={hasSelection(game.id, 'spread', 'home') ? 'default' : 'outline'}
                   size='sm'
+                  disabled={hasPrediction('SPREAD', 'home')}
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleSelection('spread', 'home', spreadValue, game.homeTeam.name)
@@ -129,6 +141,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                 <Button
                   variant={hasSelection(game.id, 'total', 'over') ? 'default' : 'outline'}
                   size='sm'
+                  disabled={hasPrediction('TOTAL', 'over')}
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleSelection('total', 'over', totalValue)
@@ -152,6 +165,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                 <Button
                   variant={hasSelection(game.id, 'moneyline', 'away') ? 'default' : 'outline'}
                   size='sm'
+                  disabled={hasPrediction('MONEYLINE', 'away')}
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleSelection('moneyline', 'away', moneylineAway, game.awayTeam.name)
@@ -170,6 +184,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                 <Button
                   variant={hasSelection(game.id, 'spread', 'away') ? 'default' : 'outline'}
                   size='sm'
+                  disabled={hasPrediction('SPREAD', 'away')}
                   onClick={(e) => {
                     e.stopPropagation()
                     // Invert the spread for away team
@@ -189,6 +204,7 @@ const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
                 <Button
                   variant={hasSelection(game.id, 'total', 'under') ? 'default' : 'outline'}
                   size='sm'
+                  disabled={hasPrediction('TOTAL', 'under')}
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleSelection('total', 'under', totalValue)
