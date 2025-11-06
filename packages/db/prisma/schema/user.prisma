@@ -4,7 +4,12 @@ model User {
   // Use Clerk user id as the primary key
   id        String   @id
   email     String   @unique
+  username  String? // Display name for leaderboards/social features
+  firstName String? // For personalization
+  lastName  String? // Full name display
+  imageUrl  String? // Profile picture URL from Clerk
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   predictions Prediction[]
   ledger      PointsLedger[]

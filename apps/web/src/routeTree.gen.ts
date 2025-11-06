@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthenticatedRouteImport } from './routes/_unauthenticated'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as UnauthenticatedSignupRouteImport } from './routes/_unauthenticated/signup'
+import { Route as AuthenticatedPredictionsRouteImport } from './routes/_authenticated/predictions'
 import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
 import { Route as UnauthenticatedLoginIndexRouteImport } from './routes/_unauthenticated/login/index'
 import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/_home/index'
@@ -31,6 +32,12 @@ const UnauthenticatedSignupRoute = UnauthenticatedSignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => UnauthenticatedRoute,
 } as any)
+const AuthenticatedPredictionsRoute =
+  AuthenticatedPredictionsRouteImport.update({
+    id: '/predictions',
+    path: '/predictions',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -62,6 +69,7 @@ const AuthenticatedLeaguesLeagueRoute =
 
 export interface FileRoutesByFullPath {
   '/about': typeof AuthenticatedAboutRoute
+  '/predictions': typeof AuthenticatedPredictionsRoute
   '/signup': typeof UnauthenticatedSignupRoute
   '/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/about': typeof AuthenticatedAboutRoute
+  '/predictions': typeof AuthenticatedPredictionsRoute
   '/signup': typeof UnauthenticatedSignupRoute
   '/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
@@ -81,6 +90,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_unauthenticated': typeof UnauthenticatedRouteWithChildren
   '/_authenticated/about': typeof AuthenticatedAboutRoute
+  '/_authenticated/predictions': typeof AuthenticatedPredictionsRoute
   '/_unauthenticated/signup': typeof UnauthenticatedSignupRoute
   '/_authenticated/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/_unauthenticated/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/about'
+    | '/predictions'
     | '/signup'
     | '/leagues/$league'
     | '/login/sso-callback'
@@ -99,6 +110,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
+    | '/predictions'
     | '/signup'
     | '/leagues/$league'
     | '/login/sso-callback'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_unauthenticated'
     | '/_authenticated/about'
+    | '/_authenticated/predictions'
     | '/_unauthenticated/signup'
     | '/_authenticated/leagues/$league'
     | '/_unauthenticated/login/sso-callback'
@@ -143,6 +156,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/signup'
       preLoaderRoute: typeof UnauthenticatedSignupRouteImport
       parentRoute: typeof UnauthenticatedRoute
+    }
+    '/_authenticated/predictions': {
+      id: '/_authenticated/predictions'
+      path: '/predictions'
+      fullPath: '/predictions'
+      preLoaderRoute: typeof AuthenticatedPredictionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/about': {
       id: '/_authenticated/about'
@@ -184,12 +204,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedPredictionsRoute: typeof AuthenticatedPredictionsRoute
   AuthenticatedLeaguesLeagueRoute: typeof AuthenticatedLeaguesLeagueRoute
   AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedPredictionsRoute: AuthenticatedPredictionsRoute,
   AuthenticatedLeaguesLeagueRoute: AuthenticatedLeaguesLeagueRoute,
   AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
 }

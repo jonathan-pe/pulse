@@ -10,11 +10,26 @@ import {
 import useCartStore, { getCartKey } from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Button } from '@/components/ui/button'
+import { useCreatePredictions } from '@/hooks/usePredictions'
 
 const CartDropdown: React.FC = () => {
   const selections = useCartStore((s) => s.selections)
   const removeSelection = useCartStore((s) => s.removeSelection)
   const clearCart = useCartStore((s) => s.clearCart)
+
+  const createPredictions = useCreatePredictions()
+
+  const handleSubmitPredictions = async () => {
+    if (selections.length === 0) return
+
+    try {
+      await createPredictions.mutateAsync(selections)
+      // Clear cart on success
+      clearCart()
+    } catch {
+      // Error handling is done in the hook via toast
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -78,8 +93,9 @@ const CartDropdown: React.FC = () => {
           <Button variant='ghost' size='sm' onClick={() => clearCart()}>
             Clear
           </Button>
-          {/* TODO: implement prediction creation */}
-          <Button disabled={selections.length === 0}>Create Prediction</Button>
+          <Button disabled={selections.length === 0 || createPredictions.isPending} onClick={handleSubmitPredictions}>
+            {createPredictions.isPending ? 'Creating...' : 'Create Predictions'}
+          </Button>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

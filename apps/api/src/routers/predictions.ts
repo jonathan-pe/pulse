@@ -1,6 +1,8 @@
 import { protectedProcedure, router } from '../trpc'
 import { z } from 'zod'
 import { predictionsService } from '../services/predictions.service'
+import { usersService } from '../services/users.service'
+import { TRPCError } from '@trpc/server'
 
 const PredictionInputSchema = z.object({
   gameId: z.string(),
@@ -40,7 +42,18 @@ export const predictionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.userId
       if (!userId) {
-        throw new Error('Unauthorized')
+        throw new TRPCError({ code: 'UNAUTHORIZED' })
+      }
+
+      // Ensure user exists in database (safety check)
+      // Ideally this should be done via Clerk webhooks on signup
+      try {
+        await usersService.ensureUserExists(userId, {})
+      } catch {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to initialize user account',
+        })
       }
 
       const result = await predictionsService.createPredictions(userId, input.predictions)

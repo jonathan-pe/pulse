@@ -45,6 +45,10 @@ export default function Navbar() {
             >
               NHL
             </Link>
+
+            <Link to='/predictions' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
+              My Predictions
+            </Link>
           </nav>
 
           <div className='ml-auto flex items-center gap-2'>
