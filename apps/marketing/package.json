@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host www.playpulse.test --port 5174",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

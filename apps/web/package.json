@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host app.playpulse.test --port 5173",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
     "prebuild": "pnpm --filter @pulse/types build",
     "build": "tsc -b && vite build",
@@ -48,6 +52,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "jsdom": "^27.1.0",
     "shadcn": "^3.5.0",
     "tw-animate-css": "^1.3.7",
     "typescript-eslint": "^8.40.0",

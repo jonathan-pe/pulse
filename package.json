@@ -19,6 +19,11 @@
     "dev": "concurrently -n api,web,marketing -c blue,green,yellow \"pnpm dev:api\" \"pnpm dev:web\" \"pnpm dev:marketing\"",
     "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -f '{}' + && find . -name '*.tsbuildinfo' -type f -prune -exec rm -f '{}' +",
     "lint": "eslint .",
+    "test": "pnpm -r run test",
+    "test:api": "pnpm --filter @pulse/api test",
+    "test:web": "pnpm --filter @pulse/web test",
+    "test:watch": "pnpm -r run test:watch",
+    "test:coverage": "pnpm -r run test:coverage",
     "typecheck": "pnpm -r run typecheck",
     "update-deps": "pnpm -r up --latest",
     "update-and-verify": "pnpm run update-deps && pnpm -r -w install && pnpm -r build && pnpm -r -w run typecheck"
