@@ -1,4 +1,4 @@
-import UpcomingGamesTable from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
+import UpcomingGamesTable from '@/components/games/UpcomingGamesTable'
 import { DailyPredictionStats } from '@/components/DailyPredictionStats'
 import { createFileRoute } from '@tanstack/react-router'
 

@@ -2,10 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useSignIn, GoogleOneTap } from '@clerk/clerk-react'
-import OAuthButton from '@/routes/_unauthenticated/-components/auth/OAuthButton'
+import OAuthButton from '@/components/auth/OAuthButton'
 import { Button } from '@/components/ui/button'
 import type { OAuthStrategy } from '@clerk/types'
-import LoginForm from '@/routes/_unauthenticated/-components/auth/LoginForm'
+import LoginForm from '@/components/auth/LoginForm'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_unauthenticated/login/')({

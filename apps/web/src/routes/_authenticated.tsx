@@ -1,4 +1,4 @@
-import Navbar from '@/routes/_authenticated/-components/NavBar'
+import Navbar from '@/components/layout/NavBar'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated')({

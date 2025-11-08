@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { TeamLogo } from '@/components/TeamLogo'
 import { ArrowUp, MinusIcon, PlusIcon } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
-import ExpandedGameTableContent from '@/routes/_authenticated/_home/-components/ExpandedGameTableContent'
+import ExpandedGameTableContent from '@/components/games/ExpandedGameTableContent'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
 

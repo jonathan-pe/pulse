@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import AccountMenu from '@/routes/_authenticated/-components/AccountMenu'
+import AccountMenu from '@/components/layout/AccountMenu'
 import ThemeToggle from '@/components/ui/theme-toggle'
 import CartDropdown from '@/components/cart/CartDropdown'
 

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import useCartStore from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { UpcomingGame } from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
+import type { UpcomingGame } from '@/components/games/UpcomingGamesTable'
 import { usePredictionsByGame } from '@/hooks/usePredictions'
 
 const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {

@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { GoogleOneTap } from '@clerk/clerk-react'
 import { Button } from '@/components/ui/button'
-import SignUpForm from '@/routes/_unauthenticated/-components/auth/SignUpForm'
-import EmailVerificationForm from '@/routes/_unauthenticated/-components/auth/EmailVerificationForm'
+import SignUpForm from '@/components/auth/SignUpForm'
+import EmailVerificationForm from '@/components/auth/EmailVerificationForm'
 
 // The project's generated route types are available at build-time; cast to any to avoid
 // a compile-time type error in the editor environment.

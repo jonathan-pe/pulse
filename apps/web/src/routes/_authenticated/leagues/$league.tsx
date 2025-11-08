@@ -1,4 +1,4 @@
-import UpcomingGamesTable from '@/routes/_authenticated/_home/-components/UpcomingGamesTable'
+import UpcomingGamesTable from '@/components/games/UpcomingGamesTable'
 import { createFileRoute, useParams } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/leagues/$league')({

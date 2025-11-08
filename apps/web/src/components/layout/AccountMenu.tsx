@@ -24,9 +24,9 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
 
   // Build display name and initials from available user fields
   const nameCandidates = [
-    (user as any)?.firstName,
-    (user as any)?.lastName ? `${(user as any).firstName} ${(user as any).lastName}` : undefined,
-    (user as any)?.fullName,
+    user?.firstName,
+    user?.lastName ? `${user.firstName} ${user.lastName}` : undefined,
+    user?.fullName,
     user?.username,
     user?.primaryEmailAddress?.emailAddress,
   ].filter(Boolean) as string[]
@@ -65,7 +65,7 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
           <div className='px-2 py-2'>
             <div className='text-sm font-medium'>{displayName || user.username}</div>
             <div className='text-xs text-muted-foreground'>
-              {user.primaryEmailAddress?.emailAddress || (user as any)?.emailAddresses?.[0]?.emailAddress || ''}
+              {user.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || ''}
             </div>
           </div>
         ) : null}
