@@ -105,7 +105,7 @@ describe('PredictionsService', () => {
       })
     })
 
-    it('should return error if duplicate prediction exists', async () => {
+    it('should return error if exact duplicate prediction exists', async () => {
       const futureDate = new Date()
       futureDate.setHours(futureDate.getHours() + 2)
 
@@ -115,10 +115,13 @@ describe('PredictionsService', () => {
         status: 'scheduled',
       } as any)
 
+      // Mock finding an exact duplicate (same game, type, and pick)
       vi.mocked(prisma.prediction.findFirst).mockResolvedValue({
         id: 'pred-123',
         userId: 'user-123',
         gameId: 'game-456',
+        type: 'MONEYLINE',
+        pick: 'home',
       } as any)
 
       const error = await service.validatePrediction({
@@ -129,8 +132,8 @@ describe('PredictionsService', () => {
       })
 
       expect(error).toEqual({
-        field: 'gameId',
-        message: 'You already have a prediction for this game',
+        field: 'pick',
+        message: 'You already have this exact prediction',
       })
     })
 
