@@ -1,17 +1,22 @@
-import { protectedProcedure, router } from '../trpc'
-import { type User } from '@clerk/express'
+import { Router, type Request, type Response } from 'express'
+import { getAuth } from '@clerk/express'
 
-export const authRouter = router({
-  me: protectedProcedure.query(({ ctx }) => {
-    const user: Partial<User> = {
-      id: ctx.userId ?? '',
-      // We don't have email/name in this context; keep minimal
-    }
+export const authRouter = Router()
 
-    // Return a shape that matches the schema where possible.
-    return {
-      userId: ctx.userId,
-      user,
-    }
-  }),
+// GET /api/auth/me - Get current user info
+authRouter.get('/me', (req: Request, res: Response) => {
+  const auth = getAuth(req)
+  const userId = auth.userId
+
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+
+  res.json({
+    userId,
+    user: {
+      id: userId,
+    },
+  })
 })

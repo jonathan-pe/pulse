@@ -1,8 +1,8 @@
-import { protectedProcedure, router } from '../trpc'
+import { Router, type Request, type Response } from 'express'
 import { z } from 'zod'
+import { getAuth } from '@clerk/express'
 import { predictionsService } from '../services/predictions.service'
 import { usersService } from '../services/users.service'
-import { TRPCError } from '@trpc/server'
 
 const PredictionInputSchema = z.object({
   gameId: z.string(),
@@ -10,15 +10,24 @@ const PredictionInputSchema = z.object({
   pick: z.string(),
 })
 
-export const predictionsRouter = router({
-  /**
-   * Create a single prediction
-   */
-  create: protectedProcedure.input(PredictionInputSchema).mutation(async ({ input, ctx }) => {
-    const userId = ctx.userId
+const BatchPredictionsSchema = z.object({
+  predictions: z.array(PredictionInputSchema).min(1).max(20),
+})
+
+export const predictionsRouter = Router()
+
+// POST /api/predictions - Create a single prediction
+predictionsRouter.post('/', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
+
     if (!userId) {
-      throw new Error('Unauthorized')
+      res.status(401).json({ error: 'Unauthorized' })
+      return
     }
+
+    const input = PredictionInputSchema.parse(req.body)
 
     const prediction = await predictionsService.createPrediction({
       userId,
@@ -27,95 +36,129 @@ export const predictionsRouter = router({
       pick: input.pick,
     })
 
-    return prediction
-  }),
+    res.json(prediction)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Invalid input', details: error.issues })
+      return
+    }
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
-  /**
-   * Create multiple predictions at once (batch operation)
-   */
-  createBatch: protectedProcedure
-    .input(
-      z.object({
-        predictions: z.array(PredictionInputSchema).min(1).max(20), // Max 20 at a time to prevent abuse
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.userId
-      if (!userId) {
-        throw new TRPCError({ code: 'UNAUTHORIZED' })
-      }
+// POST /api/predictions/batch - Create multiple predictions at once
+predictionsRouter.post('/batch', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
 
-      // Ensure user exists in database (safety check)
-      // Ideally this should be done via Clerk webhooks on signup
-      try {
-        await usersService.ensureUserExists(userId, {})
-      } catch {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to initialize user account',
-        })
-      }
-
-      const result = await predictionsService.createPredictions(userId, input.predictions)
-      return result
-    }),
-
-  /**
-   * Get daily stats for the current user
-   */
-  dailyStats: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.userId
     if (!userId) {
-      throw new Error('Unauthorized')
+      res.status(401).json({ error: 'Unauthorized' })
+      return
     }
 
-    return predictionsService.getDailyStats(userId)
-  }),
+    const input = BatchPredictionsSchema.parse(req.body)
 
-  /**
-   * Get pending (unlocked) predictions for the current user
-   */
-  myPending: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.userId
-    if (!userId) {
-      throw new Error('Unauthorized')
+    // Ensure user exists in database (safety check)
+    try {
+      await usersService.ensureUserExists(userId, {})
+    } catch {
+      res.status(500).json({ error: 'Failed to initialize user account' })
+      return
     }
 
-    return predictionsService.getUserPredictions(userId, { pending: true })
-  }),
+    const result = await predictionsService.createPredictions(userId, input.predictions)
+    res.json(result)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Invalid input', details: error.issues })
+      return
+    }
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
-  /**
-   * Get all predictions for the current user
-   */
-  myHistory: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.userId
+// GET /api/predictions/daily-stats - Get daily stats for the current user
+predictionsRouter.get('/daily-stats', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
+
     if (!userId) {
-      throw new Error('Unauthorized')
+      res.status(401).json({ error: 'Unauthorized' })
+      return
     }
 
-    return predictionsService.getUserPredictions(userId)
-  }),
+    const stats = await predictionsService.getDailyStats(userId)
+    res.json(stats)
+  } catch {
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
-  /**
-   * Get game IDs that the user has already predicted on
-   */
-  myPredictedGameIds: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.userId
+// GET /api/predictions/pending - Get pending (unlocked) predictions for the current user
+predictionsRouter.get('/pending', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
+
     if (!userId) {
-      throw new Error('Unauthorized')
+      res.status(401).json({ error: 'Unauthorized' })
+      return
     }
 
-    return predictionsService.getUserPredictedGameIds(userId)
-  }),
+    const predictions = await predictionsService.getUserPredictions(userId, { pending: true })
+    res.json(predictions)
+  } catch {
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
-  /**
-   * Get user's predictions grouped by game and type
-   * Returns a map of gameId -> type -> pick for quick lookup
-   */
-  myPredictionsByGame: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.userId
+// GET /api/predictions/history - Get all predictions for the current user
+predictionsRouter.get('/history', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
+
     if (!userId) {
-      throw new Error('Unauthorized')
+      res.status(401).json({ error: 'Unauthorized' })
+      return
+    }
+
+    const predictions = await predictionsService.getUserPredictions(userId)
+    res.json(predictions)
+  } catch {
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// GET /api/predictions/game-ids - Get game IDs that the user has already predicted on
+predictionsRouter.get('/game-ids', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' })
+      return
+    }
+
+    const gameIds = await predictionsService.getUserPredictedGameIds(userId)
+    res.json(gameIds)
+  } catch {
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// GET /api/predictions/by-game - Get user's predictions grouped by game and type
+predictionsRouter.get('/by-game', async (req: Request, res: Response) => {
+  try {
+    const auth = getAuth(req)
+    const userId = auth.userId
+
+    if (!userId) {
+      res.status(401).json({ error: 'Unauthorized' })
+      return
     }
 
     const predictions = await predictionsService.getUserPredictions(userId, { pending: true })
@@ -129,6 +172,8 @@ export const predictionsRouter = router({
       grouped[pred.gameId][pred.type] = pred.pick
     }
 
-    return grouped
-  }),
+    res.json(grouped)
+  } catch {
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })

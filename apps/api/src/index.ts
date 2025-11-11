@@ -3,10 +3,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { clerkMiddleware } from '@clerk/express'
-import { expressRouter } from 'apps/api/src/expressRouter'
-import * as trpcExpress from '@trpc/server/adapters/express'
-import { appRouter } from './trpcRouter'
-import { createContext } from 'apps/api/src/trpc'
+import { router } from './routers'
 import { createLogger } from './lib/logger'
 
 const logger = createLogger('Server')
@@ -29,17 +26,8 @@ if (process.env.CLERK_PUBLISHABLE_KEY || process.env.CLERK_SECRET_KEY) {
   logger.warn('Clerk not configured - skipping authentication middleware')
 }
 
-app.use(expressRouter)
-app.use(
-  '/trpc',
-  trpcExpress.createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  })
-)
+app.use(router)
 
 app.listen(PORT, () => {
   logger.info('Server started', { port: PORT, cors: CORS_ORIGIN, url: `http://localhost:${PORT}` })
 })
-
-export type { AppRouter } from './trpcRouter'

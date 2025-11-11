@@ -1,4 +1,4 @@
-import { publicProcedure, router } from '../trpc'
+import { Router, type Request, type Response } from 'express'
 import { z } from 'zod'
 import { type Prisma, prisma } from '@pulse/db'
 import { createLogger } from '../lib/logger'
@@ -7,13 +7,18 @@ import type { TeamInfo, GameWithUnifiedOdds } from '@pulse/types'
 
 const logger = createLogger('GamesRouter')
 
-const listInput = z.object({
+const listInputSchema = z.object({
   league: z.string().optional(),
-  limit: z.number().optional(),
+  limit: z.coerce.number().optional(),
 })
 
-export const gamesRouter = router({
-  listUpcoming: publicProcedure.input(listInput).query(async ({ input }) => {
+export const gamesRouter = Router()
+
+// GET /api/games/upcoming - List upcoming games
+gamesRouter.get('/upcoming', async (req: Request, res: Response) => {
+  try {
+    const input = listInputSchema.parse(req.query)
+
     logger.debug('Fetching upcoming games', { league: input.league, limit: input.limit })
 
     const where: Prisma.GameWhereInput = { status: 'scheduled', startsAt: { gte: new Date() } }
@@ -67,14 +72,26 @@ export const gamesRouter = router({
     })
 
     logger.info('Upcoming games fetched', { count: gamesWithUnifiedOdds.length, league: input.league })
-    return gamesWithUnifiedOdds
-  }),
+    res.json(gamesWithUnifiedOdds)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: 'Invalid input', details: error.issues })
+      return
+    }
+    logger.error('Error fetching upcoming games', error instanceof Error ? error : undefined)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
-  byId: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-    logger.debug('Fetching game by ID', { gameId: input.id })
+// GET /api/games/:id - Get game by ID
+gamesRouter.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+
+    logger.debug('Fetching game by ID', { gameId: id })
 
     const game = await prisma.game.findUnique({
-      where: { id: input.id },
+      where: { id },
       include: {
         odds: true,
         result: true,
@@ -84,8 +101,9 @@ export const gamesRouter = router({
     })
 
     if (!game) {
-      logger.warn('Game not found', { gameId: input.id })
-      return null
+      logger.warn('Game not found', { gameId: id })
+      res.status(404).json({ error: 'Game not found' })
+      return
     }
 
     const homeTeam: TeamInfo = {
@@ -120,7 +138,10 @@ export const gamesRouter = router({
       result: game.result,
     }
 
-    logger.info('Game found', { gameId: input.id, league: game.league })
-    return gameWithUnifiedOdds
-  }),
+    logger.info('Game found', { gameId: id, league: game.league })
+    res.json(gameWithUnifiedOdds)
+  } catch (error) {
+    logger.error('Error fetching game', error instanceof Error ? error : undefined)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
