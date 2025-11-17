@@ -10,14 +10,14 @@ import {
 import useCartStore, { getCartKey } from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Button } from '@/components/ui/button'
-import { useCreatePredictions } from '@/hooks/usePredictions'
+import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 
 const CartDropdown: React.FC = () => {
   const selections = useCartStore((s) => s.selections)
   const removeSelection = useCartStore((s) => s.removeSelection)
   const clearCart = useCartStore((s) => s.clearCart)
 
-  const createPredictions = useCreatePredictions()
+  const createPredictions = useCreatePredictionsFromCart()
 
   const handleSubmitPredictions = async () => {
     if (selections.length === 0) return

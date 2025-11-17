@@ -1,12 +1,14 @@
-import { trpc, trpcClient } from '@/lib/trpc'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/api'
+import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch'
+import type { PredictionInput, BatchPredictionsResult } from '@/types/api'
 import { toast } from 'sonner'
 import type { CartSelection } from '@/store/cart'
 
 /**
  * Maps cart selections to prediction inputs for the API
  */
-const mapCartSelectionToPrediction = (selection: CartSelection) => {
+const mapCartSelectionToPrediction = (selection: CartSelection): PredictionInput => {
   let type: 'MONEYLINE' | 'SPREAD' | 'TOTAL'
   let pick: string
 
@@ -37,22 +39,17 @@ const mapCartSelectionToPrediction = (selection: CartSelection) => {
  */
 export const useCreatePredictions = () => {
   const queryClient = useQueryClient()
+  const fetchAPI = useAuthenticatedFetch()
 
   return useMutation({
-    mutationFn: async (selections: CartSelection[]) => {
-      // Map cart selections to prediction inputs
-      const predictions = selections.map(mapCartSelectionToPrediction)
-
-      // Call the batch create endpoint
-      const result = await trpcClient.predictions.createBatch.mutate({ predictions })
-
-      return result
-    },
+    mutationFn: (predictions: PredictionInput[]) =>
+      fetchAPI<BatchPredictionsResult>('/predictions/batch', {
+        method: 'POST',
+        body: JSON.stringify({ predictions }),
+      }),
     onSuccess: (data) => {
-      // Invalidate predictions queries to refetch
-      queryClient.invalidateQueries({ queryKey: ['predictions'] })
-      // Also invalidate the predictions by game so UI updates immediately
-      queryClient.invalidateQueries({ queryKey: [['predictions', 'myPredictionsByGame']] })
+      // Invalidate prediction-related queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.predictions.all })
 
       // Show success toast
       const successCount = data.created.length
@@ -69,8 +66,6 @@ export const useCreatePredictions = () => {
           description: data.errors.map((e: { error: string }) => e.error).join(', '),
         })
       }
-
-      return data
     },
     onError: (error) => {
       toast.error('Failed to create predictions', {
@@ -81,30 +76,21 @@ export const useCreatePredictions = () => {
 }
 
 /**
- * Hook to get daily prediction stats
+ * Helper to create predictions from cart selections
+ * Handles conversion and provides user feedback via toasts
  */
-export const useDailyStats = () => {
-  return useQuery(trpc.predictions.dailyStats.queryOptions())
-}
+export const useCreatePredictionsFromCart = () => {
+  const mutation = useCreatePredictions()
 
-/**
- * Hook to get pending predictions
- */
-export const usePendingPredictions = () => {
-  return useQuery(trpc.predictions.myPending.queryOptions())
-}
-
-/**
- * Hook to get prediction history
- */
-export const usePredictionHistory = () => {
-  return useQuery(trpc.predictions.myHistory.queryOptions())
-}
-
-/**
- * Hook to get user's predictions grouped by game and type
- * Returns a map of gameId -> type -> pick for quick lookup
- */
-export const usePredictionsByGame = () => {
-  return useQuery(trpc.predictions.myPredictionsByGame.queryOptions())
+  return {
+    ...mutation,
+    mutate: (selections: CartSelection[]) => {
+      const predictions = selections.map(mapCartSelectionToPrediction)
+      mutation.mutate(predictions)
+    },
+    mutateAsync: async (selections: CartSelection[]) => {
+      const predictions = selections.map(mapCartSelectionToPrediction)
+      return mutation.mutateAsync(predictions)
+    },
+  }
 }

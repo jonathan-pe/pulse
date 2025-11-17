@@ -14,7 +14,7 @@ if (!PUBLISHABLE_KEY) {
 
 import AppRouter from '@/components/auth/AppRouter'
 import { ClerkWrapper } from '@/auth/clerk'
-import { queryClient } from '@/lib/trpc'
+import { queryClient } from '@/lib/api'
 
 // Apply the user's saved theme synchronously so the initial loader matches it
 applyInitialTheme()

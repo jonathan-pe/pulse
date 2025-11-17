@@ -1,9 +1,17 @@
-import { useDailyStats } from '@/hooks/usePredictions'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/api'
+import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch'
+import type { DailyStats } from '@/types/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Award, Target } from 'lucide-react'
 
 export function DailyPredictionStats() {
-  const { data: stats, isLoading } = useDailyStats()
+  const fetchAPI = useAuthenticatedFetch()
+
+  const { data: stats, isLoading } = useQuery({
+    queryKey: queryKeys.predictions.dailyStats(),
+    queryFn: () => fetchAPI<DailyStats>('/predictions/daily-stats'),
+  })
 
   if (isLoading) {
     return (

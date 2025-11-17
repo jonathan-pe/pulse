@@ -1,7 +1,8 @@
-import { trpc } from '@/lib/trpc'
 import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/api'
+import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch'
 import { type ColumnDef, type CellContext } from '@tanstack/react-table'
-import type { inferOutput } from '@trpc/tanstack-react-query'
+import type { GameWithUnifiedOdds } from '@pulse/types'
 import { DataTable } from '@/components/ui/data-table'
 import { Button } from '@/components/ui/button'
 import { TeamLogo } from '@/components/TeamLogo'
@@ -11,7 +12,7 @@ import ExpandedGameTableContent from '@/components/games/ExpandedGameTableConten
 import { toast } from 'sonner'
 import { useEffect } from 'react'
 
-export type UpcomingGame = inferOutput<typeof trpc.games.listUpcoming>[number]
+export type UpcomingGame = GameWithUnifiedOdds
 
 const columns: ColumnDef<UpcomingGame>[] = [
   {
@@ -131,8 +132,17 @@ const columns: ColumnDef<UpcomingGame>[] = [
 
 const UpcomingGamesTable = ({ league }: { league?: string }) => {
   const navigate = useNavigate()
+  const fetchAPI = useAuthenticatedFetch()
 
-  const { isLoading, error, data } = useQuery(trpc.games.listUpcoming.queryOptions({ league }))
+  const { isLoading, error, data } = useQuery({
+    queryKey: queryKeys.games.upcoming(league),
+    queryFn: async () => {
+      const params = new URLSearchParams()
+      if (league) params.append('league', league)
+      const query = params.toString()
+      return fetchAPI<GameWithUnifiedOdds[]>(`/games/upcoming${query ? `?${query}` : ''}`)
+    },
+  })
 
   useEffect(() => {
     if (error) {
