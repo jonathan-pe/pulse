@@ -2,6 +2,20 @@ import { QueryClient } from '@tanstack/react-query'
 
 /**
  * Query Keys - Use these with TanStack Query for consistent cache management
+ *
+ * @example
+ * ```tsx
+ * import { useAPI } from '@/hooks/useAPI'
+ * import { queryKeys } from '@/lib/api'
+ *
+ * function MyComponent() {
+ *   const fetchAPI = useAPI()
+ *   const { data } = useQuery({
+ *     queryKey: queryKeys.games.upcoming('NBA'),
+ *     queryFn: () => fetchAPI<Game[]>('/games/upcoming?league=NBA'),
+ *   })
+ * }
+ * ```
  */
 export const queryKeys = {
   games: {

@@ -3,21 +3,15 @@ import useCartStore from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { UpcomingGame } from '@/components/games/UpcomingGamesTable'
-import { useQuery } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/api'
-import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch'
+import { usePredictionsByGame } from '@/hooks/usePredictions'
 
 const ExpandedGameTableContent = ({ game }: { game: UpcomingGame }) => {
   const addSelection = useCartStore((s) => s.addSelection)
   const removeSelection = useCartStore((s) => s.removeSelection)
   const selections = useCartStore((s) => s.selections)
-  const fetchAPI = useAuthenticatedFetch()
 
   // Get user's predictions grouped by game and type
-  const { data: predictionsByGame } = useQuery({
-    queryKey: queryKeys.predictions.byGame(),
-    queryFn: () => fetchAPI<Record<string, Record<string, string>>>('/predictions/by-game'),
-  })
+  const { data: predictionsByGame } = usePredictionsByGame()
 
   // Helper to check if user has already made a specific prediction
   const hasPrediction = (type: 'MONEYLINE' | 'SPREAD' | 'TOTAL', pick: string): boolean => {

@@ -1,6 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/api'
-import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch'
+import { useUpcomingGames } from '@/hooks/useGames'
 import { type ColumnDef, type CellContext } from '@tanstack/react-table'
 import type { GameWithUnifiedOdds } from '@pulse/types'
 import { DataTable } from '@/components/ui/data-table'
@@ -132,17 +130,7 @@ const columns: ColumnDef<UpcomingGame>[] = [
 
 const UpcomingGamesTable = ({ league }: { league?: string }) => {
   const navigate = useNavigate()
-  const fetchAPI = useAuthenticatedFetch()
-
-  const { isLoading, error, data } = useQuery({
-    queryKey: queryKeys.games.upcoming(league),
-    queryFn: async () => {
-      const params = new URLSearchParams()
-      if (league) params.append('league', league)
-      const query = params.toString()
-      return fetchAPI<GameWithUnifiedOdds[]>(`/games/upcoming${query ? `?${query}` : ''}`)
-    },
-  })
+  const { data, isLoading, error } = useUpcomingGames(league)
 
   useEffect(() => {
     if (error) {

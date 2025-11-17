@@ -71,3 +71,42 @@ export interface BasePrediction {
   createdAt: string
   lockedAt: string | null
 }
+
+/**
+ * Prediction with full game details (from /predictions/history)
+ */
+export interface PredictionWithGame extends BasePrediction {
+  game: {
+    id: string
+    homeTeam: {
+      name: string
+      code: string
+      logoUrl: string | null
+    }
+    awayTeam: {
+      name: string
+      code: string
+      logoUrl: string | null
+    }
+    startsAt: string
+    league: string
+    result: {
+      homeScore: number
+      awayScore: number
+    } | null
+  }
+}
+
+/**
+ * Predictions list response
+ */
+export interface PredictionsResponse {
+  predictions: BasePrediction[]
+}
+
+/**
+ * Predictions grouped by game and type
+ * Format: { [gameId]: { [type]: pick } }
+ * Example: { "game-123": { "MONEYLINE": "home", "SPREAD": "away" } }
+ */
+export type PredictionsByGameResponse = Record<string, Record<string, string>>

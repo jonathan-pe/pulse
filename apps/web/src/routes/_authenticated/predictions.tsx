@@ -1,42 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/api'
-import { useAuthenticatedFetch } from '@/hooks/useAuthenticatedFetch'
-import type { GameWithUnifiedOdds } from '@pulse/types'
+import { usePredictionHistory } from '@/hooks/usePredictions'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { TeamLogo } from '@/components/TeamLogo'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, Clock } from 'lucide-react'
 import { DailyPredictionStats } from '@/components/DailyPredictionStats'
 
-// Define the shape we expect from the API for this component
-type PredictionType = 'MONEYLINE' | 'SPREAD' | 'TOTAL'
-interface PredictionWithGame {
-  id: string
-  gameId: string
-  type: PredictionType
-  pick: string
-  createdAt: string
-  lockedAt: string | null
-  game: GameWithUnifiedOdds & {
-    result: {
-      homeScore: number
-      awayScore: number
-    } | null
-  }
-}
-
 export const Route = createFileRoute('/_authenticated/predictions')({
   component: PredictionsPage,
 })
 
 function PredictionsPage() {
-  const fetchAPI = useAuthenticatedFetch()
-
-  const { data: predictions, isLoading } = useQuery({
-    queryKey: queryKeys.predictions.history(),
-    queryFn: () => fetchAPI<PredictionWithGame[]>('/predictions/history'),
-  })
+  const { data: predictions, isLoading } = usePredictionHistory()
 
   if (isLoading) {
     return (
