@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express'
+import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { type Prisma, prisma } from '@pulse/db'
 import { createLogger } from '../lib/logger'
@@ -12,7 +13,7 @@ const listInputSchema = z.object({
   limit: z.coerce.number().optional(),
 })
 
-export const gamesRouter = Router()
+export const gamesRouter: ExpressRouter = Router()
 
 // GET /api/games/upcoming - List upcoming games
 gamesRouter.get('/upcoming', async (req: Request, res: Response) => {

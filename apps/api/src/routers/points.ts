@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express'
+import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { getAuth } from '@clerk/express'
 import { prisma } from '@pulse/db'
@@ -7,7 +8,7 @@ const leaderboardSchema = z.object({
   limit: z.coerce.number().optional(),
 })
 
-export const pointsRouter = Router()
+export const pointsRouter: ExpressRouter = Router()
 
 // GET /api/points/me - Get current user's points
 pointsRouter.get('/me', async (req: Request, res: Response) => {

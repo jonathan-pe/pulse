@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from 'express'
+import type { Router as ExpressRouter } from 'express'
 import { getAuth } from '@clerk/express'
 
-export const authRouter = Router()
+export const authRouter: ExpressRouter = Router()
 
 // GET /api/auth/me - Get current user info
 authRouter.get('/me', (req: Request, res: Response) => {

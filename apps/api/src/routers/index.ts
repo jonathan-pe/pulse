@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import type { Router as ExpressRouter } from 'express'
 import { adminRouter } from './admin'
 import { healthRouter } from './health'
 import { webhooksRouter } from './webhooks'
@@ -7,7 +8,7 @@ import { gamesRouter } from './games'
 import { predictionsRouter } from './predictions'
 import { pointsRouter } from './points'
 
-export const router = Router()
+export const router: ExpressRouter = Router()
 
 router.use('/health', healthRouter)
 router.use('/admin', adminRouter)

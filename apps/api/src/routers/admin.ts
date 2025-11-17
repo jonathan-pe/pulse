@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express'
+import type { Router as ExpressRouter } from 'express'
 import { ingestNatStat } from '../jobs/ingest-natstat'
 import { createLogger } from '../lib/logger'
 
 const logger = createLogger('AdminRouter')
 
-// Express
-export const adminRouter: import('express').Router = Router()
+export const adminRouter: ExpressRouter = Router()
 
 const LOOKAHEAD_DAYS = 7
 

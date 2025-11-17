@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express'
+import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { getAuth } from '@clerk/express'
 import { predictionsService } from '../services/predictions.service'
@@ -14,7 +15,7 @@ const BatchPredictionsSchema = z.object({
   predictions: z.array(PredictionInputSchema).min(1).max(20),
 })
 
-export const predictionsRouter = Router()
+export const predictionsRouter: ExpressRouter = Router()
 
 // POST /api/predictions - Create a single prediction
 predictionsRouter.post('/', async (req: Request, res: Response) => {
