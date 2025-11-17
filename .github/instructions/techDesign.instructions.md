@@ -125,6 +125,16 @@ This document tells an AI code generator **exactly** what technology choices, pa
 
 **React**
 
+- Follow **React best practices**:
+  - Use functional components with hooks
+  - Keep components small and focused on a single responsibility
+  - Extract reusable logic into custom hooks
+  - Avoid prop drilling; use composition and context appropriately
+  - Memoize expensive computations with `useMemo` and callbacks with `useCallback` when needed
+  - Use `React.memo` for components that render often with the same props
+  - Keep component files under 250 lines; split larger components
+  - Name event handlers with `handle*` prefix (e.g., `handleClick`, `handleSubmit`)
+  - Use TypeScript for all components; avoid `any` types
 - Feature‑first file structure inside `src/features/*`.
 - Co-locate queries/mutations with components that use them.
 - Keep server state in **TanStack Query**, not in global stores.
