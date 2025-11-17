@@ -38,6 +38,8 @@ export default [
         },
       ],
       'no-console': 'warn',
+      // TypeScript handles undefined checks better than ESLint
+      'no-undef': 'off',
     },
   },
 
@@ -63,6 +65,7 @@ export default [
     files: ['apps/web/**/*.{ts,tsx,js,jsx}', 'apps/marketing/**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
       globals: globals.browser,
+      parser: tsParser,
     },
     plugins: {
       'react-hooks': reactHooks,
