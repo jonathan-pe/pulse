@@ -17,7 +17,13 @@ model Prediction {
   createdAt DateTime       @default(now())
   lockedAt  DateTime?
 
-  // Bonus tier is determined at scoring time based on daily order (first 5 = bonus)
+  // Scoring metadata
+  oddsAtPrediction Json? // Snapshot of odds when prediction was made
+  bonusTier        Boolean   @default(false) // True if this was in first 5 daily predictions
+  processedAt      DateTime? // When scoring was calculated
+  isCorrect        Boolean? // Result of prediction (null = not yet scored)
+
+  // Bonus tier is determined at prediction creation time based on daily order (first 5 = bonus)
   // This prevents client-side abuse and centralizes business logic
   // Allow multiple predictions per game, but not duplicate type+pick combinations
   @@unique([userId, gameId, type, pick])

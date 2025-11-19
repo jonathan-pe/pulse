@@ -1,6 +1,8 @@
 import { prisma } from '@pulse/db'
 import { createLogger } from '../lib/logger'
 import type { PredictionType } from '@pulse/db'
+import { oddsAggregationService } from './odds-aggregation.service'
+import type { OddsSnapshot } from './points.service'
 
 const logger = createLogger('PredictionsService')
 
@@ -224,13 +226,39 @@ export class PredictionsService {
       }
     }
 
-    // Create the prediction (bonus tier will be determined at scoring time)
+    // Fetch current odds for this game
+    const gameOdds = await prisma.gameOdds.findMany({
+      where: { gameId: input.gameId },
+    })
+
+    const unifiedOdds = oddsAggregationService.aggregateOdds(gameOdds)
+    const oddsSnapshot: OddsSnapshot = {
+      moneyline: unifiedOdds.moneyline ?? undefined,
+      spread: unifiedOdds.spread ?? undefined,
+      total: unifiedOdds.total ?? undefined,
+    }
+
+    // Determine if this is a bonus tier prediction (first 5 of the day)
+    const startOfDay = this.getStartOfDay()
+    const todaysPredictions = await prisma.prediction.count({
+      where: {
+        userId: input.userId,
+        createdAt: { gte: startOfDay },
+      },
+    })
+
+    const isBonusTier = todaysPredictions < DAILY_BONUS_LIMIT
+
+    // Create the prediction with odds snapshot and bonus tier flag
     const prediction = await prisma.prediction.create({
       data: {
         userId: input.userId,
         gameId: input.gameId,
         type: input.type,
         pick: input.pick,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        oddsAtPrediction: oddsSnapshot as any,
+        bonusTier: isBonusTier,
       },
     })
 
@@ -239,6 +267,7 @@ export class PredictionsService {
       userId: input.userId,
       gameId: input.gameId,
       type: input.type,
+      bonusTier: isBonusTier,
       replaced: replacedContradiction,
     })
 
@@ -290,13 +319,32 @@ export class PredictionsService {
           totalReplacedInBatch++
         }
 
-        // Create the prediction (bonus tier will be determined at scoring time)
+        // Fetch current odds for this game
+        const gameOdds = await prisma.gameOdds.findMany({
+          where: { gameId: input.gameId },
+        })
+
+        const unifiedOdds = oddsAggregationService.aggregateOdds(gameOdds)
+        const oddsSnapshot: OddsSnapshot = {
+          moneyline: unifiedOdds.moneyline ?? undefined,
+          spread: unifiedOdds.spread ?? undefined,
+          total: unifiedOdds.total ?? undefined,
+        }
+
+        // Determine if this is a bonus tier prediction
+        const currentDailyCount = initialStats.totalToday + totalCreatedInBatch - totalReplacedInBatch
+        const isBonusTier = currentDailyCount < DAILY_BONUS_LIMIT
+
+        // Create the prediction with odds snapshot and bonus tier flag
         const prediction = await prisma.prediction.create({
           data: {
             userId,
             gameId: input.gameId,
             type: input.type,
             pick: input.pick,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            oddsAtPrediction: oddsSnapshot as any,
+            bonusTier: isBonusTier,
           },
         })
 

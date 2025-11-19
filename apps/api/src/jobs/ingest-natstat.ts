@@ -3,6 +3,7 @@ import { normalizeForecasts, adjustSpreadSigns } from '../integrators/natstat/no
 import { prisma } from '@pulse/db'
 import { gamesService } from '../services/games.service.js'
 import { oddsService } from '../services/odds.service.js'
+import { scoreGameService } from '../services/score-game.service.js'
 import { createLogger } from '../lib/logger.js'
 
 const logger = createLogger('IngestNatStat')
@@ -74,6 +75,7 @@ export async function ingestNatStat({ date, league }: JobInput) {
   }
 
   const allResults: { identity: string; gameId?: string; oddsUpserted: number; scoresUpdated: boolean }[] = []
+  const scoredGameIds: string[] = []
   let totalEvents = 0
 
   // Process each date
@@ -173,6 +175,43 @@ export async function ingestNatStat({ date, league }: JobInput) {
           oddsUpserted,
           scoresUpdated,
         })
+
+        // Auto-score if game has result and hasn't been scored yet
+        if (scoresUpdated || (ev.homeScore !== undefined && ev.awayScore !== undefined)) {
+          try {
+            const gameWithResult = await prisma.game.findUnique({
+              where: { id: game.id },
+              include: { result: true },
+            })
+
+            // Only score if result exists and hasn't been scored
+            if (gameWithResult?.result && !gameWithResult.result.scoredAt) {
+              logger.info('Auto-scoring game with result', {
+                gameId: game.id,
+                homeScore: ev.homeScore,
+                awayScore: ev.awayScore,
+              })
+
+              const scoringResult = await scoreGameService.scoreCompletedGame(game.id)
+              scoredGameIds.push(game.id)
+
+              logger.info('Game auto-scored during ingestion', {
+                gameId: game.id,
+                predictionsScored: scoringResult.scored,
+                pointsAwarded: scoringResult.totalPointsAwarded,
+              })
+            }
+          } catch (scoreError) {
+            // Log error but don't fail the entire ingestion
+            logger.error(
+              'Failed to auto-score game during ingestion',
+              scoreError instanceof Error ? scoreError : undefined,
+              {
+                gameId: game.id,
+              }
+            )
+          }
+        }
       }
     } catch (error) {
       // Log error but continue with other dates
@@ -187,6 +226,7 @@ export async function ingestNatStat({ date, league }: JobInput) {
     games: allResults.length,
     oddsLines: allResults.reduce((sum, r) => sum + r.oddsUpserted, 0),
     scoresUpdated: allResults.filter((r) => r.scoresUpdated).length,
+    gamesScored: scoredGameIds.length,
   }
 
   logger.info('NatStat ingestion job completed', { league, ...counts })

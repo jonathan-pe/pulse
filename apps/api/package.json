@@ -22,7 +22,9 @@
     "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --clean --sourcemap",
     "start": "NODE_ENV=production node dist/index.js",
     "ingest": "tsx src/cli/ingest.ts",
-    "sync-teams": "tsx src/cli/sync-teams.ts"
+    "ingest-historical": "tsx src/cli/ingest-historical.ts",
+    "sync-teams": "tsx src/cli/sync-teams.ts",
+    "score-games": "tsx src/cli/score-games.ts"
   },
   "dependencies": {
     "@clerk/express": "^1.7.24",

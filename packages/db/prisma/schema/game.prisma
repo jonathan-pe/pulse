@@ -41,10 +41,11 @@ model GameOdds {
 }
 
 model Result {
-  id        String   @id @default(cuid())
-  gameId    String   @unique
-  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  gameId    String    @unique
+  game      Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
   homeScore Int
   awayScore Int
-  settledAt DateTime @default(now())
+  settledAt DateTime  @default(now())
+  scoredAt  DateTime? // When predictions were scored for this game
 }

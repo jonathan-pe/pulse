@@ -323,6 +323,7 @@ describe('GamesService', () => {
         gameId,
         ...scores,
         settledAt: new Date(),
+        scoredAt: null,
       })
 
       const result = await service.upsertGameScores(gameId, scores)
@@ -345,6 +346,7 @@ describe('GamesService', () => {
         homeScore: 21,
         awayScore: 14,
         settledAt: new Date(),
+        scoredAt: null,
       }
       const newScores = { homeScore: 28, awayScore: 21 }
 
@@ -374,6 +376,7 @@ describe('GamesService', () => {
         gameId,
         ...scores,
         settledAt: new Date(),
+        scoredAt: null,
       }
 
       vi.mocked(prisma.result.findUnique).mockResolvedValue(existingResult)
@@ -394,6 +397,7 @@ describe('GamesService', () => {
         gameId,
         ...scores,
         settledAt: new Date(),
+        scoredAt: null,
       })
 
       const result = await service.upsertGameScores(gameId, scores)
