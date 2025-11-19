@@ -131,4 +131,7 @@ The balanced player wins slightly due to strategic diversification and moderate 
 - Parlays/Same Game Parlays
 - International Price Formats
 
-##
+## Documentation
+
+- When creating documentation, ensure to include each doc in the appropriate `/docs` directory for easy access.
+- READMEs can exist at the root level of each app or library for general overview and setup instructions.
