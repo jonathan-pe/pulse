@@ -145,6 +145,32 @@ export async function ingestNatStat({ date, league }: JobInput) {
           }
         )
 
+        // Lock predictions for any game that has started (not 'scheduled')
+        // This handles both newly started games and games that were already in progress
+        const currentStatus = ev.status ?? game.status
+        const gameHasStarted = currentStatus.toLowerCase() !== 'scheduled'
+
+        if (gameHasStarted) {
+          // Lock any unlocked predictions for this game
+          const lockResult = await prisma.prediction.updateMany({
+            where: {
+              gameId: game.id,
+              lockedAt: null,
+            },
+            data: {
+              lockedAt: new Date(),
+            },
+          })
+
+          if (lockResult.count > 0) {
+            logger.info('Locked predictions for started game', {
+              gameId: game.id,
+              count: lockResult.count,
+              status: currentStatus,
+            })
+          }
+        }
+
         // Update scores if provided
         let scoresUpdated = false
         if (ev.homeScore !== undefined && ev.awayScore !== undefined) {

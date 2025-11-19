@@ -62,12 +62,30 @@ export class ScoreGameService {
       return result
     }
 
+    // Lock any unlocked predictions for this game (retroactive for historical games)
+    const lockResult = await prisma.prediction.updateMany({
+      where: {
+        gameId,
+        lockedAt: null,
+      },
+      data: {
+        lockedAt: new Date(),
+      },
+    })
+
+    if (lockResult.count > 0) {
+      logger.info('Retroactively locked predictions for completed game', {
+        gameId,
+        count: lockResult.count,
+      })
+    }
+
     // Fetch all locked predictions for this game that haven't been processed
     const predictions = (await prisma.prediction.findMany({
       where: {
         gameId,
         lockedAt: { not: null },
-        // processedAt: null, // Will uncomment once types are updated
+        processedAt: null,
       },
       include: {
         game: {
@@ -233,12 +251,14 @@ export class ScoreGameService {
    * @returns Array of game IDs ready to score
    */
   async findGamesReadyToScore(): Promise<string[]> {
+    // Find all games with unscored results
+    // Use case-insensitive matching for "Final" status or any completed game with a result
     const games = await prisma.game.findMany({
       where: {
         result: {
           scoredAt: null,
         },
-        status: 'final',
+        OR: [{ status: { contains: 'final', mode: 'insensitive' } }, { status: { contains: 'Final' } }],
       },
       select: { id: true },
     })
