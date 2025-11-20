@@ -51,9 +51,16 @@ pnpm dev
 # Web on http://localhost:5173
 ```
 
-## Database Management
+## Documentation
 
-See [DATABASE.md](./DATABASE.md) for comprehensive database documentation.
+- **[Notion Documentation Hub](https://www.notion.so/2b1b971a5f65815ca215db86a24c75e2)** - Complete user-facing documentation
+  - Getting Started, Database Setup, Testing Guide
+  - API Endpoints, Auto-Scoring, CRON Schedules, CLI Commands
+  - ESPN Integrator, Logger
+  - Feature Roadmap
+- **[Technical Context](./.github/TECHNICAL_CONTEXT.md)** - Architecture decisions, implementation patterns, and gotchas for developers/AI
+
+## Database Management
 
 Quick commands:
 
