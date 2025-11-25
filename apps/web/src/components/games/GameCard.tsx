@@ -94,7 +94,7 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
   return (
     <Card className='overflow-hidden transition-shadow hover:shadow-md'>
-      <CardContent className='p-4'>
+      <CardContent className='px-6'>
         {/* Header: League Badge and Status */}
         <div className='mb-3 flex items-center justify-between'>
           <Badge variant='outline' className={getLeagueBadgeColor(game.league)}>
