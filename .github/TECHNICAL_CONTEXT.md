@@ -227,6 +227,46 @@ System is mathematically balanced so all strategies have equal EV (~10 points):
 - Pick'em (+100): 0.50 × 20.0 = 10.0 EV
 - Longshot (+700): 0.125 × 80.0 = 10.0 EV
 
+### Points Ledger Metadata ⚠️
+
+**CRITICAL**: When awarding points, always include contextual metadata for aggregation.
+
+The `PointsLedger.meta` JSON field should contain:
+```typescript
+{
+  predictionId: string    // Required: Links points to prediction
+  game: string           // Required: Game ID
+  league: string         // Required: For per-league stats aggregation
+  type: string           // Prediction type (moneyline, spread, total)
+  pick: string           // User's pick
+  bonusTier: boolean     // Whether bonus tier
+  streak: number         // Streak at time of award
+  dailyCount: number     // Prediction count for the day
+}
+```
+
+**Why This Matters**:
+- `league` field is used by `getWinRateByLeague()` to attribute points to correct league
+- Without `league`, points show as 0 for all leagues in dashboard
+- `predictionId` provides fallback lookup if `league` is missing (for legacy entries)
+
+**Implementation Location**: `score-game.service.ts` → `scorePrediction()` → `awardPoints()` call
+
+**⚡ Future Feature Development**:
+When adding new aggregation or filtering features (e.g., points by prediction type, points by time of day, points by odds range), consider:
+1. **Check existing meta fields first**: Many dimensions are already captured
+2. **Add new fields proactively**: If adding a feature that requires grouping/filtering points, ensure the necessary field is added to `meta` at award time
+3. **Provide fallback logic**: For backward compatibility, implement lookup fallbacks like the `predictionId` → `league` pattern
+4. **Update this documentation**: Add new required/optional fields to the structure above
+5. **Consider data migration**: If feature needs historical data, may need to backfill `meta` fields
+
+**Examples of future features that would use meta**:
+- Points by prediction type: Already have `type` field
+- Points by odds range: Would need `odds` or `oddsRange` field added
+- Points by time of day: Would need `hour` or `timeOfDay` field added
+- Points by streak tier: Already have `streak` field
+- Points by bonus vs baseline: Already have `bonusTier` field
+
 ---
 
 ## Database Patterns
@@ -259,23 +299,33 @@ Prediction {
 
 ## Known Issues & Gotchas
 
-### 1. Push Handling (Not Yet Implemented)
+### 1. Points Ledger Metadata Requirements ⚠️
+**Fixed: November 28, 2025**
+- **Issue**: Points weren't attributed to leagues in dashboard (showed 0 points per league)
+- **Root Cause**: `meta.league` field was missing from points ledger entries
+- **Solution**: 
+  - Updated `score-game.service.ts` to include `league` in meta when awarding points
+  - Added fallback in `getWinRateByLeague()` to look up league from prediction if missing
+- **Prevention**: Always include full metadata when calling `awardPoints()` (see Point Scoring Algorithm section)
+- **Impact**: Affects any aggregation by metadata fields (league stats, prediction type analysis, etc.)
+
+### 2. Push Handling (Not Yet Implemented)
 - Currently, pushes (tie on spread/total) count as **incorrect**
 - **TODO**: Should return `null` for `isCorrect` to preserve streak
 - Affects user experience on spread/total predictions
 
-### 2. Odds Capture Requirement
+### 3. Odds Capture Requirement
 - Predictions created before odds capture feature will have `oddsAtPrediction: null`
 - These predictions may have scoring issues (used fallback -110 odds)
 - **TODO**: Consider stricter validation to require odds at creation time
 
-### 3. Timezone Considerations
+### 4. Timezone Considerations
 - All CRON schedules in Pacific Time (PT)
 - PT = UTC-7 (PDT, March-Nov) or UTC-8 (PST, Nov-March)
 - Ingestion jobs use 15-minute intervals during active hours
 - Team sync uses yearly schedules (one month before season)
 
-### 4. Rate Limiting
+### 5. Rate Limiting
 - NatStat: 15-minute intervals = ~4 calls/hour per league (within limits)
 - ESPN: Public endpoint, no strict limits but use reasonable intervals
 - Both use single retry with exponential backoff on 5xx errors
@@ -351,31 +401,52 @@ Current: **Single provider** (NatStat)
 
 ## Common Debugging Scenarios
 
+### Missing League Points in Dashboard
+**Symptom**: League stats show 0 points despite correct predictions
+**Diagnosis**:
+1. Check points ledger entries: `SELECT * FROM "PointsLedger" WHERE "userId" = ? AND reason LIKE 'Correct%'`
+2. Verify `meta` field contains `league`: `SELECT meta FROM "PointsLedger" WHERE ...`
+3. Check if `predictionId` is in meta (used as fallback)
+
+**Solutions**:
+- **For new predictions**: Ensure `score-game.service.ts` includes `league` in `awardPoints()` meta
+- **For existing entries**: `getWinRateByLeague()` will fallback to lookup via `predictionId`
+- **If both missing**: Points cannot be attributed; may require data migration
+
 ### Game Not Scoring
+**Diagnosis**:
 1. Check if result exists: `SELECT * FROM "Result" WHERE "gameId" = ?`
 2. Check if already scored: Check `scoredAt` field
 3. Check game status: Must contain 'final' (case-insensitive)
-4. Manually trigger: `POST /api/admin/games/:id/score`
+
+**Solution**: Manually trigger: `POST /api/admin/games/:id/score`
 
 ### Spread Sign Issues
+**Diagnosis**:
 1. Verify `NatStatTeam` data exists for both teams
 2. Check `spreadFavouriteId` in raw NatStat response
 3. Verify `adjustSpreadSigns()` mapping logic
 4. Compare stored spread to team codes
 
+**Solution**: Re-run team sync if team data is missing
+
 ### Predictions Not Locking
+**Diagnosis**:
 1. Check game status in database (should not be 'scheduled')
 2. Verify ingestion job is running
 3. Check logs for locking SQL updates
-4. Manually lock via admin endpoint if needed
+
+**Solution**: Manually lock via admin endpoint if needed
 
 ### Missing Team Logos
+**Diagnosis**:
 1. Run `sync-teams` for the league
 2. Verify ESPN API is accessible
 3. Check team code matching logic
-4. Fallback: Logos will be null, UI should handle gracefully
+
+**Solution**: Logos will be null, UI should handle gracefully with fallback
 
 ---
 
-*Last updated: November 19, 2025*
+*Last updated: November 28, 2025*
 *For current feature status and roadmap, see Notion Documentation Hub*

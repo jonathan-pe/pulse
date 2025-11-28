@@ -33,7 +33,9 @@ export const queryKeys = {
   points: {
     all: ['points'] as const,
     me: () => ['points', 'me'] as const,
-    leaderboard: (limit?: number) => ['points', 'leaderboard', limit] as const,
+    leaderboard: (period?: string, limit?: number) => ['points', 'leaderboard', period, limit] as const,
+    history: (limit?: number, offset?: number) => ['points', 'history', limit, offset] as const,
+    stats: () => ['points', 'stats'] as const,
   },
   auth: {
     all: ['auth'] as const,

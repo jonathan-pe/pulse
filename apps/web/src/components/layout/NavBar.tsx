@@ -54,6 +54,14 @@ export default function Navbar() {
                 NHL
               </Link>
 
+              <Link to='/dashboard' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
+                Dashboard
+              </Link>
+
+              <Link to='/leaderboard' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
+                Leaderboard
+              </Link>
+
               <Link to='/predictions' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
                 My Predictions
               </Link>

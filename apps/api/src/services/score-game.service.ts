@@ -189,6 +189,7 @@ export class ScoreGameService {
     await pointsService.awardPoints(prediction.userId, points, `Correct prediction on game ${prediction.gameId}`, {
       predictionId: prediction.id,
       game: prediction.gameId,
+      league: prediction.game.league,
       type: prediction.type,
       pick: prediction.pick,
       bonusTier: prediction.bonusTier,

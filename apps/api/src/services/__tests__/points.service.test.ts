@@ -155,19 +155,19 @@ describe('PointsService', () => {
       const nbaStats = stats.find((s) => s.league === 'NBA')
       expect(nbaStats).toEqual({
         league: 'NBA',
-        total: 2,
-        correct: 1,
+        totalPredictions: 2,
+        correctPredictions: 1,
         winRate: 0.5,
-        points: 20,
+        pointsEarned: 20,
       })
 
       const nflStats = stats.find((s) => s.league === 'NFL')
       expect(nflStats).toEqual({
         league: 'NFL',
-        total: 3,
-        correct: 3,
+        totalPredictions: 3,
+        correctPredictions: 3,
         winRate: 1.0,
-        points: 55,
+        pointsEarned: 55,
       })
     })
 
@@ -207,8 +207,8 @@ describe('PointsService', () => {
       const timeSeries = await service.getPointsOverTime('user-123', 7)
 
       expect(timeSeries).toEqual([
-        { date: '2024-03-19', points: 15, predictions: 1 },
-        { date: '2024-03-20', points: 55, predictions: 2 },
+        { date: '2024-03-19', pointsEarned: 15, predictionsScored: 1 },
+        { date: '2024-03-20', pointsEarned: 55, predictionsScored: 2 },
       ])
     })
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { TeamLogo } from '@/components/TeamLogo'
 import useCartStore from '@/store/cart'
 import { usePredictionsByGame } from '@/hooks/usePredictions'
+import { getLeagueBadgeColor } from '@/lib/utils'
 
 interface GameCardProps {
   game: GameWithUnifiedOdds
@@ -64,21 +65,6 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
 
   const formatOdds = (odds: number): string => {
     return odds > 0 ? `+${odds}` : `${odds}`
-  }
-
-  const getLeagueBadgeColor = (league: string) => {
-    switch (league.toUpperCase()) {
-      case 'NFL':
-        return 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
-      case 'NBA':
-        return 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-500/20'
-      case 'MLB':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
-      case 'NHL':
-        return 'bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-500/20'
-      default:
-        return ''
-    }
   }
 
   const formatGameTime = (startsAt: Date | string) => {

@@ -1,5 +1,6 @@
 import { prisma } from '@pulse/db'
 import type { PredictionType } from '@pulse/db'
+import type { LeagueStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
 import { calculateTotalPoints, applyDiminishingReturns } from '../utils/points-calculation'
 
@@ -338,9 +339,7 @@ export class PointsService {
    * @param userId - User ID
    * @returns Array of league statistics
    */
-  async getWinRateByLeague(
-    userId: string
-  ): Promise<Array<{ league: string; total: number; correct: number; winRate: number; points: number }>> {
+  async getWinRateByLeague(userId: string): Promise<LeagueStats[]> {
     // Get all processed predictions with game data
     const predictions = await prisma.prediction.findMany({
       where: {
@@ -391,8 +390,17 @@ export class PointsService {
     })
 
     for (const entry of ledgerEntries) {
-      const meta = entry.meta as { league?: string } | null
-      const league = meta?.league
+      const meta = entry.meta as { league?: string; predictionId?: string } | null
+      let league = meta?.league
+
+      // If league not in meta, try to look it up from the prediction
+      if (!league && meta?.predictionId) {
+        const prediction = predictions.find((p) => p.id === meta.predictionId)
+        if (prediction) {
+          league = prediction.game.league
+        }
+      }
+
       if (league && leagueMap.has(league)) {
         const current = leagueMap.get(league)!
         current.points += entry.delta
@@ -402,10 +410,10 @@ export class PointsService {
     // Convert to array with win rates
     return Array.from(leagueMap.entries()).map(([league, stats]) => ({
       league,
-      total: stats.total,
-      correct: stats.correct,
+      totalPredictions: stats.total,
+      correctPredictions: stats.correct,
       winRate: stats.total > 0 ? stats.correct / stats.total : 0,
-      points: stats.points,
+      pointsEarned: stats.points,
     }))
   }
 
@@ -419,7 +427,7 @@ export class PointsService {
   async getPointsOverTime(
     userId: string,
     days: number = 30
-  ): Promise<Array<{ date: string; points: number; predictions: number }>> {
+  ): Promise<Array<{ date: string; pointsEarned: number; predictionsScored: number }>> {
     const since = new Date()
     since.setDate(since.getDate() - days)
     since.setUTCHours(0, 0, 0, 0)
@@ -452,7 +460,11 @@ export class PointsService {
     }
 
     return Array.from(dailyMap.entries())
-      .map(([date, stats]) => ({ date, points: stats.points, predictions: stats.predictions }))
+      .map(([date, stats]) => ({
+        date,
+        pointsEarned: stats.points,
+        predictionsScored: stats.predictions,
+      }))
       .sort((a, b) => a.date.localeCompare(b.date))
   }
 
