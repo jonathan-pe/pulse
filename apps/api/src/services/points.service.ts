@@ -301,6 +301,307 @@ export class PointsService {
 
     return count
   }
+
+  /**
+   * Get user's points transaction history (paginated)
+   *
+   * @param userId - User ID
+   * @param limit - Maximum number of entries to return
+   * @param offset - Number of entries to skip
+   * @returns Array of ledger entries
+   */
+  async getPointsHistory(
+    userId: string,
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<Array<{ id: string; delta: number; reason: string; meta: unknown; createdAt: Date }>> {
+    const entries = await prisma.pointsLedger.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset,
+      select: {
+        id: true,
+        delta: true,
+        reason: true,
+        meta: true,
+        createdAt: true,
+      },
+    })
+
+    return entries
+  }
+
+  /**
+   * Get win rate breakdown by league
+   *
+   * @param userId - User ID
+   * @returns Array of league statistics
+   */
+  async getWinRateByLeague(
+    userId: string
+  ): Promise<Array<{ league: string; total: number; correct: number; winRate: number; points: number }>> {
+    // Get all processed predictions with game data
+    const predictions = await prisma.prediction.findMany({
+      where: {
+        userId,
+        processedAt: { not: null },
+        isCorrect: { not: null },
+      },
+      include: {
+        game: {
+          select: {
+            league: true,
+          },
+        },
+      },
+    })
+
+    // Get points earned per league from ledger
+    const pointsByLeague = await prisma.pointsLedger.groupBy({
+      by: ['userId'],
+      where: {
+        userId,
+        reason: { startsWith: 'Correct prediction' },
+      },
+      _sum: { delta: true },
+    })
+
+    // Group by league
+    const leagueMap = new Map<string, { total: number; correct: number; points: number }>()
+
+    for (const pred of predictions) {
+      const league = pred.game.league
+      const current = leagueMap.get(league) ?? { total: 0, correct: 0, points: 0 }
+      current.total++
+      if (pred.isCorrect) current.correct++
+      leagueMap.set(league, current)
+    }
+
+    // Calculate points per league by parsing meta
+    const ledgerEntries = await prisma.pointsLedger.findMany({
+      where: {
+        userId,
+        reason: { startsWith: 'Correct prediction' },
+      },
+      select: {
+        delta: true,
+        meta: true,
+      },
+    })
+
+    for (const entry of ledgerEntries) {
+      const meta = entry.meta as { league?: string } | null
+      const league = meta?.league
+      if (league && leagueMap.has(league)) {
+        const current = leagueMap.get(league)!
+        current.points += entry.delta
+      }
+    }
+
+    // Convert to array with win rates
+    return Array.from(leagueMap.entries()).map(([league, stats]) => ({
+      league,
+      total: stats.total,
+      correct: stats.correct,
+      winRate: stats.total > 0 ? stats.correct / stats.total : 0,
+      points: stats.points,
+    }))
+  }
+
+  /**
+   * Get points earned over time (daily aggregation)
+   *
+   * @param userId - User ID
+   * @param days - Number of days to look back
+   * @returns Array of daily point totals
+   */
+  async getPointsOverTime(
+    userId: string,
+    days: number = 30
+  ): Promise<Array<{ date: string; points: number; predictions: number }>> {
+    const since = new Date()
+    since.setDate(since.getDate() - days)
+    since.setUTCHours(0, 0, 0, 0)
+
+    // Get ledger entries grouped by date
+    const entries = await prisma.pointsLedger.findMany({
+      where: {
+        userId,
+        createdAt: { gte: since },
+      },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        delta: true,
+        createdAt: true,
+        reason: true,
+      },
+    })
+
+    // Group by date
+    const dailyMap = new Map<string, { points: number; predictions: number }>()
+
+    for (const entry of entries) {
+      const dateKey = entry.createdAt.toISOString().split('T')[0]
+      const current = dailyMap.get(dateKey) ?? { points: 0, predictions: 0 }
+      current.points += entry.delta
+      if (entry.reason.startsWith('Correct prediction')) {
+        current.predictions++
+      }
+      dailyMap.set(dateKey, current)
+    }
+
+    return Array.from(dailyMap.entries())
+      .map(([date, stats]) => ({ date, points: stats.points, predictions: stats.predictions }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }
+
+  /**
+   * Get longest streak for a user
+   *
+   * @param userId - User ID
+   * @returns Longest streak achieved
+   */
+  async getLongestStreak(userId: string): Promise<number> {
+    // Get all bonus tier predictions in order
+    const predictions = await prisma.prediction.findMany({
+      where: {
+        userId,
+        bonusTier: true,
+        processedAt: { not: null },
+        isCorrect: { not: null },
+      },
+      orderBy: { processedAt: 'asc' },
+      select: { isCorrect: true },
+    })
+
+    let maxStreak = 0
+    let currentStreak = 0
+
+    for (const pred of predictions) {
+      if (pred.isCorrect) {
+        currentStreak++
+        maxStreak = Math.max(maxStreak, currentStreak)
+      } else {
+        currentStreak = 0
+      }
+    }
+
+    return maxStreak
+  }
+
+  /**
+   * Get comprehensive user statistics
+   *
+   * @param userId - User ID
+   * @returns Complete user stats object
+   */
+  async getUserStats(userId: string): Promise<{
+    totalPoints: number
+    currentStreak: number
+    longestStreak: number
+    totalPredictions: number
+    correctPredictions: number
+    overallWinRate: number
+    pointsEarnedToday: number
+    predictionsToday: number
+    bonusTierUsed: number
+    leaderboardRank: number | null
+    byLeague: Array<{ league: string; total: number; correct: number; winRate: number; points: number }>
+    pointsOverTime: Array<{ date: string; points: number; predictions: number }>
+  }> {
+    // Run queries in parallel for efficiency
+    const [totalPoints, user, longestStreak, allPredictions, todayStats, byLeague, pointsOverTime, leaderboardRank] =
+      await Promise.all([
+        this.getUserPoints(userId),
+        prisma.user.findUnique({ where: { id: userId }, select: { currentStreak: true } }),
+        this.getLongestStreak(userId),
+        prisma.prediction.findMany({
+          where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
+          select: { isCorrect: true },
+        }),
+        this.getTodayStats(userId),
+        this.getWinRateByLeague(userId),
+        this.getPointsOverTime(userId, 30),
+        this.getUserRank(userId),
+      ])
+
+    const totalPredictions = allPredictions.length
+    const correctPredictions = allPredictions.filter((p) => p.isCorrect).length
+    const overallWinRate = totalPredictions > 0 ? correctPredictions / totalPredictions : 0
+
+    return {
+      totalPoints,
+      currentStreak: user?.currentStreak ?? 0,
+      longestStreak,
+      totalPredictions,
+      correctPredictions,
+      overallWinRate,
+      pointsEarnedToday: todayStats.pointsEarned,
+      predictionsToday: todayStats.predictionsToday,
+      bonusTierUsed: todayStats.bonusTierUsed,
+      leaderboardRank,
+      byLeague,
+      pointsOverTime,
+    }
+  }
+
+  /**
+   * Get today's statistics for a user
+   *
+   * @param userId - User ID
+   * @returns Today's points, predictions, and bonus tier usage
+   */
+  private async getTodayStats(
+    userId: string
+  ): Promise<{ pointsEarned: number; predictionsToday: number; bonusTierUsed: number }> {
+    const startOfDay = new Date()
+    startOfDay.setUTCHours(0, 0, 0, 0)
+
+    const [pointsResult, predictionsToday, bonusTierCount] = await Promise.all([
+      prisma.pointsLedger.aggregate({
+        where: { userId, createdAt: { gte: startOfDay } },
+        _sum: { delta: true },
+      }),
+      prisma.prediction.count({
+        where: { userId, createdAt: { gte: startOfDay } },
+      }),
+      prisma.prediction.count({
+        where: { userId, createdAt: { gte: startOfDay }, bonusTier: true },
+      }),
+    ])
+
+    return {
+      pointsEarned: pointsResult._sum.delta ?? 0,
+      predictionsToday,
+      bonusTierUsed: bonusTierCount,
+    }
+  }
+
+  /**
+   * Get user's rank on the leaderboard
+   *
+   * @param userId - User ID
+   * @returns User's rank (1-based) or null if not ranked
+   */
+  private async getUserRank(userId: string): Promise<number | null> {
+    const userPoints = await this.getUserPoints(userId)
+    if (userPoints === 0) return null
+
+    // Count users with more points
+    const result = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(DISTINCT "userId") as count
+      FROM (
+        SELECT "userId", SUM("delta") as points
+        FROM "PointsLedger"
+        GROUP BY "userId"
+        HAVING SUM("delta") > ${userPoints}
+      ) as higher_ranked
+    `
+
+    const higherRanked = Number(result[0]?.count ?? 0)
+    return higherRanked + 1
+  }
 }
 
 // Export singleton instance
