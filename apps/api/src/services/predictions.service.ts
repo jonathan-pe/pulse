@@ -7,7 +7,7 @@ import type { OddsSnapshot } from './points.service'
 const logger = createLogger('PredictionsService')
 
 // Constants from business rules
-const DAILY_BONUS_LIMIT = 5 // First 5 predictions per day get bonus multiplier
+const DAILY_BONUS_LIMIT = 1 // First prediction per day gets bonus multiplier
 const DAILY_TOTAL_LIMIT = 100
 
 export interface CreatePredictionInput {
@@ -238,7 +238,7 @@ export class PredictionsService {
       total: unifiedOdds.total ?? undefined,
     }
 
-    // Determine if this is a bonus tier prediction (first 5 of the day)
+    // Determine if this is a bonus tier prediction (first of the day)
     const startOfDay = this.getStartOfDay()
     const todaysPredictions = await prisma.prediction.count({
       where: {

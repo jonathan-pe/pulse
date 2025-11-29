@@ -90,6 +90,11 @@ export class ScoreGameService {
       include: {
         game: {
           include: { result: true },
+          select: {
+            id: true,
+            league: true,
+            result: true,
+          },
         },
       },
     })) as unknown as PredictionWithGame[]
@@ -182,23 +187,35 @@ export class ScoreGameService {
     // Get daily prediction count at time of prediction
     const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
 
-    // 5. Calculate points
-    const points = pointsService.calculatePoints(prediction, currentStreak, dailyCount)
+    // 5. Calculate points (pure probability-based, no streak bonuses)
+    const points = pointsService.calculatePoints(prediction, dailyCount)
 
     // 6. Award points
     await pointsService.awardPoints(prediction.userId, points, `Correct prediction on game ${prediction.gameId}`, {
       predictionId: prediction.id,
-      game: prediction.gameId,
+      gameId: prediction.gameId,
       league: prediction.game.league,
       type: prediction.type,
       pick: prediction.pick,
       bonusTier: prediction.bonusTier,
-      streak: currentStreak,
+      streak: currentStreak, // Tracked for achievements, not used in points
       dailyCount,
     })
 
-    // 7. Update streak
+    // 7. Update streak (cosmetic tracking for achievements)
     await pointsService.updateUserStreak(prediction.userId, true, prediction.bonusTier)
+
+    // 8. Check and unlock achievements
+    const { achievementsService } = await import('./achievements.service.js')
+    const newAchievements = await achievementsService.checkAndUnlockAchievements(prediction.userId)
+
+    if (newAchievements.length > 0) {
+      logger.info('New achievements unlocked', {
+        userId: prediction.userId,
+        count: newAchievements.length,
+        achievementIds: newAchievements,
+      })
+    }
 
     const duration = Date.now() - startTime
 
@@ -209,6 +226,7 @@ export class ScoreGameService {
       points,
       bonusTier: prediction.bonusTier,
       streak: currentStreak,
+      newAchievements: newAchievements.length,
       duration: `${duration}ms`,
     })
   }

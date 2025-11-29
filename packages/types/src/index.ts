@@ -13,6 +13,9 @@ export const typesVersion = 1 as const
 // Re-export odds types
 export * from './odds'
 
+// Re-export achievement types
+export * from './achievements'
+
 // Phase 2: Engagement Features Types
 
 /**
@@ -69,7 +72,7 @@ export interface PointsTimeSeries {
 export interface UserStats {
   totalPoints: number
   currentStreak: number
-  longestStreak: number
+  longestStreak: number // Added for achievement tracking
   totalPredictions: number
   correctPredictions: number
   overallWinRate: number

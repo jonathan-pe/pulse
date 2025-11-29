@@ -203,23 +203,27 @@ basePoints = 10 * (100 / impliedProbability)
 - `+150` (40% underdog): 25 points
 - `+700` (12.5% longshot): 80 points
 
-### Streak Bonuses (Bonus Tier Only)
-- 2-win: +10 points
-- 3-win: +25 points
-- 4-win: +50 points
-- 5+ win: +100 points (capped)
+### Bonus Tier Multiplier
+- **Bonus Tier** predictions get a **1.5x multiplier** applied to base points (before diminishing returns)
+- **Baseline Tier** predictions get the standard 1.0x multiplier
 
 ### Tier System
-1. **Bonus Tier**: First 5 predictions daily (by `createdAt` timestamp)
-   - Base points + streak bonuses
+1. **Bonus Tier**: First prediction daily (by `createdAt` timestamp)
+   - Base points × 1.5 multiplier
    - Tier status locked at creation (replacements inherit tier)
+   - Only bonus tier predictions affect streak tracking (for achievements)
 2. **Baseline Tier**: Unlimited predictions
-   - Base points only
-   - No streak bonuses
-3. **Diminishing Returns**:
+   - Base points × 1.0 (no multiplier)
+   - Do not affect streak tracking
+3. **Diminishing Returns** (applied after bonus tier multiplier):
    - Predictions 1-30: 100% points
    - Predictions 31-75: 50% points
    - Predictions 76+: 0 points
+
+**Bonus Tier Examples**:
+- Pick -200 favorite in bonus tier: 15 base × 1.5 = 22.5 points (before diminishing returns)
+- Pick -200 favorite in baseline tier: 15 base × 1.0 = 15 points (before diminishing returns)
+- Pick +300 underdog in bonus tier: 40 base × 1.5 = 60 points (before diminishing returns)
 
 ### Expected Value Fairness
 System is mathematically balanced so all strategies have equal EV (~10 points):
@@ -396,6 +400,63 @@ Current: **Single provider** (NatStat)
   - Best line selection
   - Source attribution
   - Redundancy if NatStat is down
+
+---
+
+## Future Architectural Considerations
+
+### Planned Features (Under Development)
+
+#### Achievements System (In Progress - Nov 2025)
+**Status**: Schema and backend implemented, UI components ready
+- **Architecture**: Separate `Achievement` and `UserAchievement` tables with flexible criteria system
+- **Categories**: Streak, Milestone, League Expertise, Social, Special
+- **Rarity Tiers**: Common, Rare, Epic, Legendary
+- **Key Design Decisions**:
+  - Streaks are now **cosmetic only** - they don't affect point calculations
+  - Points are purely probability-based for mathematical fairness
+  - Achievement criteria stored as JSON for flexibility
+  - Progress tracking calculated on-demand or cached
+  - Users can display up to 5 achievements on profile
+- **Integration**: Achievement checks run automatically after correct predictions in `score-game.service.ts`
+- **API Endpoints**: `/api/achievements` (list, showcase, stats, display management)
+
+### Future Considerations (Not Yet Started)
+
+#### Daily/Weekly Challenges
+**Concept**: Themed prediction objectives that refresh daily/weekly
+- **Examples**:
+  - "Pick an underdog (+150 or higher)" 
+  - "Make predictions in 3 different leagues"
+  - "Perfect day - all predictions correct"
+  - "Win streak challenge - get 5 in a row"
+- **Rewards**: Bonus points (25-100) for completing challenges
+- **Benefits**:
+  - Encourages varied prediction behavior
+  - More forgiving than streaks (daily reset)
+  - Can be themed around real events (playoffs, rivalries)
+  - Provides fresh goals without anxiety of breaking long-term streaks
+- **Technical Approach**:
+  - `DailyChallenge` table with challenge type, requirements, rewards
+  - `UserChallengeProgress` tracks completion per user
+  - Challenges generated/rotated by cron job
+  - Progress checked after each prediction scored
+- **Status**: Documented as future feature, not prioritized yet
+- **Decision**: Holding on this until we see user engagement with achievements
+
+#### Social Prediction Pools
+**Concept**: Private groups where friends compete on predictions
+- Create/join pools with invite codes
+- Separate leaderboards per pool
+- Optional pool-specific challenges
+- **Consideration**: Requires additional auth/permissions layer
+
+#### Confidence System
+**Concept**: Daily allocation of "confidence units" to distribute across predictions
+- Users get X units per day (e.g., 100)
+- Allocate 1-50 units per prediction as multiplier
+- Forces strategic prioritization
+- **Consideration**: May complicate UI/UX, needs careful balancing
 
 ---
 

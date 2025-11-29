@@ -1,0 +1,54 @@
+// achievement.prisma — Achievement and progression system
+
+model Achievement {
+  id          String              @id @default(cuid())
+  key         String              @unique // e.g., "streak_5", "milestone_100_predictions"
+  name        String // Display name
+  description String
+  category    AchievementCategory
+  rarity      AchievementRarity
+  iconUrl     String? // Optional icon/badge image
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @default(now()) @updatedAt
+
+  // Criteria for unlocking (stored as JSON for flexibility)
+  criteria Json // e.g., { "type": "streak", "value": 5 } or { "type": "total_predictions", "value": 100 }
+
+  // Relationships
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([rarity])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  progress      Int      @default(0) // For tracking partial progress toward achievement
+  isDisplayed   Boolean  @default(false) // Whether user has this in their profile showcase
+
+  // Relationships
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+enum AchievementCategory {
+  STREAK
+  MILESTONE
+  LEAGUE_EXPERTISE
+  SOCIAL
+  SPECIAL
+}
+
+enum AchievementRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}

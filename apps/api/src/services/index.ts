@@ -12,3 +12,5 @@ export type {
   CreatePredictionsResult,
   PredictionValidationError,
 } from './predictions.service.js'
+
+export { achievementsService, AchievementsService } from './achievements.service.js'

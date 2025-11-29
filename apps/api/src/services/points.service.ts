@@ -1,6 +1,6 @@
 import { prisma } from '@pulse/db'
 import type { PredictionType } from '@pulse/db'
-import type { LeagueStats } from '@pulse/types'
+import type { LeagueStats, UserStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
 import { calculateTotalPoints, applyDiminishingReturns } from '../utils/points-calculation'
 
@@ -22,6 +22,7 @@ export interface PredictionWithGame {
   bonusTier: boolean
   isCorrect: boolean | null
   game: {
+    league: string
     result: {
       homeScore: number
       awayScore: number
@@ -133,12 +134,14 @@ export class PointsService {
   /**
    * Calculate points for a correct prediction
    *
+   * Pure probability-based scoring with bonus tier multiplier (1.5x for first pick/day).
+   * Streaks are tracked separately for achievements.
+   *
    * @param prediction - Prediction with odds and bonus tier status
-   * @param currentStreak - User's current streak before this prediction
    * @param dailyPredictionCount - Number of predictions made today (for diminishing returns)
-   * @returns Points to award (after all bonuses and modifiers)
+   * @returns Points to award (after bonus tier multiplier and diminishing returns modifier)
    */
-  calculatePoints(prediction: PredictionWithGame, currentStreak: number, dailyPredictionCount: number): number {
+  calculatePoints(prediction: PredictionWithGame, dailyPredictionCount: number): number {
     const oddsData = prediction.oddsAtPrediction
     if (!oddsData) {
       throw new Error(`No odds data for prediction ${prediction.id}`)
@@ -176,20 +179,25 @@ export class PointsService {
       throw new Error(`Could not extract odds for prediction ${prediction.id}`)
     }
 
-    // Calculate base points + streak bonus
-    const rawPoints = calculateTotalPoints(odds, currentStreak, prediction.bonusTier)
+    // Calculate base points only (no streak bonuses)
+    const rawPoints = calculateTotalPoints(odds)
+
+    // Apply bonus tier multiplier (1.5x for first pick of the day)
+    const tierMultiplier = prediction.bonusTier ? 1.5 : 1.0
+    const pointsWithBonus = rawPoints * tierMultiplier
 
     // Apply diminishing returns based on daily volume
-    const finalPoints = applyDiminishingReturns(rawPoints, dailyPredictionCount)
+    const finalPoints = applyDiminishingReturns(pointsWithBonus, dailyPredictionCount)
 
     logger.debug('Calculated points', {
       predictionId: prediction.id,
       odds,
-      currentStreak,
       dailyPredictionCount,
-      rawPoints,
-      finalPoints,
       bonusTier: prediction.bonusTier,
+      tierMultiplier,
+      rawPoints,
+      pointsWithBonus,
+      finalPoints,
     })
 
     return Math.round(finalPoints) // Round to nearest integer
@@ -220,6 +228,9 @@ export class PointsService {
   /**
    * Update user's streak based on prediction correctness
    *
+   * Streaks are now purely cosmetic for achievement tracking.
+   * They don't affect point calculations.
+   *
    * @param userId - User ID
    * @param isCorrect - Whether the prediction was correct
    * @param isBonusTier - Whether this was a bonus tier prediction
@@ -237,18 +248,31 @@ export class PointsService {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { currentStreak: true },
+      select: { currentStreak: true, longestStreak: true },
     })
 
     const currentStreak = user?.currentStreak ?? 0
+    const longestStreak = user?.longestStreak ?? 0
 
     if (isCorrect) {
       // Increment streak
       const newStreak = currentStreak + 1
+
+      // Update longest streak if new record
+      const updateData: { currentStreak: number; longestStreak?: number } = {
+        currentStreak: newStreak,
+      }
+
+      if (newStreak > longestStreak) {
+        updateData.longestStreak = newStreak
+        logger.debug('New longest streak record!', { userId, newStreak })
+      }
+
       await prisma.user.update({
         where: { id: userId },
-        data: { currentStreak: newStreak },
+        data: updateData,
       })
+
       logger.debug('Streak incremented', { userId, from: currentStreak, to: newStreak })
       return newStreak
     } else {
@@ -475,31 +499,13 @@ export class PointsService {
    * @returns Longest streak achieved
    */
   async getLongestStreak(userId: string): Promise<number> {
-    // Get all bonus tier predictions in order
-    const predictions = await prisma.prediction.findMany({
-      where: {
-        userId,
-        bonusTier: true,
-        processedAt: { not: null },
-        isCorrect: { not: null },
-      },
-      orderBy: { processedAt: 'asc' },
-      select: { isCorrect: true },
+    // Retrieve from user record (tracked in real-time now)
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { longestStreak: true },
     })
 
-    let maxStreak = 0
-    let currentStreak = 0
-
-    for (const pred of predictions) {
-      if (pred.isCorrect) {
-        currentStreak++
-        maxStreak = Math.max(maxStreak, currentStreak)
-      } else {
-        currentStreak = 0
-      }
-    }
-
-    return maxStreak
+    return user?.longestStreak ?? 0
   }
 
   /**
@@ -508,20 +514,7 @@ export class PointsService {
    * @param userId - User ID
    * @returns Complete user stats object
    */
-  async getUserStats(userId: string): Promise<{
-    totalPoints: number
-    currentStreak: number
-    longestStreak: number
-    totalPredictions: number
-    correctPredictions: number
-    overallWinRate: number
-    pointsEarnedToday: number
-    predictionsToday: number
-    bonusTierUsed: number
-    leaderboardRank: number | null
-    byLeague: Array<{ league: string; total: number; correct: number; winRate: number; points: number }>
-    pointsOverTime: Array<{ date: string; points: number; predictions: number }>
-  }> {
+  async getUserStats(userId: string): Promise<UserStats> {
     // Run queries in parallel for efficiency
     const [totalPoints, user, longestStreak, allPredictions, todayStats, byLeague, pointsOverTime, leaderboardRank] =
       await Promise.all([

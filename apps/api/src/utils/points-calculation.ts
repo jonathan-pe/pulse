@@ -50,44 +50,34 @@ export function calculateBasePoints(odds: number): number {
 /**
  * Get streak bonus points based on current streak length
  *
- * Flat bonuses (not multipliers) applied equally to all odds ranges.
- * Only applies to Bonus Tier predictions.
+ * @deprecated Streaks are now cosmetic only and don't affect point scoring.
+ * This function is kept for backward compatibility but always returns 0.
+ * Streak tracking continues for achievement purposes.
  *
  * @param streakLength - Number of consecutive correct predictions
- * @returns Flat bonus points to add
- *
- * @example
- * getStreakBonus(1) // Returns 0 (no bonus for first win)
- * getStreakBonus(2) // Returns 10 (2-win streak)
- * getStreakBonus(5) // Returns 100 (5+ wins, capped)
+ * @returns Always returns 0 (streaks are cosmetic only)
  */
 export function getStreakBonus(streakLength: number): number {
-  if (streakLength < 2) return 0
-  if (streakLength === 2) return 10
-  if (streakLength === 3) return 25
-  if (streakLength === 4) return 50
-  return 100 // 5+ wins (capped)
+  // Streaks are now purely cosmetic achievements
+  // No longer affect point calculations
+  return 0
 }
 
 /**
  * Calculate total points for a correct prediction
  *
- * Combines base points with streak bonus (if applicable).
+ * Pure probability-based scoring with no bonuses or multipliers.
+ * Streaks are tracked separately for cosmetic achievements only.
  *
  * @param odds - American odds format
- * @param streakLength - Current streak length (0 if not bonus tier)
- * @param isBonusTier - Whether this prediction is in the bonus tier
- * @returns Total points earned
+ * @returns Total points earned (base points only)
  *
  * @example
- * calculateTotalPoints(-150, 0, false) // Returns 16.67 (baseline tier)
- * calculateTotalPoints(-150, 2, true) // Returns 26.67 (bonus tier with 2-win streak)
- * calculateTotalPoints(+300, 3, true) // Returns 65 (40 base + 25 streak)
+ * calculateTotalPoints(-150) // Returns 16.67
+ * calculateTotalPoints(+300) // Returns 40
  */
-export function calculateTotalPoints(odds: number, streakLength: number, isBonusTier: boolean): number {
-  const basePoints = calculateBasePoints(odds)
-  const streakBonus = isBonusTier ? getStreakBonus(streakLength) : 0
-  return basePoints + streakBonus
+export function calculateTotalPoints(odds: number): number {
+  return calculateBasePoints(odds)
 }
 
 /**
