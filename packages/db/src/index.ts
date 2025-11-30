@@ -18,4 +18,5 @@ export const prisma = global.__prisma ?? new PrismaClient({ adapter })
 
 if (process.env.NODE_ENV !== 'production') global.__prisma = prisma
 
+// Re-export all Prisma types for consumers
 export * from '../generated/prisma/client.js'

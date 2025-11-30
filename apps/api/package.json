@@ -4,12 +4,8 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/router.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/router.d.ts",
-      "default": "./dist/index.js"
-    }
+    ".": "./dist/index.js"
   },
   "scripts": {
     "dev": "tsx watch --clear-screen=false --ignore 'dist/**' --ignore '**/*.test.ts' src/index.ts",
@@ -18,8 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
-    "prebuild": "pnpm -w run db:generate && pnpm --filter @pulse/types build && pnpm --filter @pulse/db build",
-    "build": "tsup src/index.ts --format esm,cjs --dts --out-dir dist --clean --sourcemap",
+    "prebuild": "pnpm -w run db:generate && pnpm --filter @pulse/types build",
+    "build": "tsup src/index.ts --format esm,cjs --out-dir dist --clean --sourcemap",
     "start": "NODE_ENV=production node dist/index.js",
     "ingest": "tsx src/cli/ingest.ts",
     "ingest-historical": "tsx src/cli/ingest-historical.ts",

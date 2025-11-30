@@ -4,15 +4,11 @@
   "type": "module",
   "version": "0.0.0",
   "main": "src/index.ts",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     }
   },
   "scripts": {
@@ -20,8 +16,7 @@
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
-    "typecheck": "tsc --noEmit",
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.1",
@@ -32,7 +27,6 @@
   "devDependencies": {
     "@types/pg": "^8.11.10",
     "prisma": "^7.0.1",
-    "tsup": "^8.5.0",
     "typescript": "^5.9.2"
   }
 }
