@@ -80,3 +80,6 @@ Desktop.ini
 *.tsbuildinfo
 
 *.d.ts.map
+
+# Prisma generated client (Prisma v7)
+packages/db/generated/

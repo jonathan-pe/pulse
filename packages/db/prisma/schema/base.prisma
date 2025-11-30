@@ -1,11 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // Optional: Only needed for connection pooling (e.g., Supabase, PgBouncer)
-  // For local dev, this can be omitted from your .env file
-  // directUrl = env("DIRECT_URL")
+  // Note: In Prisma v7, the connection URL is configured in prisma.config.ts
+  // via the datasource.url field instead of here
 }
