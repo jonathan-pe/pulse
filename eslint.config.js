@@ -5,13 +5,12 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 
-// ESM flat ESLint config: register plugins and apply recommended rules for TS/TSX
 export default [
   js.configs.recommended,
-  // Global ignore patterns that should apply for the whole config
   {
-    ignores: ['**/dist/**', 'apps/web/src/components/ui', 'apps/marketing/src/components/ui'],
+    ignores: ['**/dist/**', '**/node_modules/**', 'apps/web/src/components/ui', 'apps/marketing/src/components/ui'],
   },
+  // Base TypeScript config for all TS/TSX files
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
@@ -23,10 +22,7 @@ export default [
       '@typescript-eslint': tsPlugin,
     },
     rules: {
-      // include recommended rule sets from the plugins where available
       ...(tsPlugin.configs?.recommended?.rules ?? {}),
-
-      // repo-specific rules
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -38,34 +34,21 @@ export default [
         },
       ],
       'no-console': 'warn',
-      // TypeScript handles undefined checks better than ESLint
-      'no-undef': 'off',
+      'no-undef': 'off', // TypeScript handles this
     },
   },
-
-  // API/DB specific
+  // Node.js environments (API, DB, scripts)
   {
-    files: ['apps/api/**/*.{ts,tsx,js,jsx}'],
+    files: ['apps/api/**/*.{ts,js}', 'packages/db/**/*.{ts,js}'],
     languageOptions: {
       globals: globals.node,
     },
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
   },
-
-  // DB specific
+  // Browser environments (Web, Marketing)
   {
-    files: ['packages/db/**/*.{ts,tsx,js,jsx}'],
-    rules: {},
-  },
-
-  // Client specific
-  {
-    files: ['apps/web/**/*.{ts,tsx,js,jsx}', 'apps/marketing/**/*.{ts,tsx,js,jsx}'],
+    files: ['apps/web/**/*.{ts,tsx}', 'apps/marketing/**/*.{ts,tsx}'],
     languageOptions: {
       globals: globals.browser,
-      parser: tsParser,
     },
     plugins: {
       'react-hooks': reactHooks,
@@ -73,8 +56,6 @@ export default [
     },
     rules: {
       ...(reactHooks.configs?.['recommended-latest']?.rules ?? {}),
-      ...(reactRefresh.configs?.vite?.rules ?? {}),
-
       'react-refresh/only-export-components': 'warn',
       'no-restricted-imports': [
         'error',
@@ -82,7 +63,7 @@ export default [
           patterns: [
             {
               group: ['@pulse/db*'],
-              message: 'Frontend (and most libs) must not import @pulse/db. Import @pulse/types instead.',
+              message: 'Frontend must not import @pulse/db. Import @pulse/types instead.',
             },
           ],
         },

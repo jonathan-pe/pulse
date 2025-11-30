@@ -11,23 +11,6 @@
     "jsx": "react-jsx",
     "types": [
       "node"
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@pulse/api": [
-        "apps/api/src"
-      ],
-      "@pulse/web": [
-        "apps/web/src"
-      ],
-      "@pulse/*": [
-        "packages/*/src",
-        "apps/*/src"
-      ]
-    },
-  },
-  "include": [
-    "packages/**/*",
-    "apps/**/*"
-  ]
+    ]
+  }
 }
