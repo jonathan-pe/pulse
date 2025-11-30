@@ -15,7 +15,7 @@
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
     "prebuild": "pnpm -w run db:generate && pnpm --filter @pulse/types build",
-    "build": "tsup src/index.ts --format esm --out-dir dist --clean --sourcemap --no-splitting",
+    "build": "tsup",
     "start": "NODE_ENV=production node dist/index.js",
     "ingest": "tsx src/cli/ingest.ts",
     "ingest-historical": "tsx src/cli/ingest-historical.ts",
