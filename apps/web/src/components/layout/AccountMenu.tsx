@@ -51,7 +51,7 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className='ml-2 rounded-full focus:outline-none' aria-label='Account' asChild size='icon'>
+        <Button className='rounded-full focus:outline-none' aria-label='Account' asChild size='icon'>
           <Avatar>
             <AvatarImage src={imageSrc} alt='User avatar' />
             <AvatarFallback>{computedInitials}</AvatarFallback>

@@ -16,7 +16,7 @@ export const Route = createRootRouteWithContext<PulseRouterContext>()({
     <div className='min-h-screen mx-auto'>
       <Outlet />
       <Toaster richColors />
-      <TanStackRouterDevtools />
+      <TanStackRouterDevtools position='bottom-right' />
     </div>
   ),
 })

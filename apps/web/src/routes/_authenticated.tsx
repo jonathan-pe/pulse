@@ -1,4 +1,6 @@
-import Navbar from '@/components/layout/NavBar'
+import AppSidebar from '@/components/layout/AppSidebar'
+import AppHeader from '@/components/layout/AppHeader'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated')({
@@ -13,9 +15,14 @@ export const Route = createFileRoute('/_authenticated')({
     }
   },
   component: () => (
-    <>
-      <Navbar />
-      <Outlet />
-    </>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        <div className='flex flex-1 flex-col'>
+          <Outlet />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   ),
 })
