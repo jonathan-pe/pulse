@@ -114,7 +114,6 @@ jobs:
       github.event.inputs.league == 'MLB' ||
       github.event.inputs.league == 'ALL' ||
       (github.event.inputs.league == '' && needs.check-season.outputs.mlb-active == 'true')
-      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.mlb-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
@@ -137,7 +136,6 @@ jobs:
       github.event.inputs.league == 'NHL' ||
       github.event.inputs.league == 'ALL' ||
       (github.event.inputs.league == '' && needs.check-season.outputs.nhl-active == 'true')
-      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nhl-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
