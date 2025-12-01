@@ -154,11 +154,11 @@ export default function AppSidebar() {
             </div>
 
             {/* When expanded: show ThemeToggle + AccountMenu */}
-            <div className='flex items-center gap-2 px-2 py-2 group-data-[collapsible=icon]:hidden'>
-              <ThemeToggle />
+            <div className='flex flex-1 items-center gap-2 px-2 py-2 group-data-[collapsible=icon]:hidden justify-between'>
               <div className='flex-1'>
                 <AccountMenu />
               </div>
+              <ThemeToggle />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
