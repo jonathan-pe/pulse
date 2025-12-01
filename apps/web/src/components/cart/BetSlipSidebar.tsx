@@ -9,6 +9,8 @@ import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
 
+const BONUS_TIER_PICKS = 1
+
 const BetSlipSidebar: React.FC = () => {
   const isMobile = useIsMobile()
   const selections = useCartStore((s) => s.selections)
@@ -37,7 +39,7 @@ const BetSlipSidebar: React.FC = () => {
 
   // Determine bonus tier status
   const bonusTierUsed = dailyStats?.totalToday ?? 0
-  const bonusTierRemaining = Math.max(0, 5 - bonusTierUsed)
+  const bonusTierRemaining = Math.max(0, BONUS_TIER_PICKS - bonusTierUsed)
 
   // Mock streak - in a real implementation, this would come from an API
   // For now, we'll show a placeholder
@@ -78,7 +80,8 @@ const BetSlipSidebar: React.FC = () => {
                 <span>Bonus Tier</span>
               </div>
               <div className='mt-1 text-lg font-semibold'>
-                {bonusTierRemaining}/5 <span className='text-sm font-normal text-muted-foreground'>available</span>
+                {bonusTierRemaining}/{BONUS_TIER_PICKS}{' '}
+                <span className='text-sm font-normal text-muted-foreground'>available</span>
               </div>
             </div>
 
