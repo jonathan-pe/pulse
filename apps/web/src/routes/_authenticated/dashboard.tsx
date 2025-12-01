@@ -7,6 +7,7 @@ import { TrendingUp, Target, Award, Flame, Calendar, Trophy } from 'lucide-react
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Link } from '@tanstack/react-router'
+import { DAILY_BONUS_TIER_LIMIT } from '@/lib/constants'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: Dashboard,
@@ -45,7 +46,7 @@ function Dashboard() {
   }
 
   const winRatePercent = (stats.overallWinRate * 100).toFixed(1)
-  const todayBonusRemaining = 5 - stats.bonusTierUsed
+  const todayBonusRemaining = DAILY_BONUS_TIER_LIMIT - stats.bonusTierUsed
 
   return (
     <div className='w-full h-full overflow-y-auto'>

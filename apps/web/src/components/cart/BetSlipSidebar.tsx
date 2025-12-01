@@ -8,8 +8,8 @@ import useCartStore, { getCartKey, calculateSelectionPoints, type CartSelection 
 import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { DAILY_BONUS_TIER_LIMIT } from '@/lib/constants'
 
-const BONUS_TIER_PICKS = 1
 const SOFT_CAP = 15 // 50% points after this
 const HARD_CAP = 40 // 0 points after this
 
@@ -41,7 +41,7 @@ const BetSlipSidebar: React.FC = () => {
 
   // Determine bonus tier status
   const bonusTierUsed = dailyStats?.totalToday ?? 0
-  const bonusTierRemaining = Math.max(0, BONUS_TIER_PICKS - bonusTierUsed)
+  const bonusTierRemaining = Math.max(0, DAILY_BONUS_TIER_LIMIT - bonusTierUsed)
 
   // Calculate diminishing returns status
   const predictionsToday = dailyStats?.totalToday ?? 0
@@ -119,7 +119,7 @@ const BetSlipSidebar: React.FC = () => {
                 <span>Bonus Tier</span>
               </div>
               <div className='mt-1 text-lg font-semibold'>
-                {bonusTierRemaining}/{BONUS_TIER_PICKS}{' '}
+                {bonusTierRemaining}/{DAILY_BONUS_TIER_LIMIT}{' '}
                 <span className='text-sm font-normal text-muted-foreground'>available</span>
               </div>
             </div>

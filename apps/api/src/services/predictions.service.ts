@@ -8,7 +8,7 @@ const logger = createLogger('PredictionsService')
 
 // Constants from business rules
 const DAILY_BONUS_LIMIT = 1 // First prediction per day gets bonus multiplier
-const DAILY_TOTAL_LIMIT = 100
+const DAILY_TOTAL_LIMIT = 40
 
 export interface CreatePredictionInput {
   userId: string

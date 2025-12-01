@@ -1,6 +1,7 @@
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Award, Target } from 'lucide-react'
+import { DAILY_TOTAL_LIMIT } from '@/lib/constants'
 
 export function DailyPredictionStats() {
   const { data: stats, isLoading } = useDailyPredictionStats()
@@ -46,7 +47,7 @@ export function DailyPredictionStats() {
               <Award className='h-4 w-4' />
               <span>Daily Limit</span>
             </div>
-            <div className='text-2xl font-bold'>100</div>
+            <div className='text-2xl font-bold'>{DAILY_TOTAL_LIMIT}</div>
             <div className='text-xs text-muted-foreground'>Max predictions per day</div>
           </div>
         </div>
@@ -55,12 +56,14 @@ export function DailyPredictionStats() {
         <div className='mt-4'>
           <div className='flex items-center justify-between text-xs text-muted-foreground mb-1'>
             <span>Daily Progress</span>
-            <span>{stats.totalToday}/100</span>
+            <span>
+              {stats.totalToday}/{DAILY_TOTAL_LIMIT}
+            </span>
           </div>
           <div className='w-full bg-secondary rounded-full h-2'>
             <div
               className='bg-primary h-2 rounded-full transition-all duration-300'
-              style={{ width: `${Math.min((stats.totalToday / 100) * 100, 100)}%` }}
+              style={{ width: `${Math.min((stats.totalToday / DAILY_TOTAL_LIMIT) * 100, 100)}%` }}
             />
           </div>
         </div>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { TeamLogo } from '@/components/TeamLogo'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, Clock } from 'lucide-react'
-import { DailyPredictionStats } from '@/components/DailyPredictionStats'
+import { PredictionsSummaryHeader } from '@/components/predictions/PredictionsSummaryHeader'
 
 export const Route = createFileRoute('/_authenticated/predictions')({
   component: PredictionsPage,
@@ -44,9 +44,9 @@ function PredictionsPage() {
       <div className='container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
         <h1 className='text-2xl sm:text-3xl font-bold mb-6'>My Predictions</h1>
 
-        {/* Daily Stats */}
+        {/* Summary Stats */}
         <div className='mb-6'>
-          <DailyPredictionStats />
+          <PredictionsSummaryHeader />
         </div>
 
         <div className='space-y-4'>
