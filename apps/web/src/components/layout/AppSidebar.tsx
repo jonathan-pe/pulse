@@ -153,9 +153,7 @@ export default function AppSidebar() {
 
             {/* When expanded: show ThemeToggle + AccountMenu */}
             <div className='flex flex-1 items-center gap-2 group-data-[collapsible=icon]:hidden justify-between'>
-              <div className='flex-1'>
-                <AccountMenu />
-              </div>
+              <AccountMenu />
               <ThemeToggle />
             </div>
           </SidebarMenuItem>
