@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       league:
-        description: 'Specific league to ingest (leave empty for all active leagues)'
+        description: 'Specific league to ingest'
         required: false
         type: choice
         options:
+          - ALL
           - NFL
           - NBA
           - MLB
@@ -66,7 +67,7 @@ jobs:
     needs: check-season
     if: |
       github.event.inputs.league == 'NFL' ||
-      (github.event.inputs.league == '' && needs.check-season.outputs.nfl-active == 'true')
+      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nfl-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
@@ -88,7 +89,7 @@ jobs:
     needs: check-season
     if: |
       github.event.inputs.league == 'NBA' ||
-      (github.event.inputs.league == '' && needs.check-season.outputs.nba-active == 'true')
+      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nba-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
@@ -110,7 +111,7 @@ jobs:
     needs: check-season
     if: |
       github.event.inputs.league == 'MLB' ||
-      (github.event.inputs.league == '' && needs.check-season.outputs.mlb-active == 'true')
+      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.mlb-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
@@ -132,7 +133,7 @@ jobs:
     needs: check-season
     if: |
       github.event.inputs.league == 'NHL' ||
-      (github.event.inputs.league == '' && needs.check-season.outputs.nhl-active == 'true')
+      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nhl-active == 'true')
     steps:
       - name: Calculate date range
         id: dates

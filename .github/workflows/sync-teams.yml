@@ -17,10 +17,11 @@ on:
   workflow_dispatch:
     inputs:
       league:
-        description: 'League to sync (leave empty for all leagues)'
+        description: 'League to sync'
         required: false
         type: choice
         options:
+          - ALL
           - NFL
           - NBA
           - MLB
@@ -32,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event.inputs.league == 'NFL' ||
-      github.event.inputs.league == '' ||
+      github.event.inputs.league == 'ALL' ||
       github.event.schedule == '0 3 1 8 *'
     steps:
       - name: Sync NFL teams
@@ -47,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event.inputs.league == 'NBA' ||
-      github.event.inputs.league == '' ||
+      github.event.inputs.league == 'ALL' ||
       github.event.schedule == '0 3 1 9 *'
     steps:
       - name: Sync NBA teams
@@ -62,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event.inputs.league == 'MLB' ||
-      github.event.inputs.league == '' ||
+      github.event.inputs.league == 'ALL' ||
       github.event.schedule == '0 3 1 2 *'
     steps:
       - name: Sync MLB teams
@@ -77,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event.inputs.league == 'NHL' ||
-      github.event.inputs.league == '' ||
+      github.event.inputs.league == 'ALL' ||
       github.event.schedule == '0 3 15 9 *'
     steps:
       - name: Sync NHL teams
