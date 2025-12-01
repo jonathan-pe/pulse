@@ -19,9 +19,9 @@ export const Route = createFileRoute('/_authenticated')({
       <AppSidebar />
       <SidebarInset>
         <AppHeader />
-        <div className='flex flex-1 flex-col'>
+        <main className='flex flex-1 flex-col min-h-0'>
           <Outlet />
-        </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   ),
