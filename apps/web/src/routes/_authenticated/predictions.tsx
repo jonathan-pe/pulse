@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { usePredictionHistory } from '@/hooks/usePredictions'
-import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card'
 import { TeamLogo } from '@/components/TeamLogo'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, Clock } from 'lucide-react'
 import { PredictionsSummaryHeader } from '@/components/predictions/PredictionsSummaryHeader'
+import { PredictionItem } from '@/components/predictions/PredictionItem'
+import { getLeagueBadgeColor } from '@/lib/utils'
+import type { PredictionWithGame } from '@/types/api'
 
 export const Route = createFileRoute('/_authenticated/predictions')({
   component: PredictionsPage,
@@ -39,6 +41,16 @@ function PredictionsPage() {
     )
   }
 
+  // Group predictions by game
+  const groupedPredictions = predictions.reduce((acc, prediction) => {
+    const gameId = prediction.gameId
+    if (!acc[gameId]) {
+      acc[gameId] = []
+    }
+    acc[gameId].push(prediction)
+    return acc
+  }, {} as Record<string, PredictionWithGame[]>)
+
   return (
     <div className='w-full h-full overflow-y-auto'>
       <div className='container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
@@ -49,29 +61,17 @@ function PredictionsPage() {
           <PredictionsSummaryHeader />
         </div>
 
-        <div className='space-y-4'>
-          {predictions.map((prediction) => {
-            const game = prediction.game
-            const isLocked = prediction.lockedAt !== null
+        {/* Predictions Grid - 2 columns on larger screens */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+          {Object.entries(groupedPredictions).map(([gameId, gamePredictions]) => {
+            const game = gamePredictions[0].game
             const hasResult = game.result !== null
 
-            // Format the pick for display
-            let pickDisplay = ''
-            if (prediction.type === 'MONEYLINE') {
-              const team = prediction.pick === 'home' ? game.homeTeam.name : game.awayTeam.name
-              pickDisplay = `${team} to Win`
-            } else if (prediction.type === 'SPREAD') {
-              const team = prediction.pick === 'home' ? game.homeTeam.name : game.awayTeam.name
-              pickDisplay = `${team} to Cover`
-            } else if (prediction.type === 'TOTAL') {
-              pickDisplay = prediction.pick === 'over' ? 'Over' : 'Under'
-            }
-
             return (
-              <Card key={prediction.id}>
-                <CardHeader>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-4'>
+              <Card key={gameId} className='flex flex-col'>
+                <CardHeader className='pb-3'>
+                  <div className='flex items-start justify-between gap-2'>
+                    <div className='flex items-center gap-3 flex-1 min-w-0'>
                       <div className='flex items-center gap-2'>
                         <TeamLogo
                           teamName={game.awayTeam.name}
@@ -79,9 +79,9 @@ function PredictionsPage() {
                           logoUrl={game.awayTeam.logoUrl}
                           size='sm'
                         />
-                        <span className='font-medium'>{game.awayTeam.name}</span>
+                        <span className='font-medium text-sm'>{game.awayTeam.code}</span>
                       </div>
-                      <span className='text-muted-foreground'>@</span>
+                      <span className='text-muted-foreground text-sm'>@</span>
                       <div className='flex items-center gap-2'>
                         <TeamLogo
                           teamName={game.homeTeam.name}
@@ -89,32 +89,17 @@ function PredictionsPage() {
                           logoUrl={game.homeTeam.logoUrl}
                           size='sm'
                         />
-                        <span className='font-medium'>{game.homeTeam.name}</span>
+                        <span className='font-medium text-sm'>{game.homeTeam.code}</span>
                       </div>
                     </div>
 
-                    {/* Status badge */}
-                    {hasResult && (
-                      <Badge variant='default' className='bg-green-500 hover:bg-green-600'>
-                        <CheckCircle className='h-3 w-3 mr-1' />
-                        Complete
-                      </Badge>
-                    )}
-                    {!hasResult && !isLocked && (
-                      <Badge variant='outline'>
-                        <Clock className='h-3 w-3 mr-1' />
-                        Pending
-                      </Badge>
-                    )}
-                    {!hasResult && isLocked && (
-                      <Badge variant='secondary'>
-                        <Clock className='h-3 w-3 mr-1' />
-                        In Progress
-                      </Badge>
-                    )}
+                    {/* League badge */}
+                    <Badge variant='outline' className={getLeagueBadgeColor(game.league)}>
+                      {game.league}
+                    </Badge>
                   </div>
 
-                  <CardDescription>
+                  <CardDescription className='text-xs'>
                     {new Date(game.startsAt).toLocaleDateString(undefined, {
                       weekday: 'short',
                       month: 'short',
@@ -125,30 +110,31 @@ function PredictionsPage() {
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent>
-                  <div>
-                    <div className='text-sm text-muted-foreground mb-1'>Your Prediction</div>
-                    <div className='font-medium'>{pickDisplay}</div>
-                    <div className='text-xs text-muted-foreground mt-1'>Type: {prediction.type}</div>
-                  </div>
+                <CardContent className='flex-1 pt-0'>
+                  {/* List all predictions for this game */}
+                  {gamePredictions.map((prediction, index) => (
+                    <PredictionItem key={prediction.id} prediction={prediction} showDivider={index > 0} />
+                  ))}
+                </CardContent>
 
-                  {/* Show game result if available */}
-                  {hasResult && game.result && (
-                    <div className='mt-4 pt-4 border-t'>
-                      <div className='text-sm font-medium mb-2'>Final Score</div>
+                {/* Game result footer - shown for all games */}
+                {hasResult && game.result && (
+                  <CardFooter className='pt-4 border-t bg-muted/30 mt-auto'>
+                    <div className='w-full'>
+                      <div className='text-xs font-medium text-muted-foreground mb-2'>Score</div>
                       <div className='flex items-center gap-4'>
                         <div className='flex-1'>
-                          <div className='text-xs text-muted-foreground'>{game.awayTeam.name}</div>
+                          <div className='text-xs text-muted-foreground'>{game.awayTeam.code}</div>
                           <div className='text-lg font-bold'>{game.result.awayScore}</div>
                         </div>
                         <div className='flex-1'>
-                          <div className='text-xs text-muted-foreground'>{game.homeTeam.name}</div>
+                          <div className='text-xs text-muted-foreground'>{game.homeTeam.code}</div>
                           <div className='text-lg font-bold'>{game.result.homeScore}</div>
                         </div>
                       </div>
                     </div>
-                  )}
-                </CardContent>
+                  </CardFooter>
+                )}
               </Card>
             )
           })}

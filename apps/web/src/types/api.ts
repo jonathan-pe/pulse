@@ -80,6 +80,7 @@ export interface PredictionWithGame extends BasePrediction {
   isCorrect: boolean | null // Result of prediction (null = not yet scored)
   processedAt: string | null // When prediction was scored
   pointsEarned: number | null // Points awarded for this prediction
+  oddsAtPrediction: OddsSnapshot | null // Odds when prediction was made
   game: {
     id: string
     homeTeam: {
@@ -98,6 +99,26 @@ export interface PredictionWithGame extends BasePrediction {
       homeScore: number
       awayScore: number
     } | null
+  }
+}
+
+/**
+ * Odds snapshot at time of prediction
+ */
+export interface OddsSnapshot {
+  moneyline?: {
+    home: number
+    away: number
+  }
+  spread?: {
+    value: number
+    homePrice: number
+    awayPrice: number
+  }
+  total?: {
+    value: number
+    overPrice: number
+    underPrice: number
   }
 }
 

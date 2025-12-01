@@ -407,6 +407,7 @@ export class PredictionsService {
         bonusTier: true,
         isCorrect: true,
         processedAt: true,
+        oddsAtPrediction: true,
         game: {
           select: {
             id: true,
