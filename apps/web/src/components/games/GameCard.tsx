@@ -134,6 +134,11 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
         {/* Odds and Action Buttons */}
         {!isGameLocked && (
           <div className='space-y-3 border-t pt-3'>
+            {/* Show placeholder if no odds are available */}
+            {!game.odds.moneyline && !game.odds.spread && !game.odds.total && (
+              <div className='py-4 text-center text-sm text-muted-foreground'>Odds Not Found</div>
+            )}
+
             {/* Moneyline */}
             {game.odds.moneyline && (
               <div className='space-y-2'>
