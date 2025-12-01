@@ -76,6 +76,10 @@ export interface BasePrediction {
  * Prediction with full game details (from /predictions/history)
  */
 export interface PredictionWithGame extends BasePrediction {
+  bonusTier: boolean // Whether this prediction gets 1.5x multiplier
+  isCorrect: boolean | null // Result of prediction (null = not yet scored)
+  processedAt: string | null // When prediction was scored
+  pointsEarned: number | null // Points awarded for this prediction
   game: {
     id: string
     homeTeam: {

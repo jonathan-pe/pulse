@@ -395,20 +395,63 @@ export class PredictionsService {
       where.lockedAt = null
     }
 
-    return prisma.prediction.findMany({
+    const predictions = await prisma.prediction.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        gameId: true,
+        type: true,
+        pick: true,
+        createdAt: true,
+        lockedAt: true,
+        bonusTier: true,
+        isCorrect: true,
+        processedAt: true,
         game: {
-          include: {
+          select: {
+            id: true,
             homeTeam: true,
             awayTeam: true,
-            odds: true,
+            startsAt: true,
+            league: true,
             result: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     })
+
+    // Fetch points earned for each prediction from the ledger
+    // Points are stored in PointsLedger with meta.predictionId
+    const predictionIds = predictions.map((p) => p.id)
+    const pointsLedgerEntries = await prisma.pointsLedger.findMany({
+      where: {
+        userId,
+        meta: {
+          path: ['predictionId'],
+          string_contains: '',
+        },
+      },
+      select: {
+        delta: true,
+        meta: true,
+      },
+    })
+
+    // Create a map of predictionId -> points earned
+    const pointsMap = new Map<string, number>()
+    for (const entry of pointsLedgerEntries) {
+      const meta = entry.meta as { predictionId?: string } | null
+      if (meta?.predictionId) {
+        pointsMap.set(meta.predictionId, entry.delta)
+      }
+    }
+
+    // Add pointsEarned to each prediction
+    return predictions.map((prediction) => ({
+      ...prediction,
+      pointsEarned: pointsMap.get(prediction.id) ?? null,
+    }))
   }
 
   /**
