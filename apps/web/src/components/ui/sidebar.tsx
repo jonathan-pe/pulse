@@ -330,7 +330,7 @@ function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof S
     <Separator
       data-slot='sidebar-separator'
       data-sidebar='separator'
-      className={cn('bg-sidebar-border mx-2 w-auto', className)}
+      className={cn('bg-sidebar-border', className)}
       {...props}
     />
   )
@@ -410,7 +410,7 @@ function SidebarGroupContent({ className, ...props }: React.ComponentProps<'div'
     <div
       data-slot='sidebar-group-content'
       data-sidebar='group-content'
-      className={cn('w-full text-sm', className)}
+      className={cn('w-full min-w-0 text-sm', className)}
       {...props}
     />
   )

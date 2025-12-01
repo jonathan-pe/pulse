@@ -147,12 +147,12 @@ export default function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             {/* When collapsed: show only AccountMenu centered */}
-            <div className='items-center justify-center py-2 group-data-[collapsible=icon]:flex hidden'>
+            <div className='items-center justify-center group-data-[collapsible=icon]:flex hidden'>
               <AccountMenu />
             </div>
 
             {/* When expanded: show ThemeToggle + AccountMenu */}
-            <div className='flex flex-1 items-center gap-2 px-2 py-2 group-data-[collapsible=icon]:hidden justify-between'>
+            <div className='flex flex-1 items-center gap-2 group-data-[collapsible=icon]:hidden justify-between'>
               <div className='flex-1'>
                 <AccountMenu />
               </div>
