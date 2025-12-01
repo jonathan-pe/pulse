@@ -1,5 +1,5 @@
 import React from 'react'
-import { XIcon, Flame, TrendingUp } from 'lucide-react'
+import { XIcon, Flame, TrendingUp, AlertTriangle } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,8 @@ import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 const BONUS_TIER_PICKS = 1
+const SOFT_CAP = 15 // 50% points after this
+const HARD_CAP = 40 // 0 points after this
 
 const BetSlipSidebar: React.FC = () => {
   const isMobile = useIsMobile()
@@ -41,6 +43,12 @@ const BetSlipSidebar: React.FC = () => {
   const bonusTierUsed = dailyStats?.totalToday ?? 0
   const bonusTierRemaining = Math.max(0, BONUS_TIER_PICKS - bonusTierUsed)
 
+  // Calculate diminishing returns status
+  const predictionsToday = dailyStats?.totalToday ?? 0
+  const predictionsAfterCart = predictionsToday + selections.length
+  const isDiminishingReturns = predictionsAfterCart > SOFT_CAP
+  const isHardCap = predictionsAfterCart > HARD_CAP
+
   // Mock streak - in a real implementation, this would come from an API
   // For now, we'll show a placeholder
   const currentStreak = 0 // TODO: Fetch from API
@@ -71,6 +79,39 @@ const BetSlipSidebar: React.FC = () => {
         </SheetHeader>
 
         <div className='flex flex-1 flex-col gap-4 overflow-hidden px-4 pb-4'>
+          {/* Diminishing Returns Warning */}
+          {(isDiminishingReturns || isHardCap) && (
+            <div
+              className={`rounded-lg border p-3 ${
+                isHardCap
+                  ? 'border-destructive/50 bg-destructive/10'
+                  : 'border-yellow-500/50 bg-yellow-500/10'
+              }`}
+            >
+              <div className='flex items-start gap-2'>
+                <AlertTriangle
+                  className={`mt-0.5 h-4 w-4 flex-shrink-0 ${
+                    isHardCap ? 'text-destructive' : 'text-yellow-600 dark:text-yellow-500'
+                  }`}
+                />
+                <div className='flex-1'>
+                  <p
+                    className={`text-sm font-medium ${
+                      isHardCap ? 'text-destructive' : 'text-yellow-600 dark:text-yellow-500'
+                    }`}
+                  >
+                    {isHardCap ? 'Hard Cap Reached' : 'Diminishing Returns'}
+                  </p>
+                  <p className='mt-0.5 text-xs text-muted-foreground'>
+                    {isHardCap
+                      ? `You've reached ${HARD_CAP} predictions today. Additional picks earn 0 points.`
+                      : `After ${SOFT_CAP} predictions, you earn 50% points. Hard cap at ${HARD_CAP}.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Engagement Stats */}
           <div className='grid grid-cols-2 gap-3'>
             {/* Bonus Tier Status */}
@@ -85,21 +126,23 @@ const BetSlipSidebar: React.FC = () => {
               </div>
             </div>
 
-            {/* Current Streak */}
+            {/* Daily Predictions Count */}
             <div className='rounded-lg border bg-card p-3'>
               <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                <Flame className='h-4 w-4' />
-                <span>Streak</span>
+                <TrendingUp className='h-4 w-4' />
+                <span>Today's Picks</span>
               </div>
-              <div className='mt-1 text-lg font-semibold'>
-                {currentStreak === 0 ? (
-                  <span className='text-muted-foreground'>None</span>
-                ) : (
-                  <>
-                    {currentStreak} <span className='text-sm font-normal text-muted-foreground'>wins</span>
-                  </>
-                )}
+              <div className='mt-1 flex items-baseline gap-1'>
+                <span className='text-lg font-semibold'>
+                  {predictionsAfterCart}/{SOFT_CAP}
+                </span>
+                <span className='text-sm font-normal text-muted-foreground'>full value</span>
               </div>
+              {predictionsAfterCart > SOFT_CAP && (
+                <div className='mt-1 text-xs text-yellow-600 dark:text-yellow-500'>
+                  {predictionsAfterCart - SOFT_CAP} at 50%
+                </div>
+              )}
             </div>
           </div>
 

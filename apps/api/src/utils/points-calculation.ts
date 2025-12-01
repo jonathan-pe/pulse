@@ -84,23 +84,23 @@ export function calculateTotalPoints(odds: number): number {
  * Apply diminishing returns based on daily prediction count
  *
  * Implements soft cap system to discourage excessive volume:
- * - Predictions 1-30: 100% of points
- * - Predictions 31-75: 50% of points
- * - Predictions 76+: 0% of points
+ * - Predictions 1-15: 100% of points
+ * - Predictions 16-40: 50% of points
+ * - Predictions 41+: 0% of points
  *
  * @param points - Calculated points before diminishing returns
  * @param dailyPredictionCount - Number of predictions made today (1-indexed)
  * @returns Points after applying diminishing returns
  *
  * @example
- * applyDiminishingReturns(20, 10) // Returns 20 (within first 30)
- * applyDiminishingReturns(20, 50) // Returns 10 (50% reduction)
- * applyDiminishingReturns(20, 80) // Returns 0 (hard cap)
+ * applyDiminishingReturns(20, 10) // Returns 20 (within first 15)
+ * applyDiminishingReturns(20, 25) // Returns 10 (50% reduction)
+ * applyDiminishingReturns(20, 45) // Returns 0 (hard cap)
  */
 export function applyDiminishingReturns(points: number, dailyPredictionCount: number): number {
-  if (dailyPredictionCount <= 30) {
+  if (dailyPredictionCount <= 15) {
     return points // Full points
-  } else if (dailyPredictionCount <= 75) {
+  } else if (dailyPredictionCount <= 40) {
     return points * 0.5 // 50% of points
   } else {
     return 0 // No points
