@@ -1,12 +1,10 @@
 import { Link } from '@tanstack/react-router'
-import {
-  Home,
-  Trophy,
-  LayoutDashboard,
-  ListChecks,
-  // Sports icons
-  type LucideIcon,
-} from 'lucide-react'
+import { Home, Trophy, LayoutDashboard, type LucideIcon } from 'lucide-react'
+import { GiAmericanFootballBall, GiBaseballGlove, GiHockey } from 'react-icons/gi'
+import { TbCrystalBall } from 'react-icons/tb'
+import { PiBasketballDuotone } from 'react-icons/pi'
+
+import type { IconType } from 'react-icons'
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +26,7 @@ import ThemeToggle from '@/components/ui/theme-toggle'
 type NavItem = {
   title: string
   url: string
-  icon: LucideIcon
+  icon: LucideIcon | IconType
   params?: Record<string, string>
 }
 
@@ -47,7 +45,7 @@ const navMain: NavItem[] = [
   {
     title: 'My Predictions',
     url: '/predictions',
-    icon: ListChecks,
+    icon: TbCrystalBall,
   },
   {
     title: 'Leaderboard',
@@ -56,30 +54,30 @@ const navMain: NavItem[] = [
   },
 ]
 
-// League navigation - using Trophy icon as placeholder for sports
+// League navigation - sport-specific icons
 const leagues: NavItem[] = [
   {
     title: 'NFL',
     url: '/leagues/$league',
-    icon: Trophy,
+    icon: GiAmericanFootballBall,
     params: { league: 'nfl' },
   },
   {
     title: 'NBA',
     url: '/leagues/$league',
-    icon: Trophy,
+    icon: PiBasketballDuotone,
     params: { league: 'nba' },
   },
   {
     title: 'MLB',
     url: '/leagues/$league',
-    icon: Trophy,
+    icon: GiBaseballGlove,
     params: { league: 'mlb' },
   },
   {
     title: 'NHL',
     url: '/leagues/$league',
-    icon: Trophy,
+    icon: GiHockey,
     params: { league: 'nhl' },
   },
 ]
