@@ -67,7 +67,8 @@ jobs:
     needs: check-season
     if: |
       github.event.inputs.league == 'NFL' ||
-      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nfl-active == 'true')
+      github.event.inputs.league == 'ALL' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.nfl-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
@@ -89,7 +90,8 @@ jobs:
     needs: check-season
     if: |
       github.event.inputs.league == 'NBA' ||
-      (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nba-active == 'true')
+      github.event.inputs.league == 'ALL' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.nba-active == 'true')
     steps:
       - name: Calculate date range
         id: dates
@@ -104,13 +106,14 @@ jobs:
             -H "Content-Type: application/json" \
             -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
             -d "{\"league\":\"NBA\",\"dateRange\":\"${{ steps.dates.outputs.range }}\"}"
-
   ingest-mlb:
     name: Ingest MLB Games
     runs-on: ubuntu-latest
     needs: check-season
     if: |
       github.event.inputs.league == 'MLB' ||
+      github.event.inputs.league == 'ALL' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.mlb-active == 'true')
       (github.event.inputs.league == 'ALL' && needs.check-season.outputs.mlb-active == 'true')
     steps:
       - name: Calculate date range
@@ -126,13 +129,14 @@ jobs:
             -H "Content-Type: application/json" \
             -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
             -d "{\"league\":\"MLB\",\"dateRange\":\"${{ steps.dates.outputs.range }}\"}"
-
   ingest-nhl:
     name: Ingest NHL Games
     runs-on: ubuntu-latest
     needs: check-season
     if: |
       github.event.inputs.league == 'NHL' ||
+      github.event.inputs.league == 'ALL' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.nhl-active == 'true')
       (github.event.inputs.league == 'ALL' && needs.check-season.outputs.nhl-active == 'true')
     steps:
       - name: Calculate date range
