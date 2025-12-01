@@ -1,0 +1,152 @@
+name: Ingest Games
+
+on:
+  schedule:
+    # Run every 15 minutes to keep odds fresh during all seasons
+    - cron: '*/15 * * * *'
+  
+  workflow_dispatch:
+    inputs:
+      league:
+        description: 'Specific league to ingest (leave empty for all active leagues)'
+        required: false
+        type: choice
+        options:
+          - NFL
+          - NBA
+          - MLB
+          - NHL
+
+jobs:
+  check-season:
+    name: Check Active Seasons
+    runs-on: ubuntu-latest
+    outputs:
+      nfl-active: ${{ steps.check.outputs.nfl }}
+      nba-active: ${{ steps.check.outputs.nba }}
+      mlb-active: ${{ steps.check.outputs.mlb }}
+      nhl-active: ${{ steps.check.outputs.nhl }}
+    steps:
+      - name: Check which sports are in season
+        id: check
+        run: |
+          MONTH=$(date +%-m)
+          
+          # NFL: September (9) through February (2)
+          if [ $MONTH -ge 9 ] || [ $MONTH -le 2 ]; then
+            echo "nfl=true" >> $GITHUB_OUTPUT
+          else
+            echo "nfl=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # NBA: October (10) through June (6)
+          if [ $MONTH -ge 10 ] || [ $MONTH -le 6 ]; then
+            echo "nba=true" >> $GITHUB_OUTPUT
+          else
+            echo "nba=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # MLB: March (3) through October (10)
+          if [ $MONTH -ge 3 ] && [ $MONTH -le 10 ]; then
+            echo "mlb=true" >> $GITHUB_OUTPUT
+          else
+            echo "mlb=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # NHL: October (10) through June (6)
+          if [ $MONTH -ge 10 ] || [ $MONTH -le 6 ]; then
+            echo "nhl=true" >> $GITHUB_OUTPUT
+          else
+            echo "nhl=false" >> $GITHUB_OUTPUT
+          fi
+
+  ingest-nfl:
+    name: Ingest NFL Games
+    runs-on: ubuntu-latest
+    needs: check-season
+    if: |
+      github.event.inputs.league == 'NFL' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.nfl-active == 'true')
+    steps:
+      - name: Calculate date range
+        id: dates
+        run: |
+          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
+          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
+          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          
+      - name: Ingest NFL games
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/ingest-natstat" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d "{\"league\":\"NFL\",\"dateRange\":\"${{ steps.dates.outputs.range }}\"}"
+
+  ingest-nba:
+    name: Ingest NBA Games
+    runs-on: ubuntu-latest
+    needs: check-season
+    if: |
+      github.event.inputs.league == 'NBA' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.nba-active == 'true')
+    steps:
+      - name: Calculate date range
+        id: dates
+        run: |
+          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
+          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
+          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          
+      - name: Ingest NBA games
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/ingest-natstat" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d "{\"league\":\"NBA\",\"dateRange\":\"${{ steps.dates.outputs.range }}\"}"
+
+  ingest-mlb:
+    name: Ingest MLB Games
+    runs-on: ubuntu-latest
+    needs: check-season
+    if: |
+      github.event.inputs.league == 'MLB' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.mlb-active == 'true')
+    steps:
+      - name: Calculate date range
+        id: dates
+        run: |
+          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
+          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
+          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          
+      - name: Ingest MLB games
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/ingest-natstat" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d "{\"league\":\"MLB\",\"dateRange\":\"${{ steps.dates.outputs.range }}\"}"
+
+  ingest-nhl:
+    name: Ingest NHL Games
+    runs-on: ubuntu-latest
+    needs: check-season
+    if: |
+      github.event.inputs.league == 'NHL' ||
+      (github.event.inputs.league == '' && needs.check-season.outputs.nhl-active == 'true')
+    steps:
+      - name: Calculate date range
+        id: dates
+        run: |
+          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
+          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
+          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          
+      - name: Ingest NHL games
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/ingest-natstat" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d "{\"league\":\"NHL\",\"dateRange\":\"${{ steps.dates.outputs.range }}\"}"
+
+
+

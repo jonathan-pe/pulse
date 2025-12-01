@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import type { Router as ExpressRouter } from 'express'
 import { ingestNatStat } from '../jobs/ingest-natstat'
+import { syncNatStatTeams } from '../jobs/sync-natstat-teams'
 import { createLogger } from '../lib/logger'
 import { scoreGameService } from '../services/score-game.service'
 import { prisma } from '@/lib/db'
@@ -19,17 +20,24 @@ adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
     return res.status(401).json({ ok: false, error: 'unauthorized' })
   }
 
-  const { league } = req.body ?? {}
+  const { league, dateRange } = req.body ?? {}
   try {
-    // Build a single comma-separated date range: today -> 7 days ahead
-    const start = new Date()
-    start.setHours(0, 0, 0, 0)
-    const end = new Date(start)
-    end.setDate(start.getDate() + LOOKAHEAD_DAYS)
+    let range: string
 
-    const isoStart = start.toISOString().slice(0, 10)
-    const isoEnd = end.toISOString().slice(0, 10)
-    const range = `${isoStart},${isoEnd}`
+    // Use provided dateRange if available, otherwise build default range
+    if (dateRange) {
+      range = dateRange
+    } else {
+      // Build a single comma-separated date range: today -> 7 days ahead
+      const start = new Date()
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(start)
+      end.setDate(start.getDate() + LOOKAHEAD_DAYS)
+
+      const isoStart = start.toISOString().slice(0, 10)
+      const isoEnd = end.toISOString().slice(0, 10)
+      range = `${isoStart},${isoEnd}`
+    }
 
     logger.info('Starting NatStat ingestion', { range, league: league ?? 'all', lookaheadDays: LOOKAHEAD_DAYS })
     const result = await ingestNatStat({ date: range, league })
@@ -38,6 +46,32 @@ adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     logger.error('NatStat ingestion failed', err instanceof Error ? err : undefined, { league, range: 'unknown' })
+    return res.status(500).json({ ok: false, error: message })
+  }
+})
+
+// POST /admin/sync-teams - Sync team metadata for a league
+adminRouter.post('/sync-teams', async (req: Request, res: Response) => {
+  const CRON_TOKEN = process.env.CRON_TOKEN
+  const key = req.headers['x-cron-token'] ?? req.query.cronToken ?? req.body.cronToken
+  if (CRON_TOKEN && key !== CRON_TOKEN) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' })
+  }
+
+  const { league } = req.body ?? {}
+
+  if (!league) {
+    return res.status(400).json({ ok: false, error: 'league is required' })
+  }
+
+  try {
+    logger.info('Starting team sync', { league })
+    const result = await syncNatStatTeams({ league })
+    logger.info('Team sync completed', { league, counts: result })
+    return res.json({ ok: true, league, result })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error('Team sync failed', err instanceof Error ? err : undefined, { league })
     return res.status(500).json({ ok: false, error: message })
   }
 })

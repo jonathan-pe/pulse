@@ -1,0 +1,89 @@
+name: Sync Team Metadata
+
+on:
+  schedule:
+    # NFL: Sync in August (1 month before September season start)
+    - cron: '0 3 1 8 *'
+    
+    # NBA: Sync in September (1 month before October season start)
+    - cron: '0 3 1 9 *'
+    
+    # MLB: Sync in February (1 month before March season start)
+    - cron: '0 3 1 2 *'
+    
+    # NHL: Sync in September (1 month before October season start)
+    - cron: '0 3 15 9 *'
+  
+  workflow_dispatch:
+    inputs:
+      league:
+        description: 'League to sync (leave empty for all leagues)'
+        required: false
+        type: choice
+        options:
+          - NFL
+          - NBA
+          - MLB
+          - NHL
+
+jobs:
+  sync-nfl:
+    name: Sync NFL Teams
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.league == 'NFL' ||
+      github.event.inputs.league == '' ||
+      github.event.schedule == '0 3 1 8 *'
+    steps:
+      - name: Sync NFL teams
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/sync-teams" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d '{"league":"NFL"}'
+
+  sync-nba:
+    name: Sync NBA Teams
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.league == 'NBA' ||
+      github.event.inputs.league == '' ||
+      github.event.schedule == '0 3 1 9 *'
+    steps:
+      - name: Sync NBA teams
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/sync-teams" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d '{"league":"NBA"}'
+
+  sync-mlb:
+    name: Sync MLB Teams
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.league == 'MLB' ||
+      github.event.inputs.league == '' ||
+      github.event.schedule == '0 3 1 2 *'
+    steps:
+      - name: Sync MLB teams
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/sync-teams" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d '{"league":"MLB"}'
+
+  sync-nhl:
+    name: Sync NHL Teams
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.league == 'NHL' ||
+      github.event.inputs.league == '' ||
+      github.event.schedule == '0 3 15 9 *'
+    steps:
+      - name: Sync NHL teams
+        run: |
+          curl -X POST "${{ vars.API_URL }}/admin/sync-teams" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-token: ${{ secrets.CRON_TOKEN }}" \
+            -d '{"league":"NHL"}'
+
