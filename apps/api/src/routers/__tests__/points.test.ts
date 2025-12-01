@@ -23,7 +23,7 @@ vi.mock('@clerk/express', () => ({
   getAuth: vi.fn(),
 }))
 
-vi.mock('@pulse/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: {
     pointsLedger: {
       aggregate: vi.fn(),

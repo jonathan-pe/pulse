@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { OddsService } from '../odds.service'
 
-// Mock the @pulse/db module
-vi.mock('@pulse/db', () => ({
+// Mock the @/lib/db module
+vi.mock('@/lib/db', () => ({
   prisma: {
     gameOdds: {
       upsert: vi.fn(),

@@ -83,9 +83,7 @@ const BetSlipSidebar: React.FC = () => {
           {(isDiminishingReturns || isHardCap) && (
             <div
               className={`rounded-lg border p-3 ${
-                isHardCap
-                  ? 'border-destructive/50 bg-destructive/10'
-                  : 'border-yellow-500/50 bg-yellow-500/10'
+                isHardCap ? 'border-destructive/50 bg-destructive/10' : 'border-yellow-500/50 bg-yellow-500/10'
               }`}
             >
               <div className='flex items-start gap-2'>

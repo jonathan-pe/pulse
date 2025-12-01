@@ -2,8 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PredictionsService } from '../predictions.service'
 
-// Mock the @pulse/db module
-vi.mock('@pulse/db', () => ({
+// Mock the @/lib/db module
+vi.mock('@/lib/db', () => ({
   prisma: {
     prediction: {
       findMany: vi.fn(),
@@ -15,6 +15,9 @@ vi.mock('@pulse/db', () => ({
     },
     game: {
       findUnique: vi.fn(),
+    },
+    gameOdds: {
+      findMany: vi.fn(),
     },
   },
 }))
@@ -252,6 +255,9 @@ describe('PredictionsService', () => {
       // Mock daily stats - some predictions already made
       vi.mocked(prisma.prediction.count).mockResolvedValue(5)
 
+      // Mock gameOdds for odds aggregation
+      vi.mocked(prisma.gameOdds.findMany).mockResolvedValue([])
+
       // Mock creation
       vi.mocked(prisma.prediction.create).mockResolvedValue({
         id: 'pred-789',
@@ -317,6 +323,9 @@ describe('PredictionsService', () => {
       // Mock no existing predictions today
       vi.mocked(prisma.prediction.count).mockResolvedValue(0)
 
+      // Mock gameOdds for odds aggregation
+      vi.mocked(prisma.gameOdds.findMany).mockResolvedValue([])
+
       // Mock creation
       vi.mocked(prisma.prediction.create)
         .mockResolvedValueOnce({
@@ -363,6 +372,9 @@ describe('PredictionsService', () => {
       vi.mocked(prisma.prediction.findFirst).mockResolvedValue(null)
       vi.mocked(prisma.prediction.count).mockResolvedValue(0)
 
+      // Mock gameOdds for odds aggregation
+      vi.mocked(prisma.gameOdds.findMany).mockResolvedValue([])
+
       vi.mocked(prisma.prediction.create).mockResolvedValue({
         id: 'pred-1',
         userId: 'user-123',
@@ -400,6 +412,9 @@ describe('PredictionsService', () => {
 
       // Mock 99 existing predictions
       vi.mocked(prisma.prediction.count).mockResolvedValue(99)
+
+      // Mock gameOdds for odds aggregation
+      vi.mocked(prisma.gameOdds.findMany).mockResolvedValue([])
 
       vi.mocked(prisma.prediction.create).mockResolvedValue({
         id: 'pred-1',
