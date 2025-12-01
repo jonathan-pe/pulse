@@ -149,7 +149,7 @@ export default function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             {/* When collapsed: show only AccountMenu centered */}
-            <div className='flex items-center justify-center py-2 group-data-[collapsible=icon]:flex hidden'>
+            <div className='items-center justify-center py-2 group-data-[collapsible=icon]:flex hidden'>
               <AccountMenu />
             </div>
 
