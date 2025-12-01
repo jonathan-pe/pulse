@@ -13,6 +13,11 @@ export default defineConfig({
     seed: 'tsx prisma/seed.ts', // optional
   },
 
+  // Generate Prisma Client to standard location
+  generator: {
+    output: path.join('node_modules', '.prisma', 'client'),
+  },
+
   // Database connection configuration (Prisma v7)
   datasource: {
     url: env('DATABASE_URL'),

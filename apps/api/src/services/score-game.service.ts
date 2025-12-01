@@ -1,4 +1,4 @@
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger'
 import { pointsService } from './points.service'
 import type { PredictionWithGame as BasePredictionWithGame } from './points.service'
@@ -90,11 +90,6 @@ export class ScoreGameService {
       include: {
         game: {
           include: { result: true },
-          select: {
-            id: true,
-            league: true,
-            result: true,
-          },
         },
       },
     })) as unknown as PredictionWithGame[]

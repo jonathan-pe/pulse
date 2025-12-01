@@ -1,6 +1,6 @@
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger'
-import type { PredictionType } from '@pulse/db'
+import type { PredictionType } from '@/lib/db'
 import { oddsAggregationService } from './odds-aggregation.service'
 import type { OddsSnapshot } from './points.service'
 

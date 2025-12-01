@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup'
+import path from 'node:path'
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -6,10 +7,13 @@ export default defineConfig({
   outDir: 'dist',
   clean: true,
   sourcemap: true,
-  noExternal: [/@pulse\/.*/], // Bundle all workspace packages
   external: ['@prisma/client', '.prisma'], // Don't bundle Prisma
   platform: 'node',
   target: 'node18',
   splitting: false,
-  bundle: true,
+  esbuildOptions(options) {
+    options.alias = {
+      '@': path.resolve(__dirname, 'src'),
+    }
+  },
 })

@@ -1,4 +1,4 @@
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger'
 
 const logger = createLogger('GamesService')

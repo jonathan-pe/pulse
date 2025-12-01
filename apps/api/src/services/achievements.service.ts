@@ -1,4 +1,4 @@
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import type { AchievementCriteria, AchievementWithProgress, AchievementShowcase, AchievementStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
 

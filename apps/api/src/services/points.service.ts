@@ -1,5 +1,5 @@
-import { prisma } from '@pulse/db'
-import type { PredictionType } from '@pulse/db'
+import { prisma } from '@/lib/db'
+import type { PredictionType } from '@/lib/db'
 import type { LeagueStats, UserStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
 import { calculateTotalPoints, applyDiminishingReturns } from '../utils/points-calculation'
@@ -372,11 +372,7 @@ export class PointsService {
         isCorrect: { not: null },
       },
       include: {
-        game: {
-          select: {
-            league: true,
-          },
-        },
+        game: true,
       },
     })
 

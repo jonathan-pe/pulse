@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
-import { type Prisma, prisma } from '@pulse/db'
+import { type Prisma, prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger'
 import { oddsAggregationService } from '../services/odds-aggregation.service'
 import type { TeamInfo, GameWithUnifiedOdds } from '@pulse/types'

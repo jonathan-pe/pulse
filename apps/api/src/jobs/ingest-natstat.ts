@@ -1,6 +1,6 @@
 import { loadForecasts } from '../integrators/natstat/client.js'
 import { normalizeForecasts, adjustSpreadSigns } from '../integrators/natstat/normalize.js'
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import { gamesService } from '../services/games.service.js'
 import { oddsService } from '../services/odds.service.js'
 import { scoreGameService } from '../services/score-game.service.js'

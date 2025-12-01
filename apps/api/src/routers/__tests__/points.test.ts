@@ -44,7 +44,7 @@ vi.mock('@pulse/db', () => ({
 }))
 
 import { getAuth } from '@clerk/express'
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 
 describe('Points Router Integration Tests', () => {
   let app: Express

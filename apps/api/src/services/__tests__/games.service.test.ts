@@ -18,7 +18,7 @@ vi.mock('@pulse/db', () => ({
 }))
 
 // Import the mocked prisma after mocking
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 
 describe('GamesService', () => {
   let service: GamesService

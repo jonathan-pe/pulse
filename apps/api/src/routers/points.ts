@@ -2,7 +2,7 @@ import { Router, type Request, type Response } from 'express'
 import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { getAuth } from '@clerk/express'
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import { pointsService } from '../services/points.service'
 
 const leaderboardSchema = z.object({

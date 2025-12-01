@@ -3,7 +3,7 @@ import type { Router as ExpressRouter } from 'express'
 import { ingestNatStat } from '../jobs/ingest-natstat'
 import { createLogger } from '../lib/logger'
 import { scoreGameService } from '../services/score-game.service'
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 
 const logger = createLogger('AdminRouter')
 

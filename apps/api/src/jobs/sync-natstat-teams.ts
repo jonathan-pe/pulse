@@ -1,7 +1,7 @@
 import { loadTeamCodes } from '../integrators/natstat/client.js'
 import { getTeamsForLeague, extractPrimaryLogo, extractAlternateLogo } from '../integrators/espn/index.js'
 import type { ESPNTeam } from '../integrators/espn/types.js'
-import { prisma } from '@pulse/db'
+import { prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger.js'
 
 const logger = createLogger('SyncNatStatTeams')
