@@ -8,4 +8,5 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - '@tailwindcss/oxide'
   - esbuild
+  - msw
   - prisma
