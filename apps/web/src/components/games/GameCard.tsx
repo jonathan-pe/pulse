@@ -145,7 +145,11 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                 <div className='text-xs font-medium text-muted-foreground'>Moneyline</div>
                 <div className='grid grid-cols-2 gap-2'>
                   <Button
-                    variant={hasSelection(game.id, 'moneyline', 'away') ? 'default' : 'outline'}
+                    variant={
+                      hasSelection(game.id, 'moneyline', 'away') || hasPrediction('MONEYLINE', 'away')
+                        ? 'default'
+                        : 'outline'
+                    }
                     size='sm'
                     disabled={hasPrediction('MONEYLINE', 'away') || isGameLocked}
                     onClick={() => handleAddToCart('moneyline', 'away', game.odds.moneyline!.away, game.awayTeam.name)}
@@ -155,7 +159,11 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                     <span className='ml-auto font-mono text-xs'>{formatOdds(game.odds.moneyline.away)}</span>
                   </Button>
                   <Button
-                    variant={hasSelection(game.id, 'moneyline', 'home') ? 'default' : 'outline'}
+                    variant={
+                      hasSelection(game.id, 'moneyline', 'home') || hasPrediction('MONEYLINE', 'home')
+                        ? 'default'
+                        : 'outline'
+                    }
                     size='sm'
                     disabled={hasPrediction('MONEYLINE', 'home') || isGameLocked}
                     onClick={() => handleAddToCart('moneyline', 'home', game.odds.moneyline!.home, game.homeTeam.name)}
@@ -174,7 +182,9 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                 <div className='text-xs font-medium text-muted-foreground'>Spread</div>
                 <div className='grid grid-cols-2 gap-2'>
                   <Button
-                    variant={hasSelection(game.id, 'spread', 'away') ? 'default' : 'outline'}
+                    variant={
+                      hasSelection(game.id, 'spread', 'away') || hasPrediction('SPREAD', 'away') ? 'default' : 'outline'
+                    }
                     size='sm'
                     disabled={hasPrediction('SPREAD', 'away') || isGameLocked}
                     onClick={() =>
@@ -191,7 +201,9 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                     <span className='ml-auto font-mono text-xs'>{formatOdds(-game.odds.spread.value)}</span>
                   </Button>
                   <Button
-                    variant={hasSelection(game.id, 'spread', 'home') ? 'default' : 'outline'}
+                    variant={
+                      hasSelection(game.id, 'spread', 'home') || hasPrediction('SPREAD', 'home') ? 'default' : 'outline'
+                    }
                     size='sm'
                     disabled={hasPrediction('SPREAD', 'home') || isGameLocked}
                     onClick={() =>
@@ -217,7 +229,9 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                 <div className='text-xs font-medium text-muted-foreground'>Total</div>
                 <div className='grid grid-cols-2 gap-2'>
                   <Button
-                    variant={hasSelection(game.id, 'total', 'over') ? 'default' : 'outline'}
+                    variant={
+                      hasSelection(game.id, 'total', 'over') || hasPrediction('TOTAL', 'over') ? 'default' : 'outline'
+                    }
                     size='sm'
                     disabled={hasPrediction('TOTAL', 'over') || isGameLocked}
                     onClick={() =>
@@ -234,7 +248,9 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
                     <span className='ml-auto font-mono text-xs'>{formatOdds(game.odds.total.overPrice || -110)}</span>
                   </Button>
                   <Button
-                    variant={hasSelection(game.id, 'total', 'under') ? 'default' : 'outline'}
+                    variant={
+                      hasSelection(game.id, 'total', 'under') || hasPrediction('TOTAL', 'under') ? 'default' : 'outline'
+                    }
                     size='sm'
                     disabled={hasPrediction('TOTAL', 'under') || isGameLocked}
                     onClick={() =>
