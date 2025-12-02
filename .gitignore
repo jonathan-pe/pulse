@@ -41,7 +41,10 @@ target/
 out/
 
 # Visual Studio Code
+# Keep .vscode/ tracked for shared settings, extensions, debug configs, and MCP configs
+# Only ignore personal/history files
 .history/
+*.code-workspace
 
 # JetBrains IDEs
 .idea/
@@ -69,7 +72,6 @@ Desktop.ini
 *.project
 *.classpath
 *.settings/
-*.vscode/
 .cache/
 *.lock
 
