@@ -289,17 +289,17 @@ export class ScoreGameService {
   async findUnscoredPredictionsOnFinishedGames(): Promise<string[]> {
     // Find predictions where:
     // 1. isCorrect is null (not yet scored)
-    // 2. Game has a result with scoredAt set (game was already scored)
-    // 3. Game status indicates finished
+    // 2. Game has a result (game was already scored)
+    // 3. Game status indicates finished (Final)
     const predictions = await prisma.prediction.findMany({
       where: {
         isCorrect: null,
         processedAt: null,
         game: {
           result: {
-            scoredAt: { not: null },
+            isNot: null,
           },
-          OR: [{ status: { contains: 'final', mode: 'insensitive' } }, { status: { contains: 'Final' } }],
+          status: 'Final',
         },
       },
       select: { id: true },

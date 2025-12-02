@@ -3,6 +3,7 @@ import { usePredictionHistory } from '@/hooks/usePredictions'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card'
 import { TeamLogo } from '@/components/TeamLogo'
 import { Badge } from '@/components/ui/badge'
+import { Clock, CheckCircle } from 'lucide-react'
 import { PredictionsSummaryHeader } from '@/components/predictions/PredictionsSummaryHeader'
 import { PredictionItem } from '@/components/predictions/PredictionItem'
 import { getLeagueBadgeColor } from '@/lib/utils'
@@ -65,7 +66,13 @@ function PredictionsPage() {
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
           {Object.entries(groupedPredictions).map(([gameId, gamePredictions]) => {
             const game = gamePredictions[0].game
-            const hasResult = game.result !== null
+            const hasResult = game.result !== null && game.result !== undefined
+            const gameStarted = new Date(game.startsAt) <= new Date()
+
+            // Game status: completed (has result) > live (started, no result) > pending (not started)
+            const isCompleted = hasResult
+            const isLive = !isCompleted && gameStarted
+            const isPending = !isCompleted && !gameStarted
 
             return (
               <Card key={gameId} className='flex flex-col'>
@@ -99,15 +106,38 @@ function PredictionsPage() {
                     </Badge>
                   </div>
 
-                  <CardDescription className='text-xs'>
-                    {new Date(game.startsAt).toLocaleDateString(undefined, {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </CardDescription>
+                  <div className='flex items-center gap-2'>
+                    <CardDescription className='text-xs'>
+                      {new Date(game.startsAt).toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </CardDescription>
+                    {isCompleted && (
+                      <Badge
+                        variant='secondary'
+                        className='h-5 text-xs bg-green-500/10 text-green-700 border-green-500/20'
+                      >
+                        <CheckCircle className='h-2.5 w-2.5 mr-1' />
+                        Final
+                      </Badge>
+                    )}
+                    {isLive && (
+                      <Badge variant='secondary' className='h-5 text-xs'>
+                        <Clock className='h-2.5 w-2.5 mr-1' />
+                        Live
+                      </Badge>
+                    )}
+                    {isPending && (
+                      <Badge variant='outline' className='h-5 text-xs'>
+                        <Clock className='h-2.5 w-2.5 mr-1' />
+                        Pending
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
 
                 <CardContent className='flex-1 pt-0'>
@@ -117,11 +147,11 @@ function PredictionsPage() {
                   ))}
                 </CardContent>
 
-                {/* Game result footer - shown for all games */}
-                {hasResult && game.result && (
+                {/* Game result footer - shown for completed games */}
+                {isCompleted && game.result && (
                   <CardFooter className='pt-4 border-t bg-muted/30 mt-auto'>
                     <div className='w-full'>
-                      <div className='text-xs font-medium text-muted-foreground mb-2'>Score</div>
+                      <div className='text-xs font-medium text-muted-foreground mb-2'>Final Score</div>
                       <div className='flex items-center gap-4'>
                         <div className='flex-1'>
                           <div className='text-xs text-muted-foreground'>{game.awayTeam.code}</div>

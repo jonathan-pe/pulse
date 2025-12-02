@@ -27,6 +27,7 @@ export interface ScoreGamesJobResult {
   missedPredictionsPoints: number
   errors: string[]
   duration: number
+  [key: string]: unknown // Allow indexing for logger compatibility
 }
 
 export async function scoreGamesJob(): Promise<ScoreGamesJobResult> {

@@ -459,10 +459,6 @@ export class PredictionsService {
     const pointsLedgerEntries = await prisma.pointsLedger.findMany({
       where: {
         userId,
-        meta: {
-          path: ['predictionId'],
-          string_contains: '',
-        },
       },
       select: {
         delta: true,
@@ -474,7 +470,7 @@ export class PredictionsService {
     const pointsMap = new Map<string, number>()
     for (const entry of pointsLedgerEntries) {
       const meta = entry.meta as { predictionId?: string } | null
-      if (meta?.predictionId) {
+      if (meta?.predictionId && predictionIds.includes(meta.predictionId)) {
         pointsMap.set(meta.predictionId, entry.delta)
       }
     }

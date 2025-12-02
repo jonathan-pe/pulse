@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, XCircle, Clock, Award, TrendingUp } from 'lucide-react'
+import { CheckCircle, XCircle, Award, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PredictionWithGame } from '@/types/api'
 
@@ -10,11 +10,8 @@ interface PredictionItemProps {
 
 export function PredictionItem({ prediction, showDivider = false }: PredictionItemProps) {
   const game = prediction.game
-  const isScored = prediction.isCorrect !== null
   const isCorrect = prediction.isCorrect === true
   const isIncorrect = prediction.isCorrect === false
-  const hasResult = game.result !== null
-  const isLocked = prediction.lockedAt !== null
 
   // Format the pick for display with actual odds
   let pickDisplay = ''
@@ -71,7 +68,7 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
               </Badge>
             )}
 
-            {/* Result badge */}
+            {/* Result badge - only Win/Loss shown here, Live/Pending are at card level */}
             {isCorrect && (
               <Badge variant='default' className='h-5 bg-green-500 hover:bg-green-600'>
                 <CheckCircle className='h-2.5 w-2.5 mr-1' />
@@ -84,25 +81,13 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
                 Loss
               </Badge>
             )}
-            {!hasResult && isLocked && (
-              <Badge variant='secondary' className='h-5'>
-                <Clock className='h-2.5 w-2.5 mr-1' />
-                Live
-              </Badge>
-            )}
-            {!hasResult && !isLocked && (
-              <Badge variant='outline' className='h-5'>
-                <Clock className='h-2.5 w-2.5 mr-1' />
-                Pending
-              </Badge>
-            )}
           </div>
 
           <div className='font-medium'>{pickDisplay}</div>
         </div>
 
         {/* Points earned */}
-        {prediction.pointsEarned !== null && (
+        {prediction.pointsEarned != null && prediction.pointsEarned !== 0 && (
           <div className='text-right flex-shrink-0'>
             <div
               className={cn(
