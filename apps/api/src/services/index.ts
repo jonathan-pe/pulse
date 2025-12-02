@@ -14,3 +14,6 @@ export type {
 } from './predictions.service.js'
 
 export { achievementsService, AchievementsService } from './achievements.service.js'
+
+export { usersService, UsersService } from './users.service.js'
+export type { UpsertUserData } from './users.service.js'

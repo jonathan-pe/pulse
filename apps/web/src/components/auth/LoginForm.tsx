@@ -5,6 +5,8 @@ import { useSignIn } from '@clerk/clerk-react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { isClerkAPIResponseError } from '@clerk/clerk-react/errors'
 import z from 'zod'
 
 const LoginSchema = z.object({
@@ -64,12 +66,35 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
+        // eslint-disable-next-line no-console
         console.error(JSON.stringify(signInAttempt, null, 2))
+        toast.error('Sign in incomplete. Please try again.')
       }
     } catch (err: unknown) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
+      // eslint-disable-next-line no-console
       console.error(JSON.stringify(err, null, 2))
+
+      // Extract user-friendly error message from Clerk error
+      if (isClerkAPIResponseError(err)) {
+        const clerkError = err.errors[0]
+        // Map common Clerk error codes to friendly messages
+        // Note: We use the same generic message for identifier_not_found and password_incorrect
+        // to prevent account enumeration attacks
+        const errorMessages: Record<string, string> = {
+          form_identifier_not_found: 'Invalid email/username or password.',
+          form_password_incorrect: 'Invalid email/username or password.',
+          form_password_pwned: 'This password has been compromised. Please use a different password.',
+          session_exists: 'You are already signed in.',
+          identifier_already_signed_in: 'You are already signed in with this account.',
+        }
+
+        const friendlyMessage = errorMessages[clerkError?.code] || clerkError?.longMessage || clerkError?.message
+        toast.error(friendlyMessage || 'Unable to sign in. Please try again.')
+      } else {
+        toast.error('Unable to sign in. Please try again.')
+      }
     } finally {
       setLoading(false)
     }

@@ -2,18 +2,18 @@ import { useClerk } from '@clerk/clerk-react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 
-export const Route = createFileRoute('/_unauthenticated/login/sso-callback')({
-  component: LoginSSOCallback,
+export const Route = createFileRoute('/_unauthenticated/signup/sso-callback')({
+  component: SignUpSSOCallback,
 })
 
 /**
- * SSO Callback page for OAuth sign-in flows.
+ * SSO Callback page for OAuth sign-up flows.
  *
  * Uses Clerk.handleRedirectCallback() to process OAuth redirects with custom URLs.
  *
  * @see https://clerk.com/docs/reference/javascript/clerk#handle-redirect-callback
  */
-function LoginSSOCallback() {
+function SignUpSSOCallback() {
   const { handleRedirectCallback } = useClerk()
   const processedRef = useRef(false)
 
@@ -32,7 +32,7 @@ function LoginSSOCallback() {
 
   return (
     <div className='min-h-screen flex items-center justify-center'>
-      <div className='text-muted-foreground'>Completing sign in...</div>
+      <div className='text-muted-foreground'>Completing sign up...</div>
       {/* Required for Clerk's bot sign-up protection */}
       <div id='clerk-captcha' />
     </div>

@@ -1,4 +1,21 @@
 {
+	"servers": {
+		"Notion": {
+			"url": "https://mcp.notion.com/mcp",
+			"type": "http"
+		},
+		"supabase": {
+			"type": "http",
+			"url": "https://mcp.supabase.com/mcp?project_ref=gobpbmsptqpuxvnxpqjn"
+		},
+		"playwright": {
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest"
+			],
+			"type": "stdio"
+		}
+	},
 	"inputs": [
 		{
 			"id": "project-ref",
@@ -30,14 +47,5 @@
 			"description": "Personal access token for Supabase API",
 			"password": true
 		}
-	],
-	"servers": {
-		"Notion": {
-			"url": "https://mcp.notion.com/mcp"
-		},
-		"supabase": {
-			"type": "http",
-			"url": "https://mcp.supabase.com/mcp?project_ref=gobpbmsptqpuxvnxpqjn"
-		}
-	}
+	]
 }

@@ -73,16 +73,24 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
         <DropdownMenuSeparator />
 
         {user ? (
-          <DropdownMenuItem
-            onClick={() => {
-              if (onLogout) return onLogout()
-              // use Clerk signOut
-              void clerk.signOut()
-            }}
-            className='hover:cursor-pointer text-destructive'
-          >
-            Logout
-          </DropdownMenuItem>
+          <>
+            <DropdownMenuItem asChild>
+              <Link to='/profile' className='hover:cursor-pointer'>
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                if (onLogout) return onLogout()
+                // use Clerk signOut
+                void clerk.signOut()
+              }}
+              className='hover:cursor-pointer text-destructive'
+            >
+              Logout
+            </DropdownMenuItem>
+          </>
         ) : (
           <SignedOut>
             <DropdownMenuItem asChild>

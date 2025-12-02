@@ -140,6 +140,9 @@ const SignUpForm = ({ setVerifying }: SignUpFormProps) => {
             </FormItem>
           )}
         />
+
+        <div id='clerk-captcha' />
+
         <Button type='submit' disabled={loading || !isLoaded} className='w-full'>
           {loading ? 'Signing up...' : 'Sign up'}
         </Button>
