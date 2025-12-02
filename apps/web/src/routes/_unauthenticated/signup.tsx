@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { GoogleOneTap } from '@clerk/clerk-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import SignUpForm from '@/components/auth/SignUpForm'
 import EmailVerificationForm from '@/components/auth/EmailVerificationForm'
 
@@ -20,12 +21,33 @@ function SignUp() {
   // Handle the submission of the verification form
 
   return (
-    <div className='p-4 max-w-md mx-auto'>
-      <h2 className='text-2xl mb-4'>Sign Up</h2>
-      {verifying ? <EmailVerificationForm setVerifying={setVerifying} /> : <SignUpForm setVerifying={setVerifying} />}
-      <Button variant='ghost' onClick={() => navigate({ to: '/login' })} className='w-full mt-2'>
-        Already have an account? Log in
-      </Button>
+    <div className='min-h-screen flex items-center justify-center p-4'>
+      <Card className='w-full max-w-md'>
+        <CardHeader className='text-center'>
+          <CardTitle className='text-2xl'>{verifying ? 'Verify your email' : 'Create an account'}</CardTitle>
+          <CardDescription>
+            {verifying ? 'Enter the verification code sent to your email' : 'Get started with Pulse today'}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {verifying ? (
+            <EmailVerificationForm setVerifying={setVerifying} />
+          ) : (
+            <SignUpForm setVerifying={setVerifying} />
+          )}
+        </CardContent>
+
+        <CardFooter className='flex justify-center'>
+          <p className='text-sm text-muted-foreground'>
+            Already have an account?{' '}
+            <Button variant='link' className='p-0 h-auto' onClick={() => navigate({ to: '/login' })}>
+              Log in
+            </Button>
+          </p>
+        </CardFooter>
+      </Card>
+
       <GoogleOneTap />
     </div>
   )
