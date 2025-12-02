@@ -71,9 +71,9 @@ export function LeagueStatsTable({ stats, isLoading }: LeagueStatsTableProps) {
                   <span
                     className={
                       league.winRate >= 0.6
-                        ? 'text-green-600 dark:text-green-400 font-semibold'
+                        ? 'text-success font-semibold'
                         : league.winRate >= 0.5
-                        ? 'text-yellow-600 dark:text-yellow-400'
+                        ? 'text-warning-foreground'
                         : 'text-muted-foreground'
                     }
                   >

@@ -117,10 +117,7 @@ function PredictionsPage() {
                       })}
                     </CardDescription>
                     {isCompleted && (
-                      <Badge
-                        variant='secondary'
-                        className='h-5 text-xs bg-green-500/10 text-green-700 border-green-500/20'
-                      >
+                      <Badge variant='secondary' className='h-5 text-xs bg-success/10 text-success border-success/20'>
                         <CheckCircle className='h-2.5 w-2.5 mr-1' />
                         Final
                       </Badge>

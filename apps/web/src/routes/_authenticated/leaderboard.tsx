@@ -28,7 +28,7 @@ function Leaderboard() {
         {/* Header */}
         <div className='mb-6 sm:mb-8'>
           <h1 className='text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3'>
-            <Trophy className='h-6 w-6 sm:h-8 sm:w-8 text-yellow-500' />
+            <Trophy className='h-6 w-6 sm:h-8 sm:w-8 text-warning' />
             Leaderboard
           </h1>
           <p className='text-muted-foreground'>See how you stack up against other predictors</p>
@@ -78,7 +78,7 @@ function Leaderboard() {
                   >
                     {/* Rank */}
                     <div className='w-12 text-center'>
-                      {entry.rank === 1 && <Trophy className='h-6 w-6 mx-auto text-yellow-500' />}
+                      {entry.rank === 1 && <Trophy className='h-6 w-6 mx-auto text-warning' />}
                       {entry.rank === 2 && <Trophy className='h-6 w-6 mx-auto text-gray-400' />}
                       {entry.rank === 3 && <Trophy className='h-6 w-6 mx-auto text-amber-600' />}
                       {entry.rank > 3 && (
@@ -99,13 +99,13 @@ function Leaderboard() {
                     {period !== 'alltime' && entry.rankChange !== null && (
                       <div className='flex items-center gap-1'>
                         {entry.rankChange > 0 && (
-                          <Badge variant='outline' className='text-green-600 border-green-600'>
+                          <Badge variant='outline' className='text-success border-success'>
                             <TrendingUp className='h-3 w-3 mr-1' />
                             {entry.rankChange}
                           </Badge>
                         )}
                         {entry.rankChange < 0 && (
-                          <Badge variant='outline' className='text-red-600 border-red-600'>
+                          <Badge variant='outline' className='text-destructive border-destructive'>
                             <TrendingDown className='h-3 w-3 mr-1' />
                             {Math.abs(entry.rankChange)}
                           </Badge>

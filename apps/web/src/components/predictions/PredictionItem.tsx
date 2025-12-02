@@ -70,13 +70,13 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
 
             {/* Result badge - only Win/Loss shown here, Live/Pending are at card level */}
             {isCorrect && (
-              <Badge variant='default' className='h-5 bg-green-500 hover:bg-green-600'>
+              <Badge variant='default' className='h-5 bg-success hover:bg-success/90'>
                 <CheckCircle className='h-2.5 w-2.5 mr-1' />
                 Win
               </Badge>
             )}
             {isIncorrect && (
-              <Badge variant='default' className='h-5 bg-red-500 hover:bg-red-600'>
+              <Badge variant='default' className='h-5 bg-destructive hover:bg-destructive/90'>
                 <XCircle className='h-2.5 w-2.5 mr-1' />
                 Loss
               </Badge>
@@ -92,7 +92,7 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
             <div
               className={cn(
                 'text-xl font-bold flex items-center gap-1',
-                isCorrect && 'text-green-600',
+                isCorrect && 'text-success',
                 isIncorrect && 'text-muted-foreground'
               )}
             >

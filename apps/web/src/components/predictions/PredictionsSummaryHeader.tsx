@@ -78,16 +78,11 @@ export function PredictionsSummaryHeader() {
           {/* Current Streak */}
           <div className='flex flex-col gap-1'>
             <div className='flex items-center gap-2 text-muted-foreground text-sm'>
-              <Flame
-                className={cn('h-4 w-4', stats.currentStreak >= STREAK_HIGHLIGHT_THRESHOLD && 'text-orange-500')}
-              />
+              <Flame className={cn('h-4 w-4', stats.currentStreak >= STREAK_HIGHLIGHT_THRESHOLD && 'text-warning')} />
               <span>Streak</span>
             </div>
             <div
-              className={cn(
-                'text-2xl font-bold',
-                stats.currentStreak >= STREAK_HIGHLIGHT_THRESHOLD && 'text-orange-500'
-              )}
+              className={cn('text-2xl font-bold', stats.currentStreak >= STREAK_HIGHLIGHT_THRESHOLD && 'text-warning')}
             >
               {stats.currentStreak}
             </div>

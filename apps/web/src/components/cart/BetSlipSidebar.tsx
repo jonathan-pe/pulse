@@ -83,21 +83,17 @@ const BetSlipSidebar: React.FC = () => {
           {(isDiminishingReturns || isHardCap) && (
             <div
               className={`rounded-lg border p-3 ${
-                isHardCap ? 'border-destructive/50 bg-destructive/10' : 'border-yellow-500/50 bg-yellow-500/10'
+                isHardCap ? 'border-destructive/50 bg-destructive/10' : 'border-warning/50 bg-warning/10'
               }`}
             >
               <div className='flex items-start gap-2'>
                 <AlertTriangle
                   className={`mt-0.5 h-4 w-4 flex-shrink-0 ${
-                    isHardCap ? 'text-destructive' : 'text-yellow-600 dark:text-yellow-500'
+                    isHardCap ? 'text-destructive' : 'text-warning-foreground'
                   }`}
                 />
                 <div className='flex-1'>
-                  <p
-                    className={`text-sm font-medium ${
-                      isHardCap ? 'text-destructive' : 'text-yellow-600 dark:text-yellow-500'
-                    }`}
-                  >
+                  <p className={`text-sm font-medium ${isHardCap ? 'text-destructive' : 'text-warning-foreground'}`}>
                     {isHardCap ? 'Hard Cap Reached' : 'Diminishing Returns'}
                   </p>
                   <p className='mt-0.5 text-xs text-muted-foreground'>
@@ -137,9 +133,7 @@ const BetSlipSidebar: React.FC = () => {
                 <span className='text-sm font-normal text-muted-foreground'>full value</span>
               </div>
               {predictionsAfterCart > SOFT_CAP && (
-                <div className='mt-1 text-xs text-yellow-600 dark:text-yellow-500'>
-                  {predictionsAfterCart - SOFT_CAP} at 50%
-                </div>
+                <div className='mt-1 text-xs text-warning-foreground'>{predictionsAfterCart - SOFT_CAP} at 50%</div>
               )}
             </div>
           </div>

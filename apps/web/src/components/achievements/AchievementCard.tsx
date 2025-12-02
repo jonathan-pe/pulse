@@ -23,17 +23,17 @@ const categoryIcons: Record<AchievementCategory, typeof Trophy> = {
 
 // Map rarity to colors
 const rarityColors: Record<AchievementRarity, string> = {
-  COMMON: 'bg-gray-500',
-  RARE: 'bg-blue-500',
-  EPIC: 'bg-purple-500',
-  LEGENDARY: 'bg-yellow-500',
+  COMMON: 'bg-muted-foreground',
+  RARE: 'bg-chart-2',
+  EPIC: 'bg-chart-3',
+  LEGENDARY: 'bg-warning',
 }
 
 const rarityTextColors: Record<AchievementRarity, string> = {
-  COMMON: 'text-gray-700 dark:text-gray-300',
-  RARE: 'text-blue-700 dark:text-blue-300',
-  EPIC: 'text-purple-700 dark:text-purple-300',
-  LEGENDARY: 'text-yellow-700 dark:text-yellow-300',
+  COMMON: 'text-muted-foreground',
+  RARE: 'text-chart-2',
+  EPIC: 'text-chart-3',
+  LEGENDARY: 'text-warning',
 }
 
 export function AchievementCard({ achievement, onClick, isSelectable, isSelected }: AchievementCardProps) {
