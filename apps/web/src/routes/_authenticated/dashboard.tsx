@@ -3,6 +3,7 @@ import { useUserStats } from '@/hooks/usePoints'
 import { StatsCard } from '@/components/dashboard/StatsCard'
 import { LeagueStatsTable } from '@/components/dashboard/LeagueStatsTable'
 import { PointsChart } from '@/components/dashboard/PointsChart'
+import { RecentPredictions } from '@/components/dashboard/RecentPredictions'
 import { TrendingUp, Target, Award, Flame, Calendar, Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -102,6 +103,11 @@ function Dashboard() {
         <div className='grid gap-6 lg:grid-cols-2 mb-6 sm:mb-8'>
           <PointsChart data={stats.pointsOverTime} isLoading={isLoading} />
           <LeagueStatsTable stats={stats.byLeague} isLoading={isLoading} />
+        </div>
+
+        {/* Recent Predictions */}
+        <div className='mb-6 sm:mb-8'>
+          <RecentPredictions />
         </div>
 
         {/* Quick Actions */}
