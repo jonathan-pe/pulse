@@ -279,6 +279,203 @@ export class ScoreGameService {
 
     return games.map((g) => g.id)
   }
+
+  /**
+   * Find predictions that were created after their game was scored
+   * This is a safety net for race conditions where predictions slip through validation
+   *
+   * @returns Array of prediction IDs that need to be scored
+   */
+  async findUnscoredPredictionsOnFinishedGames(): Promise<string[]> {
+    // Find predictions where:
+    // 1. isCorrect is null (not yet scored)
+    // 2. Game has a result with scoredAt set (game was already scored)
+    // 3. Game status indicates finished
+    const predictions = await prisma.prediction.findMany({
+      where: {
+        isCorrect: null,
+        processedAt: null,
+        game: {
+          result: {
+            scoredAt: { not: null },
+          },
+          OR: [{ status: { contains: 'final', mode: 'insensitive' } }, { status: { contains: 'Final' } }],
+        },
+      },
+      select: { id: true },
+    })
+
+    return predictions.map((p) => p.id)
+  }
+
+  /**
+   * Score a single prediction that was missed during normal scoring
+   * This is for predictions created after their game was already scored
+   *
+   * @param predictionId - The prediction ID to score
+   * @returns Scoring result
+   */
+  async scoreMissedPrediction(
+    predictionId: string
+  ): Promise<{ scored: boolean; pointsAwarded: number; error?: string }> {
+    try {
+      const prediction = await prisma.prediction.findUnique({
+        where: { id: predictionId },
+        include: {
+          game: {
+            include: { result: true },
+          },
+        },
+      })
+
+      if (!prediction) {
+        return { scored: false, pointsAwarded: 0, error: 'Prediction not found' }
+      }
+
+      if (!prediction.game.result) {
+        return { scored: false, pointsAwarded: 0, error: 'Game has no result' }
+      }
+
+      if (prediction.isCorrect !== null) {
+        return { scored: false, pointsAwarded: 0, error: 'Prediction already scored' }
+      }
+
+      // Lock the prediction if not already locked
+      if (!prediction.lockedAt) {
+        await prisma.prediction.update({
+          where: { id: predictionId },
+          data: { lockedAt: new Date() },
+        })
+      }
+
+      // Prepare prediction data for scoring
+      const predictionWithGame = {
+        id: prediction.id,
+        userId: prediction.userId,
+        gameId: prediction.gameId,
+        type: prediction.type,
+        pick: prediction.pick,
+        oddsAtPrediction: prediction.oddsAtPrediction as Parameters<
+          typeof pointsService.isPredictionCorrect
+        >[0]['oddsAtPrediction'],
+        bonusTier: prediction.bonusTier,
+        isCorrect: prediction.isCorrect,
+        createdAt: prediction.createdAt,
+        game: {
+          league: prediction.game.league,
+          result: {
+            homeScore: prediction.game.result.homeScore,
+            awayScore: prediction.game.result.awayScore,
+          },
+        },
+      }
+
+      // Determine if prediction is correct
+      const isCorrect = pointsService.isPredictionCorrect(predictionWithGame)
+
+      // Update prediction with result
+      await prisma.prediction.update({
+        where: { id: predictionId },
+        data: {
+          isCorrect,
+          processedAt: new Date(),
+        },
+      })
+
+      // Update streak
+      await pointsService.updateUserStreak(prediction.userId, isCorrect, prediction.bonusTier)
+
+      let pointsAwarded = 0
+
+      // If correct, award points
+      if (isCorrect) {
+        const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
+        pointsAwarded = pointsService.calculatePoints(predictionWithGame, dailyCount)
+
+        await pointsService.awardPoints(
+          prediction.userId,
+          pointsAwarded,
+          `Correct prediction on game ${prediction.gameId}`,
+          {
+            predictionId: prediction.id,
+            gameId: prediction.gameId,
+            league: prediction.game.league,
+            type: prediction.type,
+            pick: prediction.pick,
+            bonusTier: prediction.bonusTier,
+            dailyCount,
+            lateScoring: true, // Flag to indicate this was scored after initial game scoring
+          }
+        )
+
+        // Check achievements
+        const { achievementsService } = await import('./achievements.service.js')
+        await achievementsService.checkAndUnlockAchievements(prediction.userId)
+      }
+
+      logger.info('Scored missed prediction', {
+        predictionId,
+        isCorrect,
+        pointsAwarded,
+      })
+
+      return { scored: true, pointsAwarded }
+    } catch (error) {
+      logger.error('Error scoring missed prediction', error instanceof Error ? error : undefined, {
+        predictionId,
+      })
+      return {
+        scored: false,
+        pointsAwarded: 0,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }
+    }
+  }
+
+  /**
+   * Score all predictions that were missed during normal scoring
+   * This should be run periodically as a safety net
+   *
+   * @returns Summary of scored predictions
+   */
+  async scoreMissedPredictions(): Promise<{ total: number; scored: number; errors: number; pointsAwarded: number }> {
+    const predictionIds = await this.findUnscoredPredictionsOnFinishedGames()
+
+    if (predictionIds.length === 0) {
+      logger.debug('No missed predictions found')
+      return { total: 0, scored: 0, errors: 0, pointsAwarded: 0 }
+    }
+
+    logger.info('Found missed predictions to score', { count: predictionIds.length })
+
+    let scored = 0
+    let errors = 0
+    let totalPoints = 0
+
+    for (const predictionId of predictionIds) {
+      const result = await this.scoreMissedPrediction(predictionId)
+      if (result.scored) {
+        scored++
+        totalPoints += result.pointsAwarded
+      } else {
+        errors++
+      }
+    }
+
+    logger.info('Scored missed predictions', {
+      total: predictionIds.length,
+      scored,
+      errors,
+      pointsAwarded: totalPoints,
+    })
+
+    return {
+      total: predictionIds.length,
+      scored,
+      errors,
+      pointsAwarded: totalPoints,
+    }
+  }
 }
 
 // Export singleton instance

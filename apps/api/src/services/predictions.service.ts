@@ -73,16 +73,39 @@ export class PredictionsService {
   }
 
   /**
+   * Check if a game status indicates the game has started or finished
+   * Uses case-insensitive comparison to handle various API responses
+   */
+  private isGameInProgress(status: string): boolean {
+    const normalizedStatus = status.toLowerCase().trim()
+
+    // Only 'scheduled' means the game hasn't started
+    if (normalizedStatus === 'scheduled') {
+      return false
+    }
+
+    // Any other status means the game has started or finished
+    return true
+  }
+
+  /**
    * Validate a single prediction before creation
    */
   async validatePrediction(input: CreatePredictionInput): Promise<PredictionValidationError | null> {
-    // 1. Check if game exists and hasn't started
+    // 1. Check if game exists
     const game = await prisma.game.findUnique({
       where: { id: input.gameId },
       select: {
         id: true,
         startsAt: true,
         status: true,
+        result: {
+          select: {
+            id: true,
+            homeScore: true,
+            awayScore: true,
+          },
+        },
       },
     })
 
@@ -90,10 +113,18 @@ export class PredictionsService {
       return { field: 'gameId', message: 'Game not found' }
     }
 
-    if (game.status !== 'scheduled') {
+    // 2. Check if game has a result (game is finished)
+    // This is the most reliable check - if there's a result, the game is definitely over
+    if (game.result) {
+      return { field: 'gameId', message: 'Game has already finished' }
+    }
+
+    // 3. Check game status (case-insensitive)
+    if (this.isGameInProgress(game.status)) {
       return { field: 'gameId', message: 'Game has already started or finished' }
     }
 
+    // 4. Check if game start time has passed
     if (new Date(game.startsAt) <= new Date()) {
       return { field: 'gameId', message: 'Game has already started' }
     }

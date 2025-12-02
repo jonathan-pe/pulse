@@ -43,6 +43,15 @@ predictionsRouter.post('/', async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Invalid input', details: error.issues })
       return
     }
+    // Return validation errors with proper status code and message
+    if (error instanceof Error) {
+      const isValidationError =
+        error.message.includes('Game') || error.message.includes('prediction') || error.message.includes('limit')
+      if (isValidationError) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })

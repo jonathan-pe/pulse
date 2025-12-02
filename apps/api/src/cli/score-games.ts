@@ -3,6 +3,7 @@
  * CLI: Score Games
  *
  * Score all completed games that haven't been processed yet.
+ * Also catches any predictions that were missed due to race conditions.
  *
  * Usage:
  *   pnpm cli score-games
@@ -20,7 +21,14 @@ async function main() {
   console.log(`   Games scored: ${result.gamesScored}`)
   console.log(`   Predictions scored: ${result.predictionsScored}`)
   console.log(`   Points awarded: ${result.pointsAwarded}`)
-  console.log(`   Duration: ${result.duration}ms`)
+
+  if (result.missedPredictionsScored > 0) {
+    console.log('\n🔄 Missed Predictions (race condition recovery):')
+    console.log(`   Predictions scored: ${result.missedPredictionsScored}`)
+    console.log(`   Points awarded: ${result.missedPredictionsPoints}`)
+  }
+
+  console.log(`\n   Total duration: ${result.duration}ms`)
 
   if (result.errors.length > 0) {
     console.log(`\n⚠️  Errors (${result.errors.length}):`)
