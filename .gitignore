@@ -41,7 +41,6 @@ target/
 out/
 
 # Visual Studio Code
-.vscode/
 .history/
 
 # JetBrains IDEs
