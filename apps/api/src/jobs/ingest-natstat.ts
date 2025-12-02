@@ -171,9 +171,12 @@ export async function ingestNatStat({ date, league }: JobInput) {
           }
         }
 
-        // Update scores if provided
+        // Update scores only if the game is finished (status contains "final")
+        // This prevents creating Result records for scheduled games with 0-0 scores
         let scoresUpdated = false
-        if (ev.homeScore !== undefined && ev.awayScore !== undefined) {
+        const isGameFinished = currentStatus.toLowerCase().includes('final')
+
+        if (isGameFinished && ev.homeScore !== undefined && ev.awayScore !== undefined) {
           scoresUpdated = await gamesService.upsertGameScores(game.id, {
             homeScore: ev.homeScore,
             awayScore: ev.awayScore,
