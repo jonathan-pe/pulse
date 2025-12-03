@@ -18,7 +18,7 @@ export function GamePredictionsCard({ gamePredictions }: GamePredictionsCardProp
   // Game status: completed (has result) > live (started, no result) > pending (not started)
   const isCompleted = hasResult
   const isLive = !isCompleted && gameStarted
-  const isPending = !isCompleted && !gameStarted
+  const isUpcoming = !isCompleted && !gameStarted
 
   return (
     <Card className='flex flex-col'>
@@ -74,10 +74,10 @@ export function GamePredictionsCard({ gamePredictions }: GamePredictionsCardProp
               Live
             </Badge>
           )}
-          {isPending && (
+          {isUpcoming && (
             <Badge variant='outline' className='h-5 text-xs'>
               <Clock className='h-2.5 w-2.5 mr-1' />
-              Pending
+              Upcoming
             </Badge>
           )}
         </div>
