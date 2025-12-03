@@ -1,5 +1,5 @@
 import React from 'react'
-import { XIcon, Flame, TrendingUp, AlertTriangle } from 'lucide-react'
+import { XIcon, TrendingUp, AlertTriangle } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -48,10 +48,6 @@ const BetSlipSidebar: React.FC = () => {
   const predictionsAfterCart = predictionsToday + selections.length
   const isDiminishingReturns = predictionsAfterCart > SOFT_CAP
   const isHardCap = predictionsAfterCart > HARD_CAP
-
-  // Mock streak - in a real implementation, this would come from an API
-  // For now, we'll show a placeholder
-  const currentStreak = 0 // TODO: Fetch from API
 
   const formatOdds = (odds: number): string => {
     return odds > 0 ? `+${odds}` : `${odds}`
@@ -218,7 +214,6 @@ const BetSlipSidebar: React.FC = () => {
                   <span className='text-sm text-muted-foreground'>Potential Points</span>
                   <span className='text-2xl font-bold text-primary'>+{totalPotentialPoints}</span>
                 </div>
-                <p className='mt-1 text-xs text-muted-foreground'>Base points before streak bonuses</p>
               </div>
 
               {/* Submit Button */}
