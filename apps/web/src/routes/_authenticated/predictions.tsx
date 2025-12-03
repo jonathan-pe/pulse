@@ -7,12 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Clock, CheckCircle } from 'lucide-react'
 import { PredictionsSummaryHeader } from '@/components/predictions/PredictionsSummaryHeader'
 import { PredictionItem } from '@/components/predictions/PredictionItem'
-import {
-  PredictionsFilters,
-  type StatusFilter,
-  type LeagueFilter,
-  type ResultFilter,
-} from '@/components/predictions/PredictionsFilters'
+import { PredictionsFilters } from '@/components/predictions/PredictionsFilters'
+import type { StatusFilter, LeagueFilter, ResultFilter } from '@/types/filters'
 import { getLeagueBadgeColor } from '@/lib/utils'
 import type { PredictionWithGame } from '@/types/api'
 
