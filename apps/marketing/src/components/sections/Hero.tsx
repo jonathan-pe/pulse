@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Zap, ChevronRight } from 'lucide-react'
-import homeScreenshot from '@/assets/home_screenshot.png'
+import homeScreenshotLight from '@/assets/home_screenshot_light.png'
+import homeScreenshotDark from '@/assets/home_screenshot_dark.png'
 
 interface HeroProps {
   appUrl: string
@@ -42,7 +43,16 @@ export function Hero({ appUrl, onLearnMore }: HeroProps) {
         {/* Hero Image */}
         <div className='relative max-w-5xl mx-auto'>
           <div className='rounded-xl border bg-card shadow-2xl overflow-hidden'>
-            <img src={homeScreenshot} alt='Pulse app home dashboard screenshot' className='w-full h-auto block' />
+            <img
+              src={homeScreenshotLight}
+              alt='Pulse app home dashboard screenshot'
+              className='w-full h-auto block dark:hidden'
+            />
+            <img
+              src={homeScreenshotDark}
+              alt='Pulse app home dashboard screenshot'
+              className='w-full h-auto hidden dark:block'
+            />
           </div>
         </div>
       </div>
