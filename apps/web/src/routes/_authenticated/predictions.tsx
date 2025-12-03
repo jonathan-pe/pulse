@@ -211,7 +211,7 @@ function PredictionsPage() {
                       </Badge>
                     )}
                     {isLive && (
-                      <Badge variant='secondary' className='h-5 text-xs'>
+                      <Badge variant='secondary' className='h-5 text-xs bg-info/10 text-info border-info/20'>
                         <Clock className='h-2.5 w-2.5 mr-1' />
                         Live
                       </Badge>
