@@ -55,7 +55,7 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
   return (
     <>
       {showDivider && <div className='border-t my-3' />}
-      <div className='flex items-start justify-between gap-4'>
+      <div className='flex items-start justify-between gap-4' data-testid='prediction-item'>
         <div className='flex-1 min-w-0'>
           <div className='flex items-center gap-2 mb-1'>
             <span className='text-xs font-medium text-muted-foreground uppercase'>{prediction.type}</span>
