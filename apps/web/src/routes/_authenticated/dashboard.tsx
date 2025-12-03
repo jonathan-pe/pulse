@@ -83,7 +83,7 @@ function Dashboard() {
           />
 
           <StatsCard
-            title='Today Predictions'
+            title="Today's Predictions"
             value={stats.predictionsToday}
             description={`${todayBonusRemaining} bonus ${todayBonusRemaining === 1 ? 'pick' : 'picks'} remaining`}
             icon={Calendar}
