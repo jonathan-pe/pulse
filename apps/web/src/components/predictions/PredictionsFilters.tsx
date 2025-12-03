@@ -2,6 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
 import type { StatusFilter, LeagueFilter, ResultFilter } from '@/types/filters'
+import { LEAGUES } from '@pulse/types'
 
 interface PredictionsFiltersProps {
   statusFilter: StatusFilter
@@ -46,10 +47,11 @@ export function PredictionsFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value='all'>All Leagues</SelectItem>
-          <SelectItem value='NBA'>NBA</SelectItem>
-          <SelectItem value='NFL'>NFL</SelectItem>
-          <SelectItem value='MLB'>MLB</SelectItem>
-          <SelectItem value='NHL'>NHL</SelectItem>
+          {LEAGUES.map((code) => (
+            <SelectItem key={code} value={code}>
+              {code}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
 

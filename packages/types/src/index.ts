@@ -16,6 +16,28 @@ export * from './odds'
 // Re-export achievement types
 export * from './achievements'
 
+// Shared constants
+export const LEAGUES = ['NBA', 'NFL', 'MLB', 'NHL'] as const
+export type League = (typeof LEAGUES)[number]
+
+export const MARKETS = ['moneyline', 'pointspread', 'overunder'] as const
+export type Market = (typeof MARKETS)[number]
+
+export const PREDICTION_RESULTS = ['pending', 'win', 'loss', 'push'] as const
+export type PredictionResult = (typeof PREDICTION_RESULTS)[number]
+
+// Prediction types
+export const PREDICTION_TYPES = ['MONEYLINE', 'SPREAD', 'TOTAL'] as const
+export type PredictionType = (typeof PREDICTION_TYPES)[number]
+
+// Game status
+export const GAME_STATUSES = ['scheduled', 'live', 'final'] as const
+export type GameStatus = (typeof GAME_STATUSES)[number]
+
+// Pick values
+export const PICK_VALUES = ['home', 'away', 'over', 'under'] as const
+export type PickValue = (typeof PICK_VALUES)[number]
+
 // Phase 2: Engagement Features Types
 
 /**

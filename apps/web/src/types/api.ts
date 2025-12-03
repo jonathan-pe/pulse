@@ -1,3 +1,5 @@
+import type { PredictionType } from '@pulse/types'
+
 /**
  * API Request/Response Types
  *
@@ -10,7 +12,7 @@
  */
 export interface PredictionInput {
   gameId: string
-  type: 'MONEYLINE' | 'SPREAD' | 'TOTAL'
+  type: PredictionType
   pick: string
 }
 
@@ -66,7 +68,7 @@ export interface AuthUser {
 export interface BasePrediction {
   id: string
   gameId: string
-  type: 'MONEYLINE' | 'SPREAD' | 'TOTAL'
+  type: PredictionType
   pick: string
   createdAt: string
   lockedAt: string | null

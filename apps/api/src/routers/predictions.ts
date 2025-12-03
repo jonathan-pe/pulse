@@ -2,12 +2,13 @@ import { Router, type Request, type Response } from 'express'
 import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { getAuth } from '@clerk/express'
+import { PREDICTION_TYPES } from '@pulse/types'
 import { predictionsService } from '../services/predictions.service'
 import { usersService } from '../services/users.service'
 
 const PredictionInputSchema = z.object({
   gameId: z.string(),
-  type: z.enum(['MONEYLINE', 'SPREAD', 'TOTAL']),
+  type: z.enum(PREDICTION_TYPES),
   pick: z.string(),
 })
 

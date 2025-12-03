@@ -1,6 +1,7 @@
 import { Sun, Moon, Laptop } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useTheme, type Theme } from '@/lib/useTheme'
+import { useTheme } from '@/lib/useTheme'
+import type { Theme } from '@/types/ui'
 
 const THEME_TOGGLE_SIZE = 16
 
