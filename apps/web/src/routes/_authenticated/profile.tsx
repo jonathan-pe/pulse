@@ -4,20 +4,10 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useAPI } from '@/hooks/useAPI'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+// import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { User2Icon, Trash2 } from 'lucide-react'
+import { DeleteAccountDialog } from '@/components/profile/DeleteAccountDialog'
+import { User2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authenticated/profile')({
@@ -141,39 +131,7 @@ function Profile() {
                 </p>
               </div>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant='destructive' disabled={isDeleting}>
-                    <Trash2 className='mr-2 h-4 w-4' />
-                    Delete Account
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete your account and remove all your data
-                      from our servers, including:
-                      <ul className='list-disc list-inside mt-2 space-y-1'>
-                        <li>All predictions and history</li>
-                        <li>Points and leaderboard standings</li>
-                        <li>Achievements and badges</li>
-                        <li>Account information</li>
-                      </ul>
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      disabled={isDeleting}
-                      className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                    >
-                      {isDeleting ? 'Deleting...' : 'Yes, delete my account'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <DeleteAccountDialog isDeleting={isDeleting} onConfirm={handleDeleteAccount} />
             </div>
           </CardContent>
         </Card>
