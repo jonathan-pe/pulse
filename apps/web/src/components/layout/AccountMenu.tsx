@@ -22,16 +22,8 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
   const { user } = useUser()
   const clerk = useClerk()
 
-  // Build display name and initials from available user fields
-  const nameCandidates = [
-    user?.firstName,
-    user?.lastName ? `${user.firstName} ${user.lastName}` : undefined,
-    user?.fullName,
-    user?.username,
-    user?.primaryEmailAddress?.emailAddress,
-  ].filter(Boolean) as string[]
-
-  const displayName = nameCandidates[0] ?? ''
+  // Choose a concise display name from common Clerk fields
+  const displayName = user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress || ''
 
   const computeInitialsFrom = (s: string) =>
     s
@@ -43,10 +35,9 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
 
   const computedInitials = displayName ? computeInitialsFrom(displayName) : <User2Icon />
 
-  // Clerk's user type can differ between versions; safely try common avatar fields
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const userAny = user as any
-  const imageSrc = avatarSrc || userAny?.imageUrl || userAny?.profileImageUrl || ''
+  // Prefer explicit, typed fields; fall back gracefully
+  const imageSrc =
+    avatarSrc || user?.imageUrl || (user as { profileImageUrl?: string } | undefined)?.profileImageUrl || ''
 
   return (
     <DropdownMenu>
