@@ -126,10 +126,10 @@ function Profile() {
           </CardContent>
         </Card>
 
-        {/* Danger Zone */}
+        {/* Red Zone */}
         <Card className='border-destructive/50'>
           <CardHeader>
-            <CardTitle className='text-destructive'>Danger Zone</CardTitle>
+            <CardTitle className='text-destructive'>Red Zone</CardTitle>
             <CardDescription>Irreversible actions for your account</CardDescription>
           </CardHeader>
           <CardContent>
