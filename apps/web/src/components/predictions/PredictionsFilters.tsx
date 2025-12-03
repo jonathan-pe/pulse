@@ -27,7 +27,7 @@ export function PredictionsFilters({
   return (
     <div className='flex flex-wrap items-center gap-3'>
       {/* Status Filter */}
-      <Select value={statusFilter} onValueChange={(value) => onStatusChange(value as StatusFilter)}>
+      <Select value={statusFilter} onValueChange={(value: StatusFilter) => onStatusChange(value)}>
         <SelectTrigger className='w-[140px]'>
           <SelectValue placeholder='Status' />
         </SelectTrigger>
@@ -40,7 +40,7 @@ export function PredictionsFilters({
       </Select>
 
       {/* League Filter */}
-      <Select value={leagueFilter} onValueChange={(value) => onLeagueChange(value as LeagueFilter)}>
+      <Select value={leagueFilter} onValueChange={(value: LeagueFilter) => onLeagueChange(value)}>
         <SelectTrigger className='w-[130px]'>
           <SelectValue placeholder='League' />
         </SelectTrigger>
@@ -54,7 +54,7 @@ export function PredictionsFilters({
       </Select>
 
       {/* Result Filter */}
-      <Select value={resultFilter} onValueChange={(value) => onResultChange(value as ResultFilter)}>
+      <Select value={resultFilter} onValueChange={(value: ResultFilter) => onResultChange(value)}>
         <SelectTrigger className='w-[130px]'>
           <SelectValue placeholder='Result' />
         </SelectTrigger>
