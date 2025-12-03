@@ -1,10 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-
-export type StatusFilter = 'all' | 'pending' | 'live' | 'completed'
-export type LeagueFilter = 'all' | 'NBA' | 'NFL' | 'MLB' | 'NHL'
-export type ResultFilter = 'all' | 'wins' | 'losses'
+import type { StatusFilter, LeagueFilter, ResultFilter } from '@/types/filters'
 
 interface PredictionsFiltersProps {
   statusFilter: StatusFilter

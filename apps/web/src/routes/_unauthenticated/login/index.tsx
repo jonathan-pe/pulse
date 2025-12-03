@@ -36,7 +36,7 @@ function Login() {
         redirectUrlComplete: '/',
       })
     } catch (err: unknown) {
-      console.error(JSON.stringify(err, null, 2))
+      // Suppress console error; handle via UI feedback if needed
       toast.error('Error signing in with OAuth. Please try again.')
     } finally {
       setLoading(false)

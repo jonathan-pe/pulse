@@ -60,7 +60,7 @@ const SignUpForm = ({ setVerifying }: SignUpFormProps) => {
     } catch (err: unknown) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      console.error(JSON.stringify(err, null, 2))
+      // Suppress console error; consider UI notification for users
       toast.error(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)

@@ -11,7 +11,7 @@ import OAuthButton from '@/components/auth/OAuthButton'
 import type { OAuthStrategy } from '@clerk/types'
 import { toast } from 'sonner'
 
-export const Route = createFileRoute('/_unauthenticated/signup/')({
+export const Route = createFileRoute('/_unauthenticated/signup')({
   component: SignUp,
 })
 
@@ -33,7 +33,7 @@ function SignUp() {
     try {
       await signUp.authenticateWithRedirect({
         strategy,
-        redirectUrl: '/signup/sso-callback',
+        redirectUrl: '/login/sso-callback',
         redirectUrlComplete: '/',
       })
     } catch (err: unknown) {

@@ -56,7 +56,7 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
             if (session?.currentTask) {
               // Check for tasks and navigate to custom UI to help users resolve them
               // See https://clerk.com/docs/custom-flows/overview#session-tasks
-              console.log(session?.currentTask)
+              // session task available but not logged to console
               return
             }
 
@@ -66,15 +66,13 @@ const LoginForm = ({ loading, setLoading }: LoginFormProps) => {
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
-        // eslint-disable-next-line no-console
-        console.error(JSON.stringify(signInAttempt, null, 2))
+        // Silenced noisy console error; consider surfacing via UI notification
         toast.error('Sign in incomplete. Please try again.')
       }
     } catch (err: unknown) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      // eslint-disable-next-line no-console
-      console.error(JSON.stringify(err, null, 2))
+      // Silenced noisy console error; consider surfacing via UI notification
 
       // Extract user-friendly error message from Clerk error
       if (isClerkAPIResponseError(err)) {

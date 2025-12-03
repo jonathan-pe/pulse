@@ -55,7 +55,7 @@ const EmailVerificationForm = ({ setVerifying }: EmailVerificationFormProps) => 
             if (session?.currentTask) {
               // Check for tasks and navigate to custom UI to help users resolve them
               // See https://clerk.com/docs/custom-flows/overview#session-tasks
-              console.log(session?.currentTask)
+              // Avoid logging session task to console
               return
             }
 
@@ -65,8 +65,8 @@ const EmailVerificationForm = ({ setVerifying }: EmailVerificationFormProps) => 
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.
-        console.log(signUpAttempt)
-        console.log(code)
+        // Silence verbose attempt logging
+        // Silence entered code logging
       }
     } catch (err: unknown) {
       // See https://clerk.com/docs/custom-flows/error-handling

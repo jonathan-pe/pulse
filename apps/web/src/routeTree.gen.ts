@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnauthenticatedRouteImport } from './routes/_unauthenticated'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as UnauthenticatedSignupRouteImport } from './routes/_unauthenticated/signup'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPredictionsRouteImport } from './routes/_authenticated/predictions'
 import { Route as AuthenticatedLeaderboardRouteImport } from './routes/_authenticated/leaderboard'
@@ -31,6 +32,11 @@ const UnauthenticatedRoute = UnauthenticatedRouteImport.update({
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const UnauthenticatedSignupRoute = UnauthenticatedSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => UnauthenticatedRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -61,9 +67,9 @@ const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
 } as any)
 const UnauthenticatedSignupIndexRoute =
   UnauthenticatedSignupIndexRouteImport.update({
-    id: '/signup/',
-    path: '/signup/',
-    getParentRoute: () => UnauthenticatedRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => UnauthenticatedSignupRoute,
   } as any)
 const UnauthenticatedLoginIndexRoute =
   UnauthenticatedLoginIndexRouteImport.update({
@@ -78,9 +84,9 @@ const AuthenticatedHomeIndexRoute = AuthenticatedHomeIndexRouteImport.update({
 } as any)
 const UnauthenticatedSignupSsoCallbackRoute =
   UnauthenticatedSignupSsoCallbackRouteImport.update({
-    id: '/signup/sso-callback',
-    path: '/signup/sso-callback',
-    getParentRoute: () => UnauthenticatedRoute,
+    id: '/sso-callback',
+    path: '/sso-callback',
+    getParentRoute: () => UnauthenticatedSignupRoute,
   } as any)
 const UnauthenticatedLoginSsoCallbackRoute =
   UnauthenticatedLoginSsoCallbackRouteImport.update({
@@ -107,13 +113,14 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/predictions': typeof AuthenticatedPredictionsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/signup': typeof UnauthenticatedSignupRouteWithChildren
   '/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/login/continue': typeof UnauthenticatedLoginContinueRoute
   '/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
   '/signup/sso-callback': typeof UnauthenticatedSignupSsoCallbackRoute
   '/': typeof AuthenticatedHomeIndexRoute
   '/login': typeof UnauthenticatedLoginIndexRoute
-  '/signup': typeof UnauthenticatedSignupIndexRoute
+  '/signup/': typeof UnauthenticatedSignupIndexRoute
 }
 export interface FileRoutesByTo {
   '/about': typeof AuthenticatedAboutRoute
@@ -138,6 +145,7 @@ export interface FileRoutesById {
   '/_authenticated/leaderboard': typeof AuthenticatedLeaderboardRoute
   '/_authenticated/predictions': typeof AuthenticatedPredictionsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_unauthenticated/signup': typeof UnauthenticatedSignupRouteWithChildren
   '/_authenticated/leagues/$league': typeof AuthenticatedLeaguesLeagueRoute
   '/_unauthenticated/login/continue': typeof UnauthenticatedLoginContinueRoute
   '/_unauthenticated/login/sso-callback': typeof UnauthenticatedLoginSsoCallbackRoute
@@ -154,13 +162,14 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/predictions'
     | '/profile'
+    | '/signup'
     | '/leagues/$league'
     | '/login/continue'
     | '/login/sso-callback'
     | '/signup/sso-callback'
     | '/'
     | '/login'
-    | '/signup'
+    | '/signup/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leaderboard'
     | '/_authenticated/predictions'
     | '/_authenticated/profile'
+    | '/_unauthenticated/signup'
     | '/_authenticated/leagues/$league'
     | '/_unauthenticated/login/continue'
     | '/_unauthenticated/login/sso-callback'
@@ -213,6 +223,13 @@ declare module '@tanstack/react-router' {
       fullPath: ''
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_unauthenticated/signup': {
+      id: '/_unauthenticated/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof UnauthenticatedSignupRouteImport
+      parentRoute: typeof UnauthenticatedRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -251,10 +268,10 @@ declare module '@tanstack/react-router' {
     }
     '/_unauthenticated/signup/': {
       id: '/_unauthenticated/signup/'
-      path: '/signup'
-      fullPath: '/signup'
+      path: '/'
+      fullPath: '/signup/'
       preLoaderRoute: typeof UnauthenticatedSignupIndexRouteImport
-      parentRoute: typeof UnauthenticatedRoute
+      parentRoute: typeof UnauthenticatedSignupRoute
     }
     '/_unauthenticated/login/': {
       id: '/_unauthenticated/login/'
@@ -272,10 +289,10 @@ declare module '@tanstack/react-router' {
     }
     '/_unauthenticated/signup/sso-callback': {
       id: '/_unauthenticated/signup/sso-callback'
-      path: '/signup/sso-callback'
+      path: '/sso-callback'
       fullPath: '/signup/sso-callback'
       preLoaderRoute: typeof UnauthenticatedSignupSsoCallbackRouteImport
-      parentRoute: typeof UnauthenticatedRoute
+      parentRoute: typeof UnauthenticatedSignupRoute
     }
     '/_unauthenticated/login/sso-callback': {
       id: '/_unauthenticated/login/sso-callback'
@@ -325,20 +342,33 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface UnauthenticatedRouteChildren {
-  UnauthenticatedLoginContinueRoute: typeof UnauthenticatedLoginContinueRoute
-  UnauthenticatedLoginSsoCallbackRoute: typeof UnauthenticatedLoginSsoCallbackRoute
+interface UnauthenticatedSignupRouteChildren {
   UnauthenticatedSignupSsoCallbackRoute: typeof UnauthenticatedSignupSsoCallbackRoute
-  UnauthenticatedLoginIndexRoute: typeof UnauthenticatedLoginIndexRoute
   UnauthenticatedSignupIndexRoute: typeof UnauthenticatedSignupIndexRoute
 }
 
+const UnauthenticatedSignupRouteChildren: UnauthenticatedSignupRouteChildren = {
+  UnauthenticatedSignupSsoCallbackRoute: UnauthenticatedSignupSsoCallbackRoute,
+  UnauthenticatedSignupIndexRoute: UnauthenticatedSignupIndexRoute,
+}
+
+const UnauthenticatedSignupRouteWithChildren =
+  UnauthenticatedSignupRoute._addFileChildren(
+    UnauthenticatedSignupRouteChildren,
+  )
+
+interface UnauthenticatedRouteChildren {
+  UnauthenticatedSignupRoute: typeof UnauthenticatedSignupRouteWithChildren
+  UnauthenticatedLoginContinueRoute: typeof UnauthenticatedLoginContinueRoute
+  UnauthenticatedLoginSsoCallbackRoute: typeof UnauthenticatedLoginSsoCallbackRoute
+  UnauthenticatedLoginIndexRoute: typeof UnauthenticatedLoginIndexRoute
+}
+
 const UnauthenticatedRouteChildren: UnauthenticatedRouteChildren = {
+  UnauthenticatedSignupRoute: UnauthenticatedSignupRouteWithChildren,
   UnauthenticatedLoginContinueRoute: UnauthenticatedLoginContinueRoute,
   UnauthenticatedLoginSsoCallbackRoute: UnauthenticatedLoginSsoCallbackRoute,
-  UnauthenticatedSignupSsoCallbackRoute: UnauthenticatedSignupSsoCallbackRoute,
   UnauthenticatedLoginIndexRoute: UnauthenticatedLoginIndexRoute,
-  UnauthenticatedSignupIndexRoute: UnauthenticatedSignupIndexRoute,
 }
 
 const UnauthenticatedRouteWithChildren = UnauthenticatedRoute._addFileChildren(
