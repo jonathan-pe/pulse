@@ -152,26 +152,7 @@ export class ScoreGameService {
     // 1. Determine if prediction is correct
     const isCorrect = pointsService.isPredictionCorrect(prediction)
 
-    // 2. Update prediction with result
-    await prisma.prediction.update({
-      where: { id: prediction.id },
-      data: {
-        isCorrect,
-        processedAt: new Date(),
-      },
-    })
-
-    // 3. If incorrect, update streak and exit
-    if (!isCorrect) {
-      await pointsService.updateUserStreak(prediction.userId, false, prediction.bonusTier)
-      logger.debug('Prediction incorrect, no points awarded', {
-        predictionId: prediction.id,
-        userId: prediction.userId,
-      })
-      return
-    }
-
-    // 4. Get user's current streak and daily prediction count
+    // 2. Get user's current streak and daily prediction count
     const user = await prisma.user.findUnique({
       where: { id: prediction.userId },
       select: { currentStreak: true },
@@ -182,34 +163,51 @@ export class ScoreGameService {
     // Get daily prediction count at time of prediction
     const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
 
-    // 5. Calculate points (pure probability-based, no streak bonuses)
-    const points = pointsService.calculatePoints(prediction, dailyCount)
+    // 3. Calculate points (handles both correct and incorrect predictions)
+    const points = pointsService.calculatePoints(prediction, dailyCount, isCorrect)
 
-    // 6. Award points
-    await pointsService.awardPoints(prediction.userId, points, `Correct prediction on game ${prediction.gameId}`, {
+    // 4. Update prediction with result and points
+    await prisma.prediction.update({
+      where: { id: prediction.id },
+      data: {
+        isCorrect,
+        points, // Can now be negative
+        processedAt: new Date(),
+      },
+    })
+
+    // 5. Award or deduct points
+    const pointsReason = isCorrect
+      ? `Correct prediction on game ${prediction.gameId}`
+      : `Incorrect prediction on game ${prediction.gameId}`
+
+    await pointsService.awardPoints(prediction.userId, points, pointsReason, {
       predictionId: prediction.id,
       gameId: prediction.gameId,
       league: prediction.game.league,
       type: prediction.type,
       pick: prediction.pick,
       bonusTier: prediction.bonusTier,
+      isCorrect,
       streak: currentStreak, // Tracked for achievements, not used in points
       dailyCount,
     })
 
-    // 7. Update streak (cosmetic tracking for achievements)
-    await pointsService.updateUserStreak(prediction.userId, true, prediction.bonusTier)
+    // 6. Update streak (cosmetic tracking for achievements)
+    await pointsService.updateUserStreak(prediction.userId, isCorrect, prediction.bonusTier)
 
-    // 8. Check and unlock achievements
-    const { achievementsService } = await import('./achievements.service.js')
-    const newAchievements = await achievementsService.checkAndUnlockAchievements(prediction.userId)
+    // 7. Check and unlock achievements (only for correct predictions)
+    if (isCorrect) {
+      const { achievementsService } = await import('./achievements.service.js')
+      const newAchievements = await achievementsService.checkAndUnlockAchievements(prediction.userId)
 
-    if (newAchievements.length > 0) {
-      logger.info('New achievements unlocked', {
-        userId: prediction.userId,
-        count: newAchievements.length,
-        achievementIds: newAchievements,
-      })
+      if (newAchievements.length > 0) {
+        logger.info('New achievements unlocked', {
+          userId: prediction.userId,
+          count: newAchievements.length,
+          achievementIds: newAchievements,
+        })
+      }
     }
 
     const duration = Date.now() - startTime
@@ -221,7 +219,6 @@ export class ScoreGameService {
       points,
       bonusTier: prediction.bonusTier,
       streak: currentStreak,
-      newAchievements: newAchievements.length,
       duration: `${duration}ms`,
     })
   }

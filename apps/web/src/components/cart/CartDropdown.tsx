@@ -11,6 +11,7 @@ import useCartStore, { getCartKey } from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Button } from '@/components/ui/button'
 import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
+import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
 
 const CartDropdown: React.FC = () => {
   const selections = useCartStore((s) => s.selections)
@@ -64,15 +65,15 @@ const CartDropdown: React.FC = () => {
             }
 
             return (
-              <div key={getCartKey(selection)} className='flex items-center justify-between gap-2 px-2 py-1'>
-                <div className='flex-1'>
-                  <div className='text-sm font-medium'>
-                    {selection.teamName || `${selection.awayTeam} @ ${selection.homeTeam}`}
+              <div key={getCartKey(selection)} className='flex flex-col gap-2 px-2 py-2 border-b last:border-0'>
+                <div className='flex items-center justify-between gap-2'>
+                  <div className='flex-1'>
+                    <div className='text-sm font-medium'>
+                      {selection.teamName || `${selection.awayTeam} @ ${selection.homeTeam}`}
+                    </div>
+                    <div className='text-xs text-muted-foreground'>{betDetail}</div>
                   </div>
-                  <div className='text-xs text-muted-foreground'>{betDetail}</div>
-                </div>
 
-                <div className='flex items-center gap-2'>
                   <Button
                     variant='destructive'
                     size='icon'
@@ -83,6 +84,9 @@ const CartDropdown: React.FC = () => {
                     <XIcon className='h-4 w-4' />
                   </Button>
                 </div>
+
+                {/* Points preview */}
+                <PredictionPointsPreview odds={selection.odds} className='pt-1' />
               </div>
             )
           })}

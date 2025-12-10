@@ -9,6 +9,8 @@ import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { DAILY_BONUS_TIER_LIMIT } from '@/lib/constants'
+import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
+import { calculateIncorrectPoints } from '@/lib/points-calculation'
 
 const SOFT_CAP = 15 // 50% points after this
 const HARD_CAP = 40 // 0 points after this
@@ -38,6 +40,12 @@ const BetSlipSidebar: React.FC = () => {
 
   // Calculate total potential points
   const totalPotentialPoints = selections.reduce((sum, selection) => sum + calculateSelectionPoints(selection), 0)
+
+  // Calculate total potential loss
+  const totalPotentialLoss = selections.reduce((sum, selection) => {
+    const loss = calculateIncorrectPoints(selection.odds)
+    return sum + loss
+  }, 0)
 
   // Determine bonus tier status
   const bonusTierUsed = dailyStats?.totalToday ?? 0
@@ -181,9 +189,8 @@ const BetSlipSidebar: React.FC = () => {
                           <div className='text-xs text-muted-foreground'>{getBetDetail(selection)}</div>
 
                           {/* Points Preview */}
-                          <div className='mt-2 flex items-center gap-1 text-xs font-medium text-primary'>
-                            <TrendingUp className='h-3 w-3' />
-                            <span>+{points} points</span>
+                          <div className='mt-2'>
+                            <PredictionPointsPreview odds={selection.odds} />
                           </div>
                         </div>
 
@@ -209,10 +216,18 @@ const BetSlipSidebar: React.FC = () => {
               <Separator />
 
               {/* Total Points Preview */}
-              <div className='rounded-lg bg-primary/10 p-4'>
-                <div className='flex items-center justify-between'>
-                  <span className='text-sm text-muted-foreground'>Potential Points</span>
-                  <span className='text-2xl font-bold text-primary'>+{totalPotentialPoints}</span>
+              <div className='space-y-2'>
+                <div className='rounded-lg bg-success/10 p-4'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-sm text-muted-foreground'>If all correct</span>
+                    <span className='text-2xl font-bold text-success'>+{totalPotentialPoints}</span>
+                  </div>
+                </div>
+                <div className='rounded-lg bg-destructive/10 p-4'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-sm text-muted-foreground'>If all incorrect</span>
+                    <span className='text-2xl font-bold text-destructive'>{totalPotentialLoss.toFixed(1)}</span>
+                  </div>
                 </div>
               </div>
 

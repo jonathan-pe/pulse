@@ -2,7 +2,12 @@ import { prisma } from '@/lib/db'
 import type { PredictionType } from '@/lib/db'
 import type { LeagueStats, UserStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
-import { calculateTotalPoints, applyDiminishingReturns } from '../utils/points-calculation'
+import {
+  calculateTotalPoints,
+  applyDiminishingReturns,
+  calculateIncorrectPoints,
+  calculatePointsForOutcome,
+} from '../utils/points-calculation'
 
 const logger = createLogger('PointsService')
 
@@ -132,16 +137,22 @@ export class PointsService {
   }
 
   /**
-   * Calculate points for a correct prediction
+   * Calculate points for a prediction (correct or incorrect)
    *
-   * Pure probability-based scoring with bonus tier multiplier (1.5x for first pick/day).
-   * Streaks are tracked separately for achievements.
+   * For correct predictions:
+   * - Pure probability-based scoring with bonus tier multiplier (1.5x for first pick/day)
+   * - Applies diminishing returns based on daily volume
+   *
+   * For incorrect predictions:
+   * - Negative points scaled by probability (favorites cost more than underdogs)
+   * - No tier multiplier or diminishing returns applied to losses
    *
    * @param prediction - Prediction with odds and bonus tier status
    * @param dailyPredictionCount - Number of predictions made today (for diminishing returns)
-   * @returns Points to award (after bonus tier multiplier and diminishing returns modifier)
+   * @param isCorrect - Whether the prediction was correct
+   * @returns Points to award (positive for correct, negative for incorrect)
    */
-  calculatePoints(prediction: PredictionWithGame, dailyPredictionCount: number): number {
+  calculatePoints(prediction: PredictionWithGame, dailyPredictionCount: number, isCorrect: boolean): number {
     const oddsData = prediction.oddsAtPrediction
     if (!oddsData) {
       throw new Error(`No odds data for prediction ${prediction.id}`)
@@ -179,7 +190,22 @@ export class PointsService {
       throw new Error(`Could not extract odds for prediction ${prediction.id}`)
     }
 
-    // Calculate base points only (no streak bonuses)
+    // Handle incorrect predictions
+    if (!isCorrect) {
+      // Calculate loss (negative points)
+      const lossPoints = calculateIncorrectPoints(odds)
+
+      logger.debug('Calculated loss points', {
+        predictionId: prediction.id,
+        odds,
+        isCorrect: false,
+        lossPoints,
+      })
+
+      return lossPoints // Return negative value (no tier multiplier or diminishing returns)
+    }
+
+    // Handle correct predictions (existing logic)
     const rawPoints = calculateTotalPoints(odds)
 
     // Apply bonus tier multiplier (1.5x for first pick of the day)
@@ -194,6 +220,7 @@ export class PointsService {
       odds,
       dailyPredictionCount,
       bonusTier: prediction.bonusTier,
+      isCorrect: true,
       tierMultiplier,
       rawPoints,
       pointsWithBonus,

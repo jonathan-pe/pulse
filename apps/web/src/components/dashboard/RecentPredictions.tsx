@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CheckCircle, XCircle, Clock, ChevronRight, Award, TrendingUp, Timer } from 'lucide-react'
-import { getLeagueBadgeColor } from '@/lib/utils'
+import { getLeagueBadgeColor, cn } from '@/lib/utils'
 
 export function RecentPredictions() {
   const { data: predictions, isLoading } = usePredictionHistory()
@@ -153,10 +153,17 @@ export function RecentPredictions() {
                 </div>
               </div>
 
-              {/* Points earned */}
-              {prediction.pointsEarned != null && prediction.pointsEarned > 0 && (
-                <div className='flex items-center gap-1 text-green-600 font-medium text-sm'>
-                  <TrendingUp className='h-3.5 w-3.5' />+{prediction.pointsEarned}
+              {/* Points earned/lost */}
+              {prediction.pointsEarned != null && prediction.pointsEarned !== 0 && (
+                <div
+                  className={cn(
+                    'flex items-center gap-1 font-medium text-sm',
+                    prediction.pointsEarned > 0 && 'text-green-600',
+                    prediction.pointsEarned < 0 && 'text-red-600'
+                  )}
+                >
+                  <TrendingUp className='h-3.5 w-3.5' />
+                  {prediction.pointsEarned > 0 ? `+${prediction.pointsEarned}` : prediction.pointsEarned}
                 </div>
               )}
             </div>

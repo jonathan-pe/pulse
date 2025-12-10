@@ -86,14 +86,14 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
           <div className='font-medium'>{pickDisplay}</div>
         </div>
 
-        {/* Points earned */}
+        {/* Points earned/lost */}
         {prediction.pointsEarned != null && prediction.pointsEarned !== 0 && (
           <div className='text-right flex-shrink-0'>
             <div
               className={cn(
                 'text-xl font-bold flex items-center gap-1',
-                isCorrect && 'text-success',
-                isIncorrect && 'text-muted-foreground'
+                prediction.pointsEarned > 0 && 'text-success',
+                prediction.pointsEarned < 0 && 'text-destructive'
               )}
             >
               <TrendingUp className='h-3.5 w-3.5' />

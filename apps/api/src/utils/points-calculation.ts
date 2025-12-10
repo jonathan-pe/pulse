@@ -106,3 +106,57 @@ export function applyDiminishingReturns(points: number, dailyPredictionCount: nu
     return 0 // No points
   }
 }
+
+/**
+ * Loss multiplier constant for incorrect predictions
+ * Tunable value to adjust penalty severity (0.5 = moderate penalties)
+ *
+ * Can be overridden via POINT_LOSS_MULTIPLIER environment variable
+ */
+export const LOSS_MULTIPLIER = parseFloat(process.env.POINT_LOSS_MULTIPLIER || '0.5')
+
+/**
+ * Calculate point loss for an incorrect prediction
+ *
+ * Loss scales with implied probability - easier picks cost more when missed.
+ * This creates a risk/reward balance where favorites have higher penalties.
+ *
+ * Formula: -1 × LOSS_MULTIPLIER × (ImpliedProbability / 10)
+ *
+ * @param odds - American odds format (e.g., -150, +200)
+ * @returns Negative points to deduct
+ *
+ * @example
+ * calculateIncorrectPoints(-500) // Returns -4.2 (83% favorite missed)
+ * calculateIncorrectPoints(-200) // Returns -3.3 (67% favorite missed)
+ * calculateIncorrectPoints(-110) // Returns -2.6 (52% pick'em missed)
+ * calculateIncorrectPoints(+300) // Returns -1.25 (25% underdog missed)
+ * calculateIncorrectPoints(+700) // Returns -0.63 (12.5% longshot missed)
+ */
+export function calculateIncorrectPoints(odds: number): number {
+  const impliedProb = calculateImpliedProbability(odds)
+  return -1 * LOSS_MULTIPLIER * (impliedProb / 10)
+}
+
+/**
+ * Calculate points for a prediction outcome (correct or incorrect)
+ *
+ * Unified function that handles both winning and losing points.
+ *
+ * @param odds - American odds format
+ * @param isCorrect - Whether the prediction was correct
+ * @returns Points awarded (positive) or deducted (negative)
+ *
+ * @example
+ * calculatePointsForOutcome(-200, true) // Returns +15 (correct favorite)
+ * calculatePointsForOutcome(-200, false) // Returns -3.3 (incorrect favorite)
+ * calculatePointsForOutcome(+300, true) // Returns +40 (correct underdog)
+ * calculatePointsForOutcome(+300, false) // Returns -1.25 (incorrect underdog)
+ */
+export function calculatePointsForOutcome(odds: number, isCorrect: boolean): number {
+  if (isCorrect) {
+    return calculateBasePoints(odds)
+  } else {
+    return calculateIncorrectPoints(odds)
+  }
+}
