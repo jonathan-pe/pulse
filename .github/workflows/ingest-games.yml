@@ -1,10 +1,10 @@
 name: Ingest Games
 
+# NOTE: Scheduled runs disabled to avoid GitHub Actions usage limits.
+# Use cron-job.org or similar external service to trigger the API directly.
+# See docs/CRON_SETUP.md for setup instructions.
+
 on:
-  schedule:
-    # Run every 15 minutes to keep odds fresh during all seasons
-    - cron: '*/15 * * * *'
-  
   workflow_dispatch:
     inputs:
       league:

@@ -1,19 +1,10 @@
 name: Sync Team Metadata
 
+# NOTE: Scheduled runs disabled to avoid GitHub Actions usage limits.
+# Use cron-job.org or similar external service to trigger the API directly.
+# See docs/CRON_SETUP.md for setup instructions.
+
 on:
-  schedule:
-    # NFL: Sync in August (1 month before September season start)
-    - cron: '0 3 1 8 *'
-    
-    # NBA: Sync in September (1 month before October season start)
-    - cron: '0 3 1 9 *'
-    
-    # MLB: Sync in February (1 month before March season start)
-    - cron: '0 3 1 2 *'
-    
-    # NHL: Sync in September (1 month before October season start)
-    - cron: '0 3 15 9 *'
-  
   workflow_dispatch:
     inputs:
       league:
