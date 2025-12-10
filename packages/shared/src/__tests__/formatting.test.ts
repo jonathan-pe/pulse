@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { formatOdds, getLeagueBadgeColor, formatDate, formatGameTime, formatWinRate, formatPoints } from '../formatting'
+import { formatOdds, formatDate, formatGameTime, formatWinRate, formatPoints } from '../formatting'
 
 describe('Formatting Utilities', () => {
   describe('formatOdds', () => {
@@ -24,62 +24,6 @@ describe('Formatting Utilities', () => {
       expect(formatOdds(-0)).toBe('0')
       expect(formatOdds(1)).toBe('+1')
       expect(formatOdds(-1)).toBe('-1')
-    })
-  })
-
-  describe('getLeagueBadgeColor', () => {
-    it('should return correct color classes for NFL', () => {
-      const color = getLeagueBadgeColor('NFL')
-      expect(color).toContain('bg-red-100')
-      expect(color).toContain('text-red-800')
-      expect(color).toContain('dark:bg-red-900/30')
-    })
-
-    it('should return correct color classes for NBA', () => {
-      const color = getLeagueBadgeColor('NBA')
-      expect(color).toContain('bg-orange-100')
-      expect(color).toContain('text-orange-800')
-    })
-
-    it('should return correct color classes for MLB', () => {
-      const color = getLeagueBadgeColor('MLB')
-      expect(color).toContain('bg-blue-100')
-      expect(color).toContain('text-blue-800')
-    })
-
-    it('should return correct color classes for NHL', () => {
-      const color = getLeagueBadgeColor('NHL')
-      expect(color).toContain('bg-cyan-100')
-      expect(color).toContain('text-cyan-800')
-    })
-
-    it('should return correct color classes for CFB', () => {
-      const color = getLeagueBadgeColor('CFB')
-      expect(color).toContain('bg-purple-100')
-      expect(color).toContain('text-purple-800')
-    })
-
-    it('should return correct color classes for CBB', () => {
-      const color = getLeagueBadgeColor('CBB')
-      expect(color).toContain('bg-indigo-100')
-      expect(color).toContain('text-indigo-800')
-    })
-
-    it('should handle case-insensitive input', () => {
-      expect(getLeagueBadgeColor('nfl')).toBe(getLeagueBadgeColor('NFL'))
-      expect(getLeagueBadgeColor('Nba')).toBe(getLeagueBadgeColor('NBA'))
-      expect(getLeagueBadgeColor('mlb')).toBe(getLeagueBadgeColor('MLB'))
-    })
-
-    it('should return default gray color for unknown leagues', () => {
-      const color = getLeagueBadgeColor('UNKNOWN')
-      expect(color).toContain('bg-gray-100')
-      expect(color).toContain('text-gray-800')
-    })
-
-    it('should return default color for empty string', () => {
-      const color = getLeagueBadgeColor('')
-      expect(color).toContain('bg-gray-100')
     })
   })
 
@@ -279,12 +223,10 @@ describe('Formatting Utilities', () => {
         awayOdds: 130,
       }
 
-      const leagueBadge = getLeagueBadgeColor(game.league)
       const gameTime = formatGameTime(game.startsAt, game.status)
       const homeOddsFormatted = formatOdds(game.homeOdds)
       const awayOddsFormatted = formatOdds(game.awayOdds)
 
-      expect(leagueBadge).toContain('bg-red-100')
       expect(gameTime).toContain('Today at')
       expect(homeOddsFormatted).toBe('-150')
       expect(awayOddsFormatted).toBe('+130')

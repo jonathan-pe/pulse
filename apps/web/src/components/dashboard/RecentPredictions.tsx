@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CheckCircle, XCircle, Clock, ChevronRight, Award, TrendingUp, Timer } from 'lucide-react'
-import { getLeagueBadgeColor } from '@pulse/shared'
+import { getLeagueBadgeColor } from '@/lib/league-colors'
 import { cn } from '@/lib/utils'
 
 export function RecentPredictions() {

@@ -3,7 +3,7 @@ import { TeamLogo } from '@/components/TeamLogo'
 import { Badge } from '@/components/ui/badge'
 import { Clock, CheckCircle } from 'lucide-react'
 import { PredictionItem } from '@/components/predictions/PredictionItem'
-import { getLeagueBadgeColor } from '@pulse/shared'
+import { getLeagueBadgeColor } from '@/lib/league-colors'
 import type { PredictionWithGame } from '@/types/api'
 
 interface GamePredictionsCardProps {

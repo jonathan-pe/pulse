@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { TeamLogo } from '@/components/TeamLogo'
 import useCartStore from '@/store/cart'
 import { usePredictionsByGame } from '@/hooks/usePredictions'
-import { getLeagueBadgeColor, formatOdds } from '@pulse/shared'
+import { formatOdds } from '@pulse/shared'
+import { getLeagueBadgeColor } from '@/lib/league-colors'
 
 interface GameCardProps {
   game: GameWithUnifiedOdds
