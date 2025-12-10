@@ -10,7 +10,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
-    "prebuild": "pnpm --filter @pulse/types build",
+    "prebuild": "pnpm --filter @pulse/types build && pnpm --filter @pulse/shared build",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
