@@ -194,14 +194,27 @@ impliedProbability = odds < 0
   ? Math.abs(odds) / (Math.abs(odds) + 100) * 100
   : 100 / (odds + 100) * 100
 
+// For CORRECT predictions
 basePoints = 10 * (100 / impliedProbability)
+
+// For INCORRECT predictions (PLANNED FEATURE)
+const LOSS_MULTIPLIER = 0.5  // Configurable
+lossPoints = -1 * LOSS_MULTIPLIER * (impliedProbability / 10)
 ```
 
-**Examples**:
-- `-500` (83% favorite): 12 points
-- `-110` (52% favorite): 19 points  
-- `+150` (40% underdog): 25 points
-- `+700` (12.5% longshot): 80 points
+**Correct Prediction Examples**:
+- `-500` (83% favorite): +12 points
+- `-110` (52% favorite): +19 points  
+- `+150` (40% underdog): +25 points
+- `+700` (12.5% longshot): +80 points
+
+**Incorrect Prediction Examples** (with LOSS_MULTIPLIER = 0.5):
+- `-500` (83% favorite): -4.2 points (high penalty for missing "sure thing")
+- `-110` (52% favorite): -2.6 points
+- `+150` (40% underdog): -2.0 points
+- `+700` (12.5% longshot): -0.63 points (minimal penalty for missing longshot)
+
+> **Planned Enhancement**: Point loss for incorrect predictions is documented in [Notion: Point Loss Scoring Refactor](https://www.notion.so/2c5bc10acace81d3af96e2db1ed991c5). This creates risk/reward balance where favorites have low reward but high penalty when wrong, and underdogs have high reward but minimal penalty when wrong.
 
 ### Bonus Tier Multiplier
 - **Bonus Tier** predictions get a **1.5x multiplier** applied to base points (before diminishing returns)
@@ -226,10 +239,20 @@ basePoints = 10 * (100 / impliedProbability)
 - Pick +300 underdog in bonus tier: 40 base × 1.5 = 60 points (before diminishing returns)
 
 ### Expected Value Fairness
-System is mathematically balanced so all strategies have equal EV (~10 points):
+System is mathematically balanced so all strategies have approximately equal EV (~9-10 points):
+
+**Current (correct predictions only)**:
 - Heavy favorite (-300): 0.75 × 13.3 = 10.0 EV
 - Pick'em (+100): 0.50 × 20.0 = 10.0 EV
 - Longshot (+700): 0.125 × 80.0 = 10.0 EV
+
+**With Point Loss System (planned)**:
+- Heavy favorite (-500): (0.833 × 12) + (0.167 × -4.2) = 9.3 EV
+- Pick'em (-110): (0.524 × 19) + (0.476 × -2.6) = 8.7 EV
+- Underdog (+300): (0.25 × 40) + (0.75 × -1.25) = 9.1 EV
+- Longshot (+700): (0.125 × 80) + (0.875 × -0.63) = 9.4 EV
+
+**Key Design Insight**: The asymmetric loss formula ensures longshots remain low-risk while favorites carry meaningful downside risk.
 
 ### Points Ledger Metadata ⚠️
 
@@ -423,6 +446,26 @@ Current: **Single provider** (NatStat)
 
 ### Future Considerations (Not Yet Started)
 
+#### Point Loss for Incorrect Predictions (Planned Q1 2025)
+**Concept**: Deduct points for incorrect predictions, scaled by probability
+- **Formula**: `lossPoints = -1 × LOSS_MULTIPLIER × (impliedProbability / 10)`
+- **Default LOSS_MULTIPLIER**: 0.5 (configurable via env var)
+- **Key Design Principle**: 
+  - Favorites have low reward but HIGH penalty when wrong (e.g., -500 = +12 if correct, -4.2 if wrong)
+  - Underdogs have high reward but LOW penalty when wrong (e.g., +700 = +80 if correct, -0.63 if wrong)
+- **Benefits**:
+  - Creates meaningful risk/reward decisions
+  - Leaderboards become more dynamic (scores can decrease)
+  - Discourages spamming predictions on heavy favorites
+  - Maintains mathematical fairness (EV balanced across strategies)
+- **Implementation Files**:
+  - `apps/api/src/utils/points-calculation.ts` - Add `calculateIncorrectPoints()`
+  - `apps/api/src/services/points.service.ts` - Update `calculatePoints()` to handle `isCorrect` param
+  - `apps/api/src/services/score-game.service.ts` - Pass outcome to points calculation
+  - Frontend: Display negative points, add prediction preview showing potential gain/loss
+- **Status**: Documented in [Notion: Point Loss Scoring Refactor](https://www.notion.so/2c5bc10acace81d3af96e2db1ed991c5)
+- **Legal Note**: Does NOT create gambling concerns - users don't wager points; system applies automatic penalty
+
 #### Daily/Weekly Challenges
 **Concept**: Themed prediction objectives that refresh daily/weekly
 - **Examples**:
@@ -509,5 +552,5 @@ Current: **Single provider** (NatStat)
 
 ---
 
-*Last updated: November 28, 2025*
+*Last updated: December 9, 2025*
 *For current feature status and roadmap, see Notion Documentation Hub*

@@ -17,10 +17,12 @@ applyTo: '**'
 
 #### **Core Principles**
 
-1. **Reward-Based System**: Points are only awarded for correct predictions. No points are deducted for incorrect predictions.
-2. **Probability-Based Fairness**: Points scale inversely with implied win probability, ensuring equal expected value across all odds ranges.
-3. **Pure Skill-Based Scoring**: Points awarded based solely on prediction difficulty, with no bonuses or multipliers.
+1. **Risk/Reward System**: Points are awarded for correct predictions and deducted for incorrect predictions based on probability.
+2. **Probability-Based Fairness**: Points scale inversely with implied win probability for gains, and directly with probability for losses, ensuring balanced expected value.
+3. **Pure Skill-Based Scoring**: Points awarded/deducted based solely on prediction difficulty, with no bonuses or multipliers (except bonus tier).
 4. **Daily Engagement**: Users are encouraged to return daily through bonus tier opportunities and cosmetic achievements.
+
+> **Note**: The point loss system is a planned enhancement. See [Notion: Point Loss Scoring Refactor](https://www.notion.so/2c5bc10acace81d3af96e2db1ed991c5) for implementation details.
 
 #### **Points Calculation**
 
@@ -33,19 +35,33 @@ Implied Probability:
 - For favorites (negative odds): |odds| / (|odds| + 100) × 100
 - For underdogs (positive odds): 100 / (odds + 100) × 100
 
-Base Points = 10 × (100 / Implied Probability)
+Correct Prediction Points = 10 × (100 / Implied Probability)
+Incorrect Prediction Points = -1 × LOSS_MULTIPLIER × (Implied Probability / 10)
+
+Where LOSS_MULTIPLIER = 0.5 (configurable)
 ```
 
-**Examples:**
+**Correct Prediction Examples:**
 
-- **-500 (83% favorite)**: 10 × (100/83.3) = **12 points**
-- **-200 (67% favorite)**: 10 × (100/66.7) = **15 points**
-- **-110 (52% favorite)**: 10 × (100/52.4) = **19 points**
-- **+150 (40% underdog)**: 10 × (100/40.0) = **25 points**
-- **+300 (25% underdog)**: 10 × (100/25.0) = **40 points**
-- **+700 (12.5% underdog)**: 10 × (100/12.5) = **80 points**
+- **-500 (83% favorite)**: 10 × (100/83.3) = **+12 points**
+- **-200 (67% favorite)**: 10 × (100/66.7) = **+15 points**
+- **-110 (52% favorite)**: 10 × (100/52.4) = **+19 points**
+- **+150 (40% underdog)**: 10 × (100/40.0) = **+25 points**
+- **+300 (25% underdog)**: 10 × (100/25.0) = **+40 points**
+- **+700 (12.5% underdog)**: 10 × (100/12.5) = **+80 points**
 
-This ensures that **expected value is equal** for all picks: a 75% favorite giving 13 points has the same expected value (9.75) as a 12.5% longshot giving 80 points (10.0).
+**Incorrect Prediction Examples (with LOSS_MULTIPLIER = 0.5):**
+
+- **-500 (83% favorite)**: -0.5 × (83.3/10) = **-4.2 points**
+- **-200 (67% favorite)**: -0.5 × (66.7/10) = **-3.3 points**
+- **-110 (52% favorite)**: -0.5 × (52.4/10) = **-2.6 points**
+- **+150 (40% underdog)**: -0.5 × (40.0/10) = **-2.0 points**
+- **+300 (25% underdog)**: -0.5 × (25.0/10) = **-1.25 points**
+- **+700 (12.5% underdog)**: -0.5 × (12.5/10) = **-0.63 points**
+
+**Key Insight**: Favorites have low reward but high penalty when wrong. Underdogs have high reward but minimal penalty when wrong. This creates meaningful risk/reward decisions.
+
+This ensures that **expected value remains balanced** for all picks while adding strategic depth.
 
 #### **Tier Determination**
 
@@ -66,25 +82,26 @@ This ensures that **expected value is equal** for all picks: a 75% favorite givi
 
 The system is designed to ensure equal expected value across all strategies:
 
-- **Expected Value Calculation**: `Win_Rate × Points_Per_Win`
-- **Heavy Favorites (-300)**: 0.75 × 13 = 9.75 EV per pick
-- **Balanced Pick'em (+100)**: 0.50 × 20 = 10.0 EV per pick
-- **Longshot Underdogs (+700)**: 0.125 × 80 = 10.0 EV per pick
+- **Expected Value Calculation**: `(Win_Rate × Points_Per_Win) + ((1 - Win_Rate) × Points_Per_Loss)`
+- **Heavy Favorites (-500)**: (0.833 × 12) + (0.167 × -4.2) = **+9.3 EV** per pick
+- **Pick'em (-110)**: (0.524 × 19) + (0.476 × -2.6) = **+8.7 EV** per pick
+- **Underdogs (+300)**: (0.25 × 40) + (0.75 × -1.25) = **+9.1 EV** per pick
+- **Longshot Underdogs (+700)**: (0.125 × 80) + (0.875 × -0.63) = **+9.4 EV** per pick
 
 This mathematical fairness means:
 
 - Players cannot "game" the system by only picking favorites or underdogs
 - Leaderboard rankings reflect prediction accuracy, not strategy exploitation
 - All risk/reward profiles are viable and competitive
+- Point totals can decrease, making leaderboards more dynamic
 
-**30-Day Simulation Results (1 bonus pick/day with 1.5x multiplier):**
+**Risk/Reward Profile:**
 
-- Heavy Favorite Player (-300 avg, 75% win rate): ~1,950 points
-- Balanced Player (mixed picks, 50% win rate): ~1,950 points
-- Moderate Underdog Player (+225 avg, 33% win rate): ~1,950 points
-- Pure Longshot Player (+700 avg, 13% win rate): ~1,950 points
+- **Favorites**: Low upside, higher penalty if wrong → Only pick when confident
+- **Underdogs**: High upside, minimal penalty if wrong → Lower risk to take a shot
+- **Longshots**: Very high upside, negligible penalty → Asymmetric opportunity
 
-All strategies produce equal expected value due to pure probability-based scoring. The bonus tier multiplier encourages daily engagement without creating dailies fatigue.
+The bonus tier multiplier (1.5x) encourages daily engagement without creating dailies fatigue.
 
 #### **Anti-Abuse Measures**
 
