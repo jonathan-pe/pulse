@@ -2,7 +2,10 @@ import { useUserStats } from '@/hooks/usePoints'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Award, Target, Flame, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { DAILY_BONUS_TIER_LIMIT, STREAK_HIGHLIGHT_THRESHOLD } from '@/lib/constants'
+import { DEFAULT_DAILY_BONUS_TIER_LIMIT, DEFAULT_STREAK_HIGHLIGHT_THRESHOLD } from '@pulse/shared'
+
+const DAILY_BONUS_TIER_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
+const STREAK_HIGHLIGHT_THRESHOLD = DEFAULT_STREAK_HIGHLIGHT_THRESHOLD
 
 export function PredictionsSummaryHeader() {
   const { data: stats, isLoading } = useUserStats()

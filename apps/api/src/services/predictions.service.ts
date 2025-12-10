@@ -4,11 +4,13 @@ import type { PredictionType } from '@/lib/db'
 import { oddsAggregationService } from './odds-aggregation.service'
 import type { OddsSnapshot } from './points.service'
 
+import { DEFAULT_DAILY_BONUS_TIER_LIMIT, DEFAULT_DAILY_TOTAL_LIMIT } from '@pulse/shared'
+
 const logger = createLogger('PredictionsService')
 
-// Constants from business rules
-const DAILY_BONUS_LIMIT = 1 // First prediction per day gets bonus multiplier
-const DAILY_TOTAL_LIMIT = 40
+// Constants from business rules (using shared defaults)
+const DAILY_BONUS_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
+const DAILY_TOTAL_LIMIT = DEFAULT_DAILY_TOTAL_LIMIT
 
 export interface CreatePredictionInput {
   userId: string

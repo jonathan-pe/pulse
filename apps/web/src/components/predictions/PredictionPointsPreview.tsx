@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown } from 'lucide-react'
-import { calculateBasePoints, calculateIncorrectPoints } from '@/lib/points-calculation'
+import { calculateBasePoints, calculateIncorrectPoints } from '@pulse/shared'
 
 interface PredictionPointsPreviewProps {
   odds: number

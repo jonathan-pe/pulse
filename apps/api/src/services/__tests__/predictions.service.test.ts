@@ -41,7 +41,7 @@ describe('PredictionsService', () => {
 
       expect(stats).toEqual({
         totalToday: 0,
-        totalRemaining: 100,
+        totalRemaining: 40,
       })
     })
 
@@ -52,17 +52,17 @@ describe('PredictionsService', () => {
 
       expect(stats).toEqual({
         totalToday: 3,
-        totalRemaining: 97,
+        totalRemaining: 37,
       })
     })
 
     it('should handle limit reached', async () => {
-      vi.mocked(prisma.prediction.count).mockResolvedValue(100)
+      vi.mocked(prisma.prediction.count).mockResolvedValue(40)
 
       const stats = await service.getDailyStats('user-123')
 
       expect(stats).toEqual({
-        totalToday: 100,
+        totalToday: 40,
         totalRemaining: 0,
       })
     })
@@ -410,8 +410,8 @@ describe('PredictionsService', () => {
 
       vi.mocked(prisma.prediction.findFirst).mockResolvedValue(null)
 
-      // Mock 99 existing predictions
-      vi.mocked(prisma.prediction.count).mockResolvedValue(99)
+      // Mock 39 existing predictions (at limit - 1)
+      vi.mocked(prisma.prediction.count).mockResolvedValue(39)
 
       // Mock gameOdds for odds aggregation
       vi.mocked(prisma.gameOdds.findMany).mockResolvedValue([])
@@ -432,7 +432,7 @@ describe('PredictionsService', () => {
         { gameId: 'game-3', type: 'MONEYLINE', pick: 'home' },
       ])
 
-      // Only first prediction should succeed (reaching limit of 100)
+      // Only first prediction should succeed (reaching limit of 40)
       expect(result.created).toHaveLength(1)
       expect(result.errors).toHaveLength(2)
       expect(result.errors[0].error).toContain('Daily prediction limit reached')

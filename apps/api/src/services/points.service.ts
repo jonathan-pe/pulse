@@ -7,7 +7,7 @@ import {
   applyDiminishingReturns,
   calculateIncorrectPoints,
   calculatePointsForOutcome,
-} from '../utils/points-calculation'
+} from '@pulse/shared'
 
 const logger = createLogger('PointsService')
 

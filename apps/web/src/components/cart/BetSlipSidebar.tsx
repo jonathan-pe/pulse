@@ -8,12 +8,18 @@ import useCartStore, { getCartKey, calculateSelectionPoints, type CartSelection 
 import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { DAILY_BONUS_TIER_LIMIT } from '@/lib/constants'
+import {
+  DEFAULT_DAILY_BONUS_TIER_LIMIT,
+  DEFAULT_SOFT_CAP_THRESHOLD,
+  DEFAULT_HARD_CAP_THRESHOLD,
+  calculateIncorrectPoints,
+  formatOdds,
+} from '@pulse/shared'
 import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
-import { calculateIncorrectPoints } from '@/lib/points-calculation'
 
-const SOFT_CAP = 15 // 50% points after this
-const HARD_CAP = 40 // 0 points after this
+const DAILY_BONUS_TIER_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
+const SOFT_CAP = DEFAULT_SOFT_CAP_THRESHOLD
+const HARD_CAP = DEFAULT_HARD_CAP_THRESHOLD
 
 const BetSlipSidebar: React.FC = () => {
   const isMobile = useIsMobile()
@@ -56,10 +62,6 @@ const BetSlipSidebar: React.FC = () => {
   const predictionsAfterCart = predictionsToday + selections.length
   const isDiminishingReturns = predictionsAfterCart > SOFT_CAP
   const isHardCap = predictionsAfterCart > HARD_CAP
-
-  const formatOdds = (odds: number): string => {
-    return odds > 0 ? `+${odds}` : `${odds}`
-  }
 
   const getBetDetail = (selection: CartSelection): string => {
     switch (selection.market) {

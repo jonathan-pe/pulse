@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { LeagueStats } from '@pulse/types'
 import { Badge } from '@/components/ui/badge'
-import { getLeagueBadgeColor } from '@/lib/utils'
+import { getLeagueBadgeColor } from '@pulse/shared'
 
 interface LeagueStatsTableProps {
   stats: LeagueStats[]

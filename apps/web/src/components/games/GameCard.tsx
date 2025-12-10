@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { TeamLogo } from '@/components/TeamLogo'
 import useCartStore from '@/store/cart'
 import { usePredictionsByGame } from '@/hooks/usePredictions'
-import { getLeagueBadgeColor } from '@/lib/utils'
+import { getLeagueBadgeColor, formatOdds } from '@pulse/shared'
 
 interface GameCardProps {
   game: GameWithUnifiedOdds
@@ -61,10 +61,6 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
     if (!isCurrentlySelected) {
       setCartOpen(true)
     }
-  }
-
-  const formatOdds = (odds: number): string => {
-    return odds > 0 ? `+${odds}` : `${odds}`
   }
 
   const formatGameTime = (startsAt: Date | string) => {

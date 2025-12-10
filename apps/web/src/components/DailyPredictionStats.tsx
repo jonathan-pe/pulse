@@ -1,7 +1,9 @@
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, Award, Target } from 'lucide-react'
-import { DAILY_TOTAL_LIMIT } from '@/lib/constants'
+import { DEFAULT_DAILY_TOTAL_LIMIT } from '@pulse/shared'
+
+const DAILY_TOTAL_LIMIT = DEFAULT_DAILY_TOTAL_LIMIT
 
 export function DailyPredictionStats() {
   const { data: stats, isLoading } = useDailyPredictionStats()

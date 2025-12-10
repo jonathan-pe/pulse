@@ -1,12 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   calculateImpliedProbability,
   calculateBasePoints,
   calculateIncorrectPoints,
   calculatePointsForOutcome,
   applyDiminishingReturns,
-  DEFAULT_LOSS_MULTIPLIER as LOSS_MULTIPLIER,
-} from '@pulse/shared'
+} from '../points'
 
 describe('Points Calculation Utilities', () => {
   describe('calculateImpliedProbability', () => {
@@ -145,7 +144,7 @@ describe('Points Calculation Utilities', () => {
       })
 
       // All EVs should be roughly equal (around 9-10 points)
-      expectedValues.forEach(({ odds, ev }) => {
+      expectedValues.forEach(({ odds: _odds, ev }) => {
         expect(ev).toBeGreaterThan(8)
         expect(ev).toBeLessThan(11)
       })

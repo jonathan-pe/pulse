@@ -166,12 +166,11 @@ export class ScoreGameService {
     // 3. Calculate points (handles both correct and incorrect predictions)
     const points = pointsService.calculatePoints(prediction, dailyCount, isCorrect)
 
-    // 4. Update prediction with result and points
+    // 4. Update prediction with result
     await prisma.prediction.update({
       where: { id: prediction.id },
       data: {
         isCorrect,
-        points, // Can now be negative
         processedAt: new Date(),
       },
     })
@@ -384,28 +383,29 @@ export class ScoreGameService {
 
       let pointsAwarded = 0
 
-      // If correct, award points
+      // Calculate points (positive or negative based on result)
+      const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
+      pointsAwarded = pointsService.calculatePoints(predictionWithGame, dailyCount, isCorrect)
+
+      // Award or deduct points
+      const pointsReason = isCorrect
+        ? `Correct prediction on game ${prediction.gameId}`
+        : `Incorrect prediction on game ${prediction.gameId}`
+
+      await pointsService.awardPoints(prediction.userId, pointsAwarded, pointsReason, {
+        predictionId: prediction.id,
+        gameId: prediction.gameId,
+        league: prediction.game.league,
+        type: prediction.type,
+        pick: prediction.pick,
+        bonusTier: prediction.bonusTier,
+        dailyCount,
+        isCorrect,
+        lateScoring: true, // Flag to indicate this was scored after initial game scoring
+      })
+
+      // Check achievements (only for correct predictions)
       if (isCorrect) {
-        const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
-        pointsAwarded = pointsService.calculatePoints(predictionWithGame, dailyCount)
-
-        await pointsService.awardPoints(
-          prediction.userId,
-          pointsAwarded,
-          `Correct prediction on game ${prediction.gameId}`,
-          {
-            predictionId: prediction.id,
-            gameId: prediction.gameId,
-            league: prediction.game.league,
-            type: prediction.type,
-            pick: prediction.pick,
-            bonusTier: prediction.bonusTier,
-            dailyCount,
-            lateScoring: true, // Flag to indicate this was scored after initial game scoring
-          }
-        )
-
-        // Check achievements
         const { achievementsService } = await import('./achievements.service.js')
         await achievementsService.checkAndUnlockAchievements(prediction.userId)
       }
