@@ -11,8 +11,55 @@ interface LeaderboardTableProps {
   period: LeaderboardPeriod
 }
 
+/**
+ * Get the formatted reset time for leaderboard periods in user's local timezone
+ */
+function getResetTimeDescription(period: LeaderboardPeriod): string {
+  if (period === 'alltime') return 'Total points earned all-time'
+
+  const now = new Date()
+
+  if (period === 'daily') {
+    // Calculate next midnight UTC
+    const nextMidnightUTC = new Date(now)
+    nextMidnightUTC.setUTCHours(24, 0, 0, 0)
+
+    // Format in user's local time
+    const resetTime = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
+    }).format(nextMidnightUTC)
+
+    return `Resets daily at ${resetTime}`
+  }
+
+  if (period === 'weekly') {
+    // Calculate next Sunday 00:00 UTC
+    const nextSundayUTC = new Date(now)
+    nextSundayUTC.setUTCHours(24, 0, 0, 0)
+    const daysUntilSunday = (7 - nextSundayUTC.getUTCDay()) % 7
+    nextSundayUTC.setDate(nextSundayUTC.getDate() + daysUntilSunday)
+
+    // Format in user's local time
+    const resetTime = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
+    }).format(nextSundayUTC)
+
+    return `Resets ${resetTime}`
+  }
+
+  return ''
+}
+
 export function LeaderboardTable({ leaderboard, isLoading, period }: LeaderboardTableProps) {
   const { user } = useUser()
+  const resetDescription = getResetTimeDescription(period)
 
   return (
     <Card>
@@ -22,11 +69,7 @@ export function LeaderboardTable({ leaderboard, isLoading, period }: Leaderboard
           {period === 'weekly' && "This Week's Leaders"}
           {period === 'alltime' && 'All-Time Leaders'}
         </CardTitle>
-        <CardDescription>
-          {period === 'daily' && 'Points earned since midnight UTC'}
-          {period === 'weekly' && 'Points earned since Sunday 00:00 UTC'}
-          {period === 'alltime' && 'Total points earned all-time'}
-        </CardDescription>
+        <CardDescription>{resetDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (

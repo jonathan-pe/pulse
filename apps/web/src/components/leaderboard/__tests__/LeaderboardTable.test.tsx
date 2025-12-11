@@ -66,4 +66,26 @@ describe('LeaderboardTable', () => {
     renderTable({ period: 'alltime' })
     expect(screen.getByText(/all-time leaders/i)).toBeInTheDocument()
   })
+
+  it('shows reset time in local timezone for daily period', () => {
+    renderTable({ period: 'daily' })
+    // Should show "Resets daily at" with a time
+    expect(screen.getByText(/resets daily at/i)).toBeInTheDocument()
+    // Should NOT show UTC reference
+    expect(screen.queryByText(/UTC/)).not.toBeInTheDocument()
+  })
+
+  it('shows reset time in local timezone for weekly period', () => {
+    renderTable({ period: 'weekly' })
+    // Should show "Resets" with day and time
+    expect(screen.getByText(/resets/i)).toBeInTheDocument()
+    // Should NOT show UTC reference
+    expect(screen.queryByText(/UTC/)).not.toBeInTheDocument()
+  })
+
+  it('shows all-time description without reset time', () => {
+    renderTable({ period: 'alltime' })
+    expect(screen.getByText(/total points earned all-time/i)).toBeInTheDocument()
+    expect(screen.queryByText(/resets/i)).not.toBeInTheDocument()
+  })
 })

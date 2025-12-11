@@ -64,7 +64,7 @@ export function Features() {
                 </div>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Resets daily at midnight UTC</span>
+                  <span>Resets daily (bonus tier renews)</span>
                 </div>
               </div>
             </CardContent>
