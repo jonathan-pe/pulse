@@ -63,11 +63,12 @@ The forecasts endpoint returns a comprehensive response with:
 ### Examples
 
 **Example 1: Away team favored**
+
 ```json
 {
   "home": "Jacksonville Jaguars",
   "home-code": "JAX",
-  "visitor": "Los Angeles Rams", 
+  "visitor": "Los Angeles Rams",
   "visitor-code": "LAR",
   "forecast": {
     "spread": { "spread": "-3.5" },
@@ -75,14 +76,16 @@ The forecasts endpoint returns a comprehensive response with:
   }
 }
 ```
+
 - Favorite: LAR (away)
 - Stored spread: `+3.5` (home is underdog, gets points)
 
 **Example 2: Home team favored**
+
 ```json
 {
   "home": "Kansas City Chiefs",
-  "home-code": "KCC", 
+  "home-code": "KCC",
   "visitor": "Las Vegas Raiders",
   "visitor-code": "LVR",
   "forecast": {
@@ -91,12 +94,14 @@ The forecasts endpoint returns a comprehensive response with:
   }
 }
 ```
+
 - Favorite: KCC (home)
 - Stored spread: `-11.5` (home is favorite, gives points)
 
 ### Database Storage
 
 In the `GameOdds` table:
+
 - `spread` column is **always relative to the home team**
 - Negative value: home team is favored
 - Positive value: away team is favored (home is underdog)
@@ -292,7 +297,7 @@ Games with missing required fields (homeTeam, awayTeam, startsAt) are skipped wi
 
 ## Scheduling
 
-The admin endpoint processes date ranges (e.g., today → 7 days ahead) in a single call. Recommended schedule:
+The admin endpoint processes date ranges (e.g., 2 days before → 2 days after today) in a single call. Recommended schedule:
 
 - **Hourly** during active game hours (08:00-23:00 local)
 - **Every 10 minutes** on event days for live updates

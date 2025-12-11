@@ -10,7 +10,8 @@ const logger = createLogger('AdminRouter')
 
 export const adminRouter: ExpressRouter = Router()
 
-const LOOKAHEAD_DAYS = 7
+const LOOKBACK_DAYS = 2
+const LOOKAHEAD_DAYS = 2
 
 // POST /admin/ingest-natstat
 adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
@@ -28,18 +29,25 @@ adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
     if (dateRange) {
       range = dateRange
     } else {
-      // Build a single comma-separated date range: today -> 7 days ahead
-      const start = new Date()
-      start.setHours(0, 0, 0, 0)
-      const end = new Date(start)
-      end.setDate(start.getDate() + LOOKAHEAD_DAYS)
+      // Build a single comma-separated date range: 2 days before -> 2 days after
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const start = new Date(today)
+      start.setDate(today.getDate() - LOOKBACK_DAYS)
+      const end = new Date(today)
+      end.setDate(today.getDate() + LOOKAHEAD_DAYS)
 
       const isoStart = start.toISOString().slice(0, 10)
       const isoEnd = end.toISOString().slice(0, 10)
       range = `${isoStart},${isoEnd}`
     }
 
-    logger.info('Starting NatStat ingestion', { range, league: league ?? 'all', lookaheadDays: LOOKAHEAD_DAYS })
+    logger.info('Starting NatStat ingestion', {
+      range,
+      league: league ?? 'all',
+      lookbackDays: LOOKBACK_DAYS,
+      lookaheadDays: LOOKAHEAD_DAYS,
+    })
     const result = await ingestNatStat({ date: range, league })
     logger.info('NatStat ingestion completed', { range, league, counts: result.counts })
     return res.json({ ok: true, range, result })

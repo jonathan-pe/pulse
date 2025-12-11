@@ -73,9 +73,9 @@ jobs:
       - name: Calculate date range
         id: dates
         run: |
-          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
-          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
-          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          START=$(date -u -d "2 days ago" +%Y-%m-%d)
+          END=$(date -u -d "2 days" +%Y-%m-%d)
+          echo "range=${START},${END}" >> $GITHUB_OUTPUT
           
       - name: Ingest NFL games
         run: |
@@ -96,9 +96,9 @@ jobs:
       - name: Calculate date range
         id: dates
         run: |
-          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
-          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
-          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          START=$(date -u -d "2 days ago" +%Y-%m-%d)
+          END=$(date -u -d "2 days" +%Y-%m-%d)
+          echo "range=${START},${END}" >> $GITHUB_OUTPUT
           
       - name: Ingest NBA games
         run: |
@@ -118,9 +118,9 @@ jobs:
       - name: Calculate date range
         id: dates
         run: |
-          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
-          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
-          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          START=$(date -u -d "2 days ago" +%Y-%m-%d)
+          END=$(date -u -d "2 days" +%Y-%m-%d)
+          echo "range=${START},${END}" >> $GITHUB_OUTPUT
           
       - name: Ingest MLB games
         run: |
@@ -140,9 +140,9 @@ jobs:
       - name: Calculate date range
         id: dates
         run: |
-          YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
-          TOMORROW=$(date -u -d "tomorrow" +%Y-%m-%d)
-          echo "range=${YESTERDAY},${TOMORROW}" >> $GITHUB_OUTPUT
+          START=$(date -u -d "2 days ago" +%Y-%m-%d)
+          END=$(date -u -d "2 days" +%Y-%m-%d)
+          echo "range=${START},${END}" >> $GITHUB_OUTPUT
           
       - name: Ingest NHL games
         run: |
