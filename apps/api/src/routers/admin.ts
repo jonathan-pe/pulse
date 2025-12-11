@@ -14,9 +14,9 @@ const LOOKAHEAD_DAYS = 7
 
 // POST /admin/ingest-natstat
 adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
-  const CRON_TOKEN = process.env.CRON_TOKEN
-  const key = req.headers['x-cron-token'] ?? req.query.cronToken ?? req.body.cronToken
-  if (CRON_TOKEN && key !== CRON_TOKEN) {
+  const ADMIN_API_KEY = process.env.ADMIN_API_KEY
+  const key = req.headers['x-admin-key'] ?? req.query.adminKey ?? req.body.adminKey
+  if (ADMIN_API_KEY && key !== ADMIN_API_KEY) {
     return res.status(401).json({ ok: false, error: 'unauthorized' })
   }
 
@@ -52,9 +52,9 @@ adminRouter.post('/ingest-natstat', async (req: Request, res: Response) => {
 
 // POST /admin/sync-teams - Sync team metadata for a league
 adminRouter.post('/sync-teams', async (req: Request, res: Response) => {
-  const CRON_TOKEN = process.env.CRON_TOKEN
-  const key = req.headers['x-cron-token'] ?? req.query.cronToken ?? req.body.cronToken
-  if (CRON_TOKEN && key !== CRON_TOKEN) {
+  const ADMIN_API_KEY = process.env.ADMIN_API_KEY
+  const key = req.headers['x-admin-key'] ?? req.query.adminKey ?? req.body.adminKey
+  if (ADMIN_API_KEY && key !== ADMIN_API_KEY) {
     return res.status(401).json({ ok: false, error: 'unauthorized' })
   }
 
