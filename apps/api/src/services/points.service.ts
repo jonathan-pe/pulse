@@ -6,7 +6,7 @@ import {
   calculateTotalPoints,
   applyDiminishingReturns,
   calculateIncorrectPoints,
-  calculatePointsForOutcome,
+  DAILY_RESET_HOUR_UTC,
 } from '@pulse/shared'
 
 const logger = createLogger('PointsService')
@@ -339,7 +339,12 @@ export class PointsService {
    */
   async getDailyPredictionCount(userId: string, beforeTimestamp: Date): Promise<number> {
     const startOfDay = new Date(beforeTimestamp)
-    startOfDay.setUTCHours(0, 0, 0, 0)
+    startOfDay.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+
+    // If beforeTimestamp is before today's reset, use yesterday's reset
+    if (beforeTimestamp < startOfDay) {
+      startOfDay.setDate(startOfDay.getDate() - 1)
+    }
 
     const count = await prisma.prediction.count({
       where: {
@@ -583,8 +588,14 @@ export class PointsService {
   private async getTodayStats(
     userId: string
   ): Promise<{ pointsEarned: number; predictionsToday: number; bonusTierUsed: number }> {
-    const startOfDay = new Date()
-    startOfDay.setUTCHours(0, 0, 0, 0)
+    const now = new Date()
+    const startOfDay = new Date(now)
+    startOfDay.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+
+    // If current time is before today's reset, use yesterday's reset
+    if (now < startOfDay) {
+      startOfDay.setDate(startOfDay.getDate() - 1)
+    }
 
     const [pointsResult, predictionsToday, bonusTierCount] = await Promise.all([
       prisma.pointsLedger.aggregate({

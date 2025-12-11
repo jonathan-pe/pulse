@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Trophy, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import type { LeaderboardPeriod, LeaderboardEntry } from '@pulse/types'
 import { useUser } from '@clerk/clerk-react'
+import { DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 interface LeaderboardTableProps {
   leaderboard: LeaderboardEntry[] | undefined
@@ -20,9 +21,14 @@ function getResetTimeDescription(period: LeaderboardPeriod): string {
   const now = new Date()
 
   if (period === 'daily') {
-    // Calculate next midnight UTC
-    const nextMidnightUTC = new Date(now)
-    nextMidnightUTC.setUTCHours(24, 0, 0, 0)
+    // Calculate next reset time (10am UTC = 5am ET / 2am PT)
+    const nextResetUTC = new Date(now)
+    nextResetUTC.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+
+    // If we're past today's reset, show tomorrow's reset
+    if (now >= nextResetUTC) {
+      nextResetUTC.setDate(nextResetUTC.getDate() + 1)
+    }
 
     // Format in user's local time
     const resetTime = new Intl.DateTimeFormat('en-US', {
@@ -30,17 +36,22 @@ function getResetTimeDescription(period: LeaderboardPeriod): string {
       minute: '2-digit',
       hour12: true,
       timeZoneName: 'short',
-    }).format(nextMidnightUTC)
+    }).format(nextResetUTC)
 
     return `Resets daily at ${resetTime}`
   }
 
   if (period === 'weekly') {
-    // Calculate next Sunday 00:00 UTC
+    // Calculate next Sunday at DAILY_RESET_HOUR_UTC (10am UTC = 5am ET / 2am PT)
     const nextSundayUTC = new Date(now)
-    nextSundayUTC.setUTCHours(24, 0, 0, 0)
+    nextSundayUTC.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
     const daysUntilSunday = (7 - nextSundayUTC.getUTCDay()) % 7
-    nextSundayUTC.setDate(nextSundayUTC.getDate() + daysUntilSunday)
+    if (daysUntilSunday === 0 && now >= nextSundayUTC) {
+      // If it's Sunday and we're past the reset, show next Sunday
+      nextSundayUTC.setDate(nextSundayUTC.getDate() + 7)
+    } else {
+      nextSundayUTC.setDate(nextSundayUTC.getDate() + daysUntilSunday)
+    }
 
     // Format in user's local time
     const resetTime = new Intl.DateTimeFormat('en-US', {

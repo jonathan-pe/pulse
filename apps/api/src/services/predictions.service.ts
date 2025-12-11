@@ -4,7 +4,7 @@ import type { PredictionType } from '@/lib/db'
 import { oddsAggregationService } from './odds-aggregation.service'
 import type { OddsSnapshot } from './points.service'
 
-import { DEFAULT_DAILY_BONUS_TIER_LIMIT, DEFAULT_DAILY_TOTAL_LIMIT } from '@pulse/shared'
+import { DEFAULT_DAILY_BONUS_TIER_LIMIT, DEFAULT_DAILY_TOTAL_LIMIT, DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 const logger = createLogger('PredictionsService')
 
@@ -47,12 +47,22 @@ export interface CreatePredictionsResult {
  */
 export class PredictionsService {
   /**
-   * Get the start of the current day in UTC
+   * Get the start of the current day based on DAILY_RESET_HOUR_UTC
+   *
+   * Default: 10am UTC (5am ET / 2am PT)
+   * This determines when daily stats and predictions reset.
    */
   private getStartOfDay(): Date {
     const now = new Date()
-    now.setUTCHours(0, 0, 0, 0)
-    return now
+    const resetToday = new Date(now)
+    resetToday.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+
+    // If current time is before today's reset, use yesterday's reset
+    if (now < resetToday) {
+      resetToday.setDate(resetToday.getDate() - 1)
+    }
+
+    return resetToday
   }
 
   /**

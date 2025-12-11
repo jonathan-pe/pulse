@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getAuth } from '@clerk/express'
 import { prisma } from '@/lib/db'
 import { pointsService } from '../services/points.service'
+import { DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 const leaderboardSchema = z.object({
   limit: z.coerce.number().optional(),
@@ -49,13 +50,27 @@ pointsRouter.get('/leaderboard', async (req: Request, res: Response) => {
     // Calculate date filter based on period
     let dateFilter = ''
     if (period === 'daily') {
-      const today = new Date()
-      today.setUTCHours(0, 0, 0, 0)
-      dateFilter = `WHERE "createdAt" >= '${today.toISOString()}'`
+      const now = new Date()
+      const resetToday = new Date(now)
+      resetToday.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+
+      // If current time is before today's reset, use yesterday's reset
+      if (now < resetToday) {
+        resetToday.setDate(resetToday.getDate() - 1)
+      }
+
+      dateFilter = `WHERE "createdAt" >= '${resetToday.toISOString()}'`
     } else if (period === 'weekly') {
-      const weekStart = new Date()
-      weekStart.setUTCHours(0, 0, 0, 0)
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay()) // Start of week (Sunday)
+      const now = new Date()
+      const weekStart = new Date(now)
+      weekStart.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay()) // Start of week (Sunday at RESET_HOUR)
+
+      // If current time is before this week's Sunday reset, use last week's Sunday reset
+      if (now < weekStart) {
+        weekStart.setDate(weekStart.getDate() - 7)
+      }
+
       dateFilter = `WHERE "createdAt" >= '${weekStart.toISOString()}'`
     }
 
@@ -74,16 +89,30 @@ pointsRouter.get('/leaderboard', async (req: Request, res: Response) => {
     if (period !== 'alltime') {
       let previousDateFilter = ''
       if (period === 'daily') {
-        const yesterday = new Date()
-        yesterday.setUTCHours(0, 0, 0, 0)
-        yesterday.setDate(yesterday.getDate() - 1)
-        const twoDaysAgo = new Date(yesterday)
-        twoDaysAgo.setDate(twoDaysAgo.getDate() - 1)
-        previousDateFilter = `WHERE "createdAt" >= '${twoDaysAgo.toISOString()}' AND "createdAt" < '${yesterday.toISOString()}'`
+        const now = new Date()
+        const resetToday = new Date(now)
+        resetToday.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
+
+        // If current time is before today's reset, use yesterday's reset
+        if (now < resetToday) {
+          resetToday.setDate(resetToday.getDate() - 1)
+        }
+
+        const resetYesterday = new Date(resetToday)
+        resetYesterday.setDate(resetYesterday.getDate() - 1)
+
+        previousDateFilter = `WHERE "createdAt" >= '${resetYesterday.toISOString()}' AND "createdAt" < '${resetToday.toISOString()}'`
       } else if (period === 'weekly') {
-        const thisWeekStart = new Date()
-        thisWeekStart.setUTCHours(0, 0, 0, 0)
+        const now = new Date()
+        const thisWeekStart = new Date(now)
+        thisWeekStart.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
         thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay())
+
+        // If current time is before this week's Sunday reset, use last week's Sunday reset
+        if (now < thisWeekStart) {
+          thisWeekStart.setDate(thisWeekStart.getDate() - 7)
+        }
+
         const lastWeekStart = new Date(thisWeekStart)
         lastWeekStart.setDate(lastWeekStart.getDate() - 7)
         previousDateFilter = `WHERE "createdAt" >= '${lastWeekStart.toISOString()}' AND "createdAt" < '${thisWeekStart.toISOString()}'`

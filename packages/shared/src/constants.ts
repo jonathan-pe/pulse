@@ -10,6 +10,27 @@
  */
 
 /**
+ * Hour (UTC) when daily stats/leaderboards reset (default: 10 = 10am UTC)
+ *
+ * 10am UTC = 5am Eastern / 2am Pacific
+ * - Resets during sleep hours for all US timezones
+ * - Gives users a full day (morning + evening) to make predictions
+ * - Doesn't disrupt prime betting hours (afternoon/evening games)
+ * - Still reasonable for international users (6pm JST, 11am CET)
+ *
+ * Why 5am ET instead of midnight UTC?
+ * - US sports gambling market dominates globally
+ * - All major leagues (NFL, NBA, MLB, NHL) are US-based
+ * - Midnight UTC resets at 7pm ET / 4pm PT (middle of prime time)
+ * - 5am ET aligns with natural "start of day" for users
+ *
+ * Can be overridden via:
+ * - Environment: DAILY_RESET_HOUR_UTC=8
+ * - Database: ConfigService.getDailyResetHourUTC()
+ */
+export const DAILY_RESET_HOUR_UTC = 10
+
+/**
  * Number of bonus tier predictions allowed per day (default)
  *
  * Bonus tier predictions receive a multiplier before diminishing returns.
