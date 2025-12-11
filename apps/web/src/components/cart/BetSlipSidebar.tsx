@@ -1,9 +1,10 @@
 import React from 'react'
-import { XIcon, TrendingUp, AlertTriangle } from 'lucide-react'
+import { XIcon, TrendingUp, AlertTriangle, InfoIcon } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import useCartStore, { getCartKey, calculateSelectionPoints, type CartSelection } from '@/store/cart'
 import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
@@ -149,9 +150,23 @@ const BetSlipSidebar: React.FC = () => {
           {/* Selections List */}
           <div className='flex min-h-0 flex-1 flex-col gap-2'>
             <div className='flex items-center justify-between'>
-              <h3 className='text-sm font-medium'>
-                Selections {selections.length > 0 && <Badge variant='secondary'>{selections.length}</Badge>}
-              </h3>
+              <div className='flex items-center gap-2'>
+                <h3 className='text-sm font-medium'>
+                  Selections {selections.length > 0 && <Badge variant='secondary'>{selections.length}</Badge>}
+                </h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <InfoIcon className='h-3.5 w-3.5 cursor-help text-muted-foreground' />
+                    </TooltipTrigger>
+                    <TooltipContent className='max-w-[250px]'>
+                      <p className='text-xs'>
+                        Each selection will be created as an individual prediction. This does not create a parlay.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               {selections.length > 0 && (
                 <Button variant='ghost' size='sm' onClick={clearCart} className='h-8 text-xs'>
                   Clear All
