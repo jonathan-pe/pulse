@@ -76,7 +76,7 @@ export const DEFAULT_BONUS_TIER_MULTIPLIER = 1.5
  * - Environment: LOSS_MULTIPLIER=0.75
  * - Database: ConfigService.getLossMultiplier()
  */
-export const DEFAULT_LOSS_MULTIPLIER = 0.5
+export const DEFAULT_LOSS_MULTIPLIER = 1
 
 /**
  * Minimum streak length to highlight in UI (default)
