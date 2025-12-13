@@ -50,7 +50,8 @@ export function HowItWorks() {
             </div>
             <h3 className='text-xl font-semibold mb-2'>Earn Points</h3>
             <p className='text-muted-foreground'>
-              Correct predictions earn points based on implied probability. Climb leaderboards and unlock achievements
+              Correct predictions earn points and incorrect predictions can lose points—both based on implied
+              probability
             </p>
           </div>
         </div>
@@ -73,6 +74,7 @@ export function HowItWorks() {
                   </p>
                   <p className='text-sm text-muted-foreground mb-2'>Calculation: 10 × (100 / 67) = 15 points</p>
                   <p className='text-sm font-semibold text-primary'>✓ If correct: +15 points (or +22 with bonus)</p>
+                  <p className='text-sm font-semibold text-destructive mt-1'>✗ If incorrect: -3.3 points</p>
                 </div>
 
                 <div className='p-4 bg-muted rounded-lg'>
@@ -85,14 +87,15 @@ export function HowItWorks() {
                   </p>
                   <p className='text-sm text-muted-foreground mb-2'>Calculation: 10 × (100 / 25) = 40 points</p>
                   <p className='text-sm font-semibold text-primary'>✓ If correct: +40 points (or +60 with bonus)</p>
+                  <p className='text-sm font-semibold text-destructive mt-1'>✗ If incorrect: -1.25 points</p>
                 </div>
 
                 <div className='flex items-start gap-2 p-4 border-l-4 border-primary bg-primary/5 rounded'>
                   <AlertCircle className='h-5 w-5 text-primary shrink-0 mt-0.5' />
                   <p className='text-sm'>
-                    <strong>Expected Value is Equal:</strong> The favorite (67% × 15 pts = 10 EV) and underdog (25% × 40
-                    pts = 10 EV) have the same expected value. This means all strategies are equally viable—only your
-                    prediction accuracy determines success.
+                    <strong>Balanced by design:</strong> Favorites earn fewer points when correct but lose more when
+                    wrong; underdogs earn more when correct but lose less when wrong. This keeps different strategies
+                    competitive and rewards prediction accuracy.
                   </p>
                 </div>
               </div>

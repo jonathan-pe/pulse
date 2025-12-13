@@ -36,9 +36,14 @@ export function FAQ() {
                 Base Points = 10 × (100 / Implied Probability)
               </div>
               <p className='text-muted-foreground'>
-                This ensures mathematical fairness—all strategies have equal expected value. Your first prediction each
-                day gets a 1.5x multiplier as a bonus for daily engagement. Points are only awarded for correct
-                predictions; there are no deductions for incorrect picks.
+                Incorrect predictions can also lose points, scaled by implied probability (missing heavy favorites costs
+                more than missing longshot underdogs). This keeps the risk/reward profile balanced across odds ranges.
+              </p>
+              <div className='bg-muted p-4 rounded-lg font-mono text-sm my-4'>
+                Incorrect Points = -LOSS_MULTIPLIER × (Implied Probability / 10)
+              </div>
+              <p className='text-muted-foreground'>
+                Your first prediction each day gets a 1.5x multiplier as a bonus for daily engagement.
               </p>
             </CardContent>
           </Card>
@@ -64,7 +69,7 @@ export function FAQ() {
             </CardHeader>
             <CardContent>
               <p className='text-muted-foreground'>
-                <strong>No.</strong> The scoring system is designed with equal expected value across all odds ranges.
+                <strong>No.</strong> The scoring system is designed for balanced expected value across odds ranges.
                 Whether you pick heavy favorites, balanced matchups, or longshot underdogs, your expected points per
                 pick are the same. The only thing that matters is prediction accuracy. Anti-abuse mechanisms like
                 diminishing returns and rate limiting prevent exploitation through volume.

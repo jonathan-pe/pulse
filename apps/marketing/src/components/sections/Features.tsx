@@ -21,7 +21,7 @@ export function Features() {
               <CardTitle>Probability-Based Scoring</CardTitle>
               <CardDescription>
                 Points scale with implied probability from real sportsbook odds. Picking a 75% favorite earns 13 points,
-                while a 12.5% longshot earns 80 points—both have equal expected value.
+                while a 12.5% longshot earns 80 points—both have balanced expected value.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -145,8 +145,8 @@ export function Features() {
               <Shield className='h-10 w-10 text-primary mb-2' />
               <CardTitle>Fair Competition</CardTitle>
               <CardDescription>
-                Anti-abuse mechanisms prevent exploitation. Mathematically equal expected value across all strategies
-                means you can't "game" the system—only prediction accuracy matters.
+                Anti-abuse mechanisms prevent exploitation. Balanced expected value across strategies means you can't
+                "game" the system—only prediction accuracy matters.
               </CardDescription>
             </CardHeader>
             <CardContent>
