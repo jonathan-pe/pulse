@@ -22,18 +22,7 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
   const { user } = useUser()
   const clerk = useClerk()
 
-  // Choose a concise display name from common Clerk fields
-  const displayName = user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress || ''
-
-  const computeInitialsFrom = (s: string) =>
-    s
-      .split(' ')
-      .map((p) => p[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase()
-
-  const computedInitials = displayName ? computeInitialsFrom(displayName) : <User2Icon />
+  const computedInitials = user?.username ? user.username.slice(0, 2).toUpperCase() : <User2Icon />
 
   // Prefer explicit, typed fields; fall back gracefully
   const imageSrc =
@@ -54,7 +43,7 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
         {/* User info */}
         {user ? (
           <div className='px-2 py-2'>
-            <div className='text-sm font-medium'>{displayName || user.username}</div>
+            <div className='text-sm font-medium'>@{user.username}</div>
             <div className='text-xs text-muted-foreground'>
               {user.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || ''}
             </div>

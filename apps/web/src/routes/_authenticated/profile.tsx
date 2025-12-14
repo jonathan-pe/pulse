@@ -60,16 +60,7 @@ function Profile() {
     return null
   }
 
-  // Build display name from available fields
-  const displayName =
-    user.fullName || user.firstName || user.username || user.primaryEmailAddress?.emailAddress || 'User'
-
-  const initials = displayName
-    .split(' ')
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  const initials = user.username ? user.username.slice(0, 2).toUpperCase() : 'U'
 
   const memberSince = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown'
 
@@ -86,15 +77,19 @@ function Profile() {
           </CardHeader>
           <CardContent className='flex flex-col sm:flex-row gap-6'>
             <Avatar className='h-24 w-24'>
-              <AvatarImage src={user.imageUrl} alt={displayName} />
+              <AvatarImage src={user.imageUrl} alt={user.username || 'User'} />
               <AvatarFallback className='text-2xl'>{initials || <User2Icon className='h-12 w-12' />}</AvatarFallback>
             </Avatar>
 
             <div className='flex-1 space-y-3'>
-              <div>
-                <p className='text-sm text-muted-foreground'>Display Name</p>
-                <p className='font-medium'>{displayName}</p>
-              </div>
+              {(user.fullName || user.firstName || user.lastName) && (
+                <div>
+                  <p className='text-sm text-muted-foreground'>Name</p>
+                  <p className='font-medium'>
+                    {user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                  </p>
+                </div>
+              )}
 
               {user.username && (
                 <div>
