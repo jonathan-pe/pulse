@@ -37,7 +37,7 @@ export function Navigation({ appUrl, onNavigate }: NavigationProps) {
             <ThemeToggle />
             <Button asChild>
               <a href={appUrl} target='_blank' rel='noopener noreferrer'>
-                Get Started
+                Start Playing
               </a>
             </Button>
           </div>
@@ -45,7 +45,7 @@ export function Navigation({ appUrl, onNavigate }: NavigationProps) {
             <ThemeToggle />
             <Button asChild size='sm'>
               <a href={appUrl} target='_blank' rel='noopener noreferrer'>
-                Get Started
+                Start Playing
               </a>
             </Button>
           </div>

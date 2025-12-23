@@ -1,42 +1,62 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Target, Zap, Award, Trophy, TrendingUp, Shield, CheckCircle2 } from 'lucide-react'
+import { Target, Zap, Award, Trophy, CheckCircle2 } from 'lucide-react'
 
 export function Features() {
   return (
     <section id='features' className='py-20 sm:py-32'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-16'>
-          <h2 className='text-3xl sm:text-4xl font-bold mb-4'>Why Choose Pulse?</h2>
-          <p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
-            Fair, transparent, and built for sports fans who love the challenge of making predictions
-          </p>
+          <h2 className='text-3xl sm:text-4xl font-bold mb-4'>What Makes This Awesome?</h2>
+          <p className='text-xl text-muted-foreground max-w-2xl mx-auto'>You vs. the numbers. Let's go.</p>
         </div>
 
-        <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+        {/* Main Visual Feature with Image */}
+        <div className='mb-16 rounded-2xl overflow-hidden border bg-card shadow-lg'>
+          <div className='grid md:grid-cols-2 gap-0'>
+            <div className='relative h-64 md:h-auto'>
+              <img
+                src='/features/climb-the-ranks.jpg'
+                alt='Leaderboard competition'
+                className='w-full h-full object-cover'
+              />
+            </div>
+            <div className='p-8 flex flex-col justify-center'>
+              <Trophy className='h-12 w-12 text-primary mb-4' />
+              <h3 className='text-2xl font-bold mb-3'>Climb the Ranks</h3>
+              <p className='text-muted-foreground text-lg mb-4'>
+                Daily, weekly, all-time—there's always someone to chase. Prove you're the best.
+              </p>
+              <div className='flex gap-2'>
+                <Badge>🔥 Daily</Badge>
+                <Badge>💪 Weekly</Badge>
+                <Badge>👑 All-Time</Badge>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className='grid md:grid-cols-3 gap-8'>
           {/* Probability-Based Scoring */}
           <Card>
             <CardHeader>
               <Target className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Probability-Based Scoring</CardTitle>
-              <CardDescription>
-                Points scale with implied probability from real sportsbook odds. Picking a 75% favorite earns 13 points,
-                while a 12.5% longshot earns 80 points—both have balanced expected value.
-              </CardDescription>
+              <CardTitle>Risk It, Earn It</CardTitle>
+              <CardDescription>Safe bet = small reward. Longshot = huge points. Your call.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='space-y-2 text-sm'>
                 <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>-200 (67% favorite):</span>
-                  <span className='font-semibold'>15 points</span>
+                  <span className='text-muted-foreground'>Safe (-200):</span>
+                  <span className='font-semibold'>+15 pts</span>
                 </div>
                 <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>+150 (40% underdog):</span>
-                  <span className='font-semibold'>25 points</span>
+                  <span className='text-muted-foreground'>Underdog (+150):</span>
+                  <span className='font-semibold'>+25 pts</span>
                 </div>
                 <div className='flex justify-between'>
-                  <span className='text-muted-foreground'>+300 (25% underdog):</span>
-                  <span className='font-semibold'>40 points</span>
+                  <span className='text-muted-foreground'>Longshot (+300):</span>
+                  <span className='font-semibold'>+40 pts 🔥</span>
                 </div>
               </div>
             </CardContent>
@@ -46,25 +66,22 @@ export function Features() {
           <Card>
             <CardHeader>
               <Zap className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Daily Bonus Multiplier</CardTitle>
-              <CardDescription>
-                Your first prediction each day receives a 1.5x point multiplier. Make unlimited predictions after that
-                with baseline scoring. Return daily to maximize your points!
-              </CardDescription>
+              <CardTitle>Daily Power Pick</CardTitle>
+              <CardDescription>First pick each day gets 1.5x boost. Then play unlimited.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='space-y-2 text-sm'>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>First pick: 1.5x multiplier</span>
+                  <span>1st pick: 1.5x BOOST ⚡</span>
                 </div>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Unlimited predictions available</span>
+                  <span>Unlimited after</span>
                 </div>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Resets daily (bonus tier renews)</span>
+                  <span>Resets daily</span>
                 </div>
               </div>
             </CardContent>
@@ -74,95 +91,15 @@ export function Features() {
           <Card>
             <CardHeader>
               <Award className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Unlock Achievements</CardTitle>
-              <CardDescription>
-                Earn cosmetic badges for milestones, streaks, accuracy, and league expertise. Showcase your best
-                achievements on your profile and build your trophy case.
-              </CardDescription>
+              <CardTitle>Flex Your Trophies</CardTitle>
+              <CardDescription>Collect badges. Show off. Brag.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='flex flex-wrap gap-2'>
                 <Badge variant='outline'>🔥 5 Streak</Badge>
                 <Badge variant='outline'>🎯 75% Win Rate</Badge>
-                <Badge variant='outline'>⚡ 100 Predictions</Badge>
+                <Badge variant='outline'>⚡ 100 Picks</Badge>
                 <Badge variant='outline'>🏆 Top 10</Badge>
-                <Badge variant='outline'>🏈 NFL Expert</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Leaderboards */}
-          <Card>
-            <CardHeader>
-              <Trophy className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Compete on Leaderboards</CardTitle>
-              <CardDescription>
-                Climb daily, weekly, and all-time leaderboards. Track your rank, see how you stack up against others,
-                and compete for the top spots through pure prediction accuracy.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-2 text-sm'>
-                <div className='flex items-center gap-2'>
-                  <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Daily leaderboard</span>
-                </div>
-                <div className='flex items-center gap-2'>
-                  <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Weekly leaderboard</span>
-                </div>
-                <div className='flex items-center gap-2'>
-                  <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>All-time leaderboard</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Multi-Sport Coverage */}
-          <Card>
-            <CardHeader>
-              <TrendingUp className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Multi-Sport Coverage</CardTitle>
-              <CardDescription>
-                Make predictions across NFL, NBA, MLB, and NHL. Real-time odds integration with professional team
-                branding, logos, and comprehensive game data.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='flex flex-wrap gap-2'>
-                <Badge>🏈 NFL</Badge>
-                <Badge>🏀 NBA</Badge>
-                <Badge>⚾ MLB</Badge>
-                <Badge>🏒 NHL</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fair Competition */}
-          <Card>
-            <CardHeader>
-              <Shield className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Fair Competition</CardTitle>
-              <CardDescription>
-                Anti-abuse mechanisms prevent exploitation. Balanced expected value across strategies means you can't
-                "game" the system—only prediction accuracy matters.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='space-y-2 text-sm'>
-                <div className='flex items-center gap-2'>
-                  <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Diminishing returns prevent grinding</span>
-                </div>
-                <div className='flex items-center gap-2'>
-                  <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Bot detection & rate limiting</span>
-                </div>
-                <div className='flex items-center gap-2'>
-                  <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Transparent scoring algorithm</span>
-                </div>
               </div>
             </CardContent>
           </Card>
