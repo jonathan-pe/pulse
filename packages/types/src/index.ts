@@ -3,7 +3,13 @@ import { z } from 'zod'
 export const userSchema = z.object({
   id: z.string(),
   email: z.email(),
-  name: z.string().nullable().optional(),
+  username: z.string().nullable(),
+  displayName: z.string().nullable(),
+  imageUrl: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional(),
+  currentStreak: z.number().optional(),
+  longestStreak: z.number().optional(),
 })
 
 export type User = z.infer<typeof userSchema>
@@ -58,6 +64,7 @@ export interface LeaderboardEntry {
   rank: number
   userId: string
   username: string | null
+  displayName: string | null
   imageUrl: string | null
   points: number
   rankChange: number | null // +/- change from previous period (null if no previous data)

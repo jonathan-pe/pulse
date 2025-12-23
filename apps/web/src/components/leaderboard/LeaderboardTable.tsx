@@ -111,11 +111,15 @@ export function LeaderboardTable({ leaderboard, isLoading, period }: Leaderboard
 
                   {/* Avatar & Username */}
                   <Avatar className='h-10 w-10'>
-                    {entry.imageUrl && <AvatarImage src={entry.imageUrl} alt={entry.username || 'User'} />}
-                    <AvatarFallback>{entry.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                    {entry.imageUrl && (
+                      <AvatarImage src={entry.imageUrl} alt={entry.displayName || entry.username || 'User'} />
+                    )}
+                    <AvatarFallback>{(entry.displayName || entry.username)?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className='flex-1'>
-                    <div className='font-semibold'>{entry.username || 'Anonymous'}</div>
+                    <div className='font-semibold'>
+                      {entry.displayName || (entry.username ? entry.username : 'Anonymous')}
+                    </div>
                   </div>
 
                   {/* Rank Change */}

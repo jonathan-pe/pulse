@@ -2,14 +2,13 @@
 
 model User {
   // Use Clerk user id as the primary key
-  id        String   @id
-  email     String   @unique
-  username  String? // Display name for leaderboards/social features
-  firstName String? // For personalization
-  lastName  String? // Full name display
-  imageUrl  String? // Profile picture URL from Clerk
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  id          String   @id
+  email       String   @unique
+  username    String? // Unique identifier, used in URLs and mentions
+  displayName String? // Optional display name (shows instead of username if set)
+  imageUrl    String? // Profile picture URL from Clerk
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
   // Point scoring streak tracking (bonus tier only)
   currentStreak Int @default(0)

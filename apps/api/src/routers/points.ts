@@ -137,7 +137,7 @@ pointsRouter.get('/leaderboard', async (req: Request, res: Response) => {
     const userIds = currentRows.map((row) => row.userId)
     const users = await prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, username: true, imageUrl: true },
+      select: { id: true, username: true, displayName: true, imageUrl: true },
     })
 
     const userMap = new Map(users.map((u) => [u.id, u]))
@@ -152,6 +152,7 @@ pointsRouter.get('/leaderboard', async (req: Request, res: Response) => {
         rank: currentRank,
         userId: row.userId,
         username: user?.username ?? null,
+        displayName: user?.displayName ?? null,
         imageUrl: user?.imageUrl ?? null,
         points: Number(row.points),
         rankChange,

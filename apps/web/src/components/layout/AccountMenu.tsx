@@ -2,6 +2,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useUser, useClerk } from '@clerk/clerk-react'
 import { SignedOut } from '@clerk/clerk-react'
 import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { useAPI } from '@/hooks/useAPI'
+import { type User } from '@pulse/types'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -19,14 +22,23 @@ type AccountMenuProps = {
 }
 
 export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
-  const { user } = useUser()
+  const { user: clerkUser, isLoaded } = useUser()
   const clerk = useClerk()
+  const fetchAPI = useAPI()
 
-  const computedInitials = user?.username ? user.username.slice(0, 2).toUpperCase() : <User2Icon />
+  // Fetch user data from our database
+  const { data: pulseUser } = useQuery<User>({
+    queryKey: ['user', 'me'],
+    queryFn: () => fetchAPI<User>('/auth/me'),
+    enabled: isLoaded && !!clerkUser,
+  })
+
+  const displayName = pulseUser?.displayName || (pulseUser?.username ? `@${pulseUser.username}` : undefined)
+  const computedInitials = pulseUser?.username ? pulseUser.username.slice(0, 2).toUpperCase() : <User2Icon />
 
   // Prefer explicit, typed fields; fall back gracefully
   const imageSrc =
-    avatarSrc || user?.imageUrl || (user as { profileImageUrl?: string } | undefined)?.profileImageUrl || ''
+    avatarSrc || clerkUser?.imageUrl || (clerkUser as { profileImageUrl?: string } | undefined)?.profileImageUrl || ''
 
   return (
     <DropdownMenu>
@@ -41,18 +53,18 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
 
       <DropdownMenuContent align='end'>
         {/* User info */}
-        {user ? (
+        {clerkUser && pulseUser ? (
           <div className='px-2 py-2'>
-            <div className='text-sm font-medium'>@{user.username}</div>
+            <div className='text-sm font-medium'>{displayName}</div>
             <div className='text-xs text-muted-foreground'>
-              {user.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || ''}
+              {clerkUser.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses?.[0]?.emailAddress || ''}
             </div>
           </div>
         ) : null}
 
         <DropdownMenuSeparator />
 
-        {user ? (
+        {clerkUser ? (
           <>
             <DropdownMenuItem asChild>
               <Link to='/profile' className='hover:cursor-pointer'>

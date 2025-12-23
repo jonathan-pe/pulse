@@ -50,8 +50,6 @@ webhooksRouter.post('/clerk', async (req: Request, res: Response) => {
         await usersService.ensureUserExists(evt.data.id, {
           email: primaryEmail,
           username: evt.data.username,
-          firstName: evt.data.first_name,
-          lastName: evt.data.last_name,
           imageUrl: evt.data.image_url,
         })
 
@@ -68,8 +66,6 @@ webhooksRouter.post('/clerk', async (req: Request, res: Response) => {
         await usersService.ensureUserExists(evt.data.id, {
           email: primaryEmail,
           username: evt.data.username,
-          firstName: evt.data.first_name,
-          lastName: evt.data.last_name,
           imageUrl: evt.data.image_url,
         })
 

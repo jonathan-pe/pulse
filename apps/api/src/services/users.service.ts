@@ -6,9 +6,13 @@ const logger = createLogger('UsersService')
 export interface UpsertUserData {
   email?: string
   username?: string | null
-  firstName?: string | null
-  lastName?: string | null
+  displayName?: string | null
   imageUrl?: string | null
+}
+
+export interface UpdateUserData {
+  username?: string
+  displayName?: string | null
 }
 
 /**
@@ -20,7 +24,7 @@ export class UsersService {
    * This is called when a Clerk user signs in to sync them to our database
    *
    * @param userId - Clerk user ID
-   * @param data - User data from Clerk (email, username, firstName, lastName, imageUrl)
+   * @param data - User data from Clerk (email, username, displayName, imageUrl)
    * @returns The user record
    */
   async ensureUserExists(userId: string, data: UpsertUserData = {}) {
@@ -31,16 +35,14 @@ export class UsersService {
           // Update fields if provided
           ...(data.email && { email: data.email }),
           ...(data.username !== undefined && { username: data.username }),
-          ...(data.firstName !== undefined && { firstName: data.firstName }),
-          ...(data.lastName !== undefined && { lastName: data.lastName }),
+          ...(data.displayName !== undefined && { displayName: data.displayName }),
           ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
         },
         create: {
           id: userId,
           email: data.email || `${userId}@clerk.user`, // Fallback email if not provided
           username: data.username,
-          firstName: data.firstName,
-          lastName: data.lastName,
+          displayName: data.displayName,
           imageUrl: data.imageUrl,
         },
       })
@@ -68,6 +70,27 @@ export class UsersService {
     return prisma.user.findUnique({
       where: { email },
     })
+  }
+
+  /**
+   * Update user profile
+   */
+  async updateUser(userId: string, data: UpdateUserData) {
+    try {
+      const user = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(data.username !== undefined && { username: data.username }),
+          ...(data.displayName !== undefined && { displayName: data.displayName }),
+        },
+      })
+
+      logger.info('User updated', { userId, updates: data })
+      return user
+    } catch (error) {
+      logger.error('Failed to update user', { userId, data, error })
+      throw error
+    }
   }
 
   /**
