@@ -16,6 +16,7 @@ Pulse currently uses a local PostgreSQL database (via Docker Compose) for develo
 - No built-in admin UI for database inspection
 
 Supabase offers a hosted PostgreSQL solution with:
+
 - Managed database with automatic backups
 - Built-in connection pooling (port 6543)
 - Direct connection for migrations (port 5432)
@@ -47,12 +48,12 @@ Migrate to **Supabase** hosted PostgreSQL using:
 
 ### Alternatives Considered
 
-| Option | Rejected Because |
-|--------|------------------|
-| Self-hosted PostgreSQL | Requires infrastructure management, backups, scaling |
-| Neon | Less mature ecosystem, fewer features than Supabase |
-| PlanetScale | MySQL-based, would require schema changes |
-| Railway/Render PostgreSQL | Higher cost at scale, less feature-rich |
+| Option                    | Rejected Because                                     |
+| ------------------------- | ---------------------------------------------------- |
+| Self-hosted PostgreSQL    | Requires infrastructure management, backups, scaling |
+| Neon                      | Less mature ecosystem, fewer features than Supabase  |
+| PlanetScale               | MySQL-based, would require schema changes            |
+| Railway/Render PostgreSQL | Higher cost at scale, less feature-rich              |
 
 ## Consequences
 

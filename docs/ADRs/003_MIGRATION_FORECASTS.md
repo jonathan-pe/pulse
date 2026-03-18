@@ -7,11 +7,13 @@
 ## Context
 
 The initial NatStat integration used three separate API endpoints to fetch odds data:
+
 - `/moneyline/{league}/{date}` - American odds for straight-up winners
 - `/pointspread/{league}/{date}` - Point spread markets
 - `/overunder/{league}/{date}` - Total points markets
 
 This approach required three sequential API calls per league/date combination, resulting in:
+
 - Slower ingestion times
 - Higher API rate limit consumption (3x the calls)
 - Potential data inconsistency if odds changed between calls
@@ -123,12 +125,12 @@ GET https://api3.natst.at/{API_KEY}/forecasts/{league}/{date}
 
 The system automatically maps standard league codes to NatStat-specific codes:
 
-| Standard | NatStat | Sport |
-|----------|---------|-------|
-| NFL | pfb | Pro Football |
-| NBA | nba | Basketball |
-| MLB | mlb | Baseball |
-| NHL | nhl | Hockey |
+| Standard | NatStat | Sport        |
+| -------- | ------- | ------------ |
+| NFL      | pfb     | Pro Football |
+| NBA      | nba     | Basketball   |
+| MLB      | mlb     | Baseball     |
+| NHL      | nhl     | Hockey       |
 
 ## Data Flow
 

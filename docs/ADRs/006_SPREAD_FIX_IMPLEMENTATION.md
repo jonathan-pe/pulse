@@ -7,11 +7,13 @@
 ## Context
 
 Point spread data from NatStat's `/forecasts` endpoint arrives without explicit indication of which team the spread applies to. NatStat provides:
+
 - A numeric spread value (e.g., `-3.5` or `+3.5`)
 - A `spread.favourite` field containing a NatStat team ID
 - Team codes for home/away teams (e.g., "JAX", "KCC")
 
 Without proper normalization, the spread values would be ambiguous:
+
 - Does `-7.5` mean home gives or receives points?
 - How do we consistently display spreads to users?
 - How do we evaluate predictions when games complete?
@@ -19,6 +21,7 @@ Without proper normalization, the spread values would be ambiguous:
 ### Problem Statement
 
 We need to:
+
 1. Store all spreads consistently relative to the home team
 2. Establish convention: **negative = home favored** (gives points), **positive = home underdog** (receives points)
 3. Map NatStat team IDs to team codes to determine favorite
@@ -134,10 +137,7 @@ Updated `NormalizedEvent` type to include:
 Added `adjustSpreadSigns()` helper function:
 
 ```typescript
-export function adjustSpreadSigns(
-  events: NormalizedEvent[],
-  teamIdToCode: Map<string, string>
-): NormalizedEvent[]
+export function adjustSpreadSigns(events: NormalizedEvent[], teamIdToCode: Map<string, string>): NormalizedEvent[]
 ```
 
 This function:
@@ -271,18 +271,18 @@ pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ### 4. Verify Spreads
 
 ```sql
-SELECT 
+SELECT
   g."homeTeam",
   g."awayTeam",
   o.spread,
-  CASE 
+  CASE
     WHEN o.spread < 0 THEN g."homeTeam" || ' is favored'
     WHEN o.spread > 0 THEN g."awayTeam" || ' is favored'
     ELSE 'Pick em'
   END as favorite
 FROM "Game" g
 JOIN "GameOdds" o ON o."gameId" = g.id
-WHERE g.league = 'NFL' 
+WHERE g.league = 'NFL'
   AND g."startsAt"::date = '2025-10-19'
   AND o.market = 'pointspread';
 ```
@@ -306,7 +306,7 @@ Expected results:
     "forecast": {
       "spread": {
         "spread": "-3.5",
-        "favourite": "2022531"  // JAX team ID
+        "favourite": "2022531" // JAX team ID
       }
     }
   }

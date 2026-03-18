@@ -29,6 +29,7 @@ Implement automatic game scoring triggered during NatStat ingestion when complet
 ### 1. Auto-Scoring During Ingestion (`apps/api/src/jobs/ingest-natstat.ts`)
 
 **Changes:**
+
 - Added `scoreGameService` import
 - Track `scoredGameIds` during ingestion
 - After upserting game scores, automatically trigger scoring if:
@@ -39,6 +40,7 @@ Implement automatic game scoring triggered during NatStat ingestion when complet
 - Include `gamesScored` count in job results
 
 **Behavior:**
+
 ```typescript
 // When scores are detected during ingestion:
 if (scoresUpdated || (ev.homeScore !== undefined && ev.awayScore !== undefined)) {
@@ -59,6 +61,7 @@ if (scoresUpdated || (ev.homeScore !== undefined && ev.awayScore !== undefined))
 **Purpose:** Backfill past games with auto-scoring for historical data or testing.
 
 **Usage:**
+
 ```bash
 # Ingest yesterday's games
 pnpm --filter @pulse/api ingest-historical NBA
@@ -71,6 +74,7 @@ pnpm --filter @pulse/api ingest-historical MLB 30
 ```
 
 **Features:**
+
 - Accepts league and number of days back
 - Processes each date sequentially
 - Reports total games scored and scores updated
@@ -79,6 +83,7 @@ pnpm --filter @pulse/api ingest-historical MLB 30
 ### 3. Comprehensive Documentation (`apps/api/docs/AUTO_SCORING.md`)
 
 **Covers:**
+
 - How auto-scoring works during ingestion
 - Scoring logic and point calculation formulas
 - CLI commands for ingestion and historical backfill
@@ -92,6 +97,7 @@ pnpm --filter @pulse/api ingest-historical MLB 30
 ### 4. Test Fixes
 
 Updated `apps/api/src/services/__tests__/games.service.test.ts`:
+
 - Added `scoredAt: null` to all Result mock objects
 - Fixed TypeScript compilation errors
 
@@ -142,6 +148,7 @@ Updated `apps/api/src/services/__tests__/games.service.test.ts`:
 ### Scoring Logic
 
 For each prediction:
+
 1. **Determine correctness** (moneyline/spread/total)
 2. **Calculate points:**
    - Base: `10 × (100 / ImpliedProbability)`
@@ -153,6 +160,7 @@ For each prediction:
 ## Safety & Idempotency
 
 ✅ **Safe to run multiple times:**
+
 - Games: Upserted by external ID or hash
 - Odds: Upserted by `(gameId, book, market)` key
 - Results: Upserted by `gameId`
@@ -160,6 +168,7 @@ For each prediction:
 - Points: Only awarded if `prediction.processedAt` is null
 
 ✅ **Error isolation:**
+
 - Auto-scoring errors are logged but don't fail ingestion
 - Each prediction scoring is wrapped in try-catch
 - Failed predictions are tracked and reported
@@ -220,8 +229,8 @@ pnpm --filter @pulse/api ingest-historical NBA 1
 SELECT COUNT(*) FROM "Result" WHERE "scoredAt" IS NOT NULL;
 
 -- Check predictions scored today
-SELECT COUNT(*) FROM "Prediction" 
-WHERE "processedAt" IS NOT NULL 
+SELECT COUNT(*) FROM "Prediction"
+WHERE "processedAt" IS NOT NULL
   AND "processedAt" > NOW() - INTERVAL '1 day';
 
 -- Check points awarded today
@@ -229,8 +238,8 @@ SELECT SUM(delta) FROM "PointsLedger"
 WHERE "createdAt" > NOW() - INTERVAL '1 day';
 
 -- Check user streaks
-SELECT id, email, points, "currentStreak" 
-FROM "User" 
+SELECT id, email, points, "currentStreak"
+FROM "User"
 WHERE "currentStreak" > 0
 ORDER BY "currentStreak" DESC;
 ```
@@ -238,10 +247,12 @@ ORDER BY "currentStreak" DESC;
 ## Files Modified
 
 ### New Files
+
 - `apps/api/src/cli/ingest-historical.ts` - Historical backfill CLI
 - `apps/api/docs/AUTO_SCORING.md` - Comprehensive documentation
 
 ### Modified Files
+
 - `apps/api/src/jobs/ingest-natstat.ts` - Added auto-scoring logic
 - `apps/api/package.json` - Added `ingest-historical` script
 - `apps/api/src/services/__tests__/games.service.test.ts` - Fixed test mocks
@@ -252,17 +263,20 @@ ORDER BY "currentStreak" DESC;
 Look for these log messages:
 
 ### Successful Auto-Scoring
+
 ```
 [INFO] Auto-scoring game with result { gameId, homeScore, awayScore }
 [INFO] Game auto-scored during ingestion { gameId, predictionsScored, pointsAwarded }
 ```
 
 ### Errors (Non-Fatal)
+
 ```
 [ERROR] Failed to auto-score game during ingestion { gameId }
 ```
 
 ### Ingestion Summary
+
 ```
 ✅ Historical Ingestion Summary:
    League: NBA
@@ -284,11 +298,13 @@ Look for these log messages:
 If issues arise:
 
 1. **Revert ingestion job:**
+
    ```bash
    git checkout HEAD~1 apps/api/src/jobs/ingest-natstat.ts
    ```
 
 2. **Use manual scoring:**
+
    ```bash
    pnpm --filter @pulse/api score-games
    ```
@@ -302,6 +318,7 @@ If issues arise:
 ## Success Criteria
 
 ✅ **All checks passed:**
+
 - [x] TypeScript compilation successful
 - [x] All tests pass
 - [x] Auto-scoring triggers during ingestion

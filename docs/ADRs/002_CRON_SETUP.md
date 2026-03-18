@@ -12,6 +12,7 @@ Pulse requires regular automated execution of two critical tasks:
 2. **Team Sync** - Updates team metadata including logos and codes (needs infrequent execution before each season)
 
 Initially, GitHub Actions was considered for scheduled workflows, but this approach had limitations:
+
 - GitHub Actions has usage limits on free/paid tiers
 - Workflow minutes count toward repository quotas
 - Requires repository maintenance for cron configuration
@@ -40,12 +41,12 @@ Use **cron-job.org** (external free CRON service) to schedule and trigger Pulse 
 
 ### Alternatives Considered
 
-| Option | Rejected Because |
-|--------|------------------|
-| GitHub Actions scheduled workflows | Consumes repository minutes, less flexible scheduling |
-| In-process Node.js schedulers (node-cron) | Requires always-running process, no observability |
-| AWS EventBridge | Over-engineered, requires AWS account and configuration |
-| Railway/Vercel native crons | Platform lock-in, limited free tier |
+| Option                                    | Rejected Because                                        |
+| ----------------------------------------- | ------------------------------------------------------- |
+| GitHub Actions scheduled workflows        | Consumes repository minutes, less flexible scheduling   |
+| In-process Node.js schedulers (node-cron) | Requires always-running process, no observability       |
+| AWS EventBridge                           | Over-engineered, requires AWS account and configuration |
+| Railway/Vercel native crons               | Platform lock-in, limited free tier                     |
 
 ## Consequences
 
