@@ -42,6 +42,7 @@ describe('NatStat Client', () => {
       expect(result).toEqual(mockResponse)
 
       const callUrl = mockFetch.mock.calls[0][0]
+      expect(callUrl).toContain('https://api4.natst.at')
       expect(callUrl).toContain('forecasts')
       expect(callUrl).toContain('pfb')
       expect(callUrl).toContain('2025-12-10')
@@ -62,6 +63,7 @@ describe('NatStat Client', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
 
       const callUrl = mockFetch.mock.calls[0][0]
+      expect(callUrl).toContain('https://api4.natst.at')
       expect(callUrl).toContain('forecasts')
       expect(callUrl).toContain('nba')
       expect(callUrl).not.toContain('2025-12-10')
@@ -78,8 +80,62 @@ describe('NatStat Client', () => {
       await loadForecasts({ league: 'NBA' })
 
       const callUrl = mockFetch.mock.calls[0][0]
+      expect(callUrl).toContain('https://api4.natst.at')
       expect(callUrl).toContain('nba')
       expect(callUrl).not.toContain('NBA')
+    })
+
+    it('should follow meta.page-next and merge forecast pages', async () => {
+      const firstPage = {
+        forecasts: {
+          forecast_1: {
+            eventId: 'evt_1',
+            homeTeam: 'Chiefs',
+            awayTeam: 'Bills',
+          },
+        },
+        meta: {
+          'page-next': 'https://api4.natst.at/test-key/forecasts/pfb/_/100',
+        },
+      }
+
+      const secondPage = {
+        forecasts: {
+          forecast_2: {
+            eventId: 'evt_2',
+            homeTeam: 'Ravens',
+            awayTeam: 'Bengals',
+          },
+        },
+        meta: {
+          page: '2',
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => firstPage,
+        text: async () => JSON.stringify(firstPage),
+      })
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => secondPage,
+        text: async () => JSON.stringify(secondPage),
+      })
+
+      const result = await loadForecasts({ league: 'pfb' })
+
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(mockFetch.mock.calls[1][0]).toBe('https://api4.natst.at/test-key/forecasts/pfb/_/100')
+      expect(result.forecasts).toEqual({
+        forecast_1: firstPage.forecasts.forecast_1,
+        forecast_2: secondPage.forecasts.forecast_2,
+      })
+      expect(result.meta?.page).toBe('2')
+      expect(result.meta?.['page-next']).toBeUndefined()
     })
 
     it('should throw error on 429 rate limit', async () => {
@@ -179,6 +235,7 @@ describe('NatStat Client', () => {
       expect(result).toEqual(mockResponse)
 
       const callUrl = mockFetch.mock.calls[0][0]
+      expect(callUrl).toContain('https://api4.natst.at')
       expect(callUrl).toContain('teamcodes')
       expect(callUrl).toContain('pfb')
     })
@@ -194,6 +251,7 @@ describe('NatStat Client', () => {
       await loadTeamCodes({ league: 'MLB' })
 
       const callUrl = mockFetch.mock.calls[0][0]
+      expect(callUrl).toContain('https://api4.natst.at')
       expect(callUrl).toContain('mlb')
       expect(callUrl).not.toContain('MLB')
     })

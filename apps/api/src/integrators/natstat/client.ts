@@ -3,10 +3,19 @@ import { createLogger } from '../../lib/logger'
 
 const logger = createLogger('NatStatClient')
 
-const NATSTAT_BASE_URL = process.env.NATSTAT_BASE_URL ?? 'https://api3.natst.at'
+const NATSTAT_BASE_URL = process.env.NATSTAT_BASE_URL ?? 'https://api4.natst.at'
 const NATSTAT_API_KEY = process.env.NATSTAT_API_KEY ?? ''
 const NATSTAT_AUTH_SCHEME = process.env.NATSTAT_AUTH_SCHEME ?? 'x-api-key'
 const NATSTAT_TIMEOUT_MS = Number(process.env.NATSTAT_TIMEOUT_MS ?? 10000)
+
+type NatStatResponse = {
+  meta?: {
+    ['page-next']?: string
+    [key: string]: unknown
+  }
+  forecasts?: Record<string, unknown> | unknown[]
+  [key: string]: unknown
+}
 
 function buildHeaders() {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -76,6 +85,61 @@ async function fetchWithRetry(url: string, opts: any = {}, retries = 1): Promise
   }
 }
 
+function mergePagedCollections(existing: unknown, incoming: unknown) {
+  if (Array.isArray(existing) && Array.isArray(incoming)) {
+    return [...existing, ...incoming]
+  }
+
+  if (
+    existing &&
+    incoming &&
+    typeof existing === 'object' &&
+    typeof incoming === 'object' &&
+    !Array.isArray(existing) &&
+    !Array.isArray(incoming)
+  ) {
+    return {
+      ...existing,
+      ...incoming,
+    }
+  }
+
+  return incoming ?? existing
+}
+
+async function fetchAllPages(url: string, collectionKey: string): Promise<NatStatResponse> {
+  const firstPage = (await fetchWithRetry(url, { method: 'GET' })) as NatStatResponse
+  let merged = firstPage
+  let nextUrl = typeof firstPage?.meta?.['page-next'] === 'string' ? firstPage.meta['page-next'] : undefined
+  const seen = new Set<string>()
+
+  while (nextUrl && !seen.has(nextUrl)) {
+    seen.add(nextUrl)
+    logger.info('Loading paginated NatStat response', { collectionKey, nextUrl })
+
+    const nextPage = (await fetchWithRetry(nextUrl, { method: 'GET' })) as NatStatResponse
+    const mergedMeta = {
+      ...(merged.meta ?? {}),
+      ...(nextPage.meta ?? {}),
+    }
+
+    if (nextPage.meta?.['page-next'] == null) {
+      delete mergedMeta['page-next']
+    }
+
+    merged = {
+      ...merged,
+      ...nextPage,
+      [collectionKey]: mergePagedCollections(merged?.[collectionKey], nextPage?.[collectionKey]),
+      meta: mergedMeta,
+    }
+
+    nextUrl = typeof nextPage?.meta?.['page-next'] === 'string' ? nextPage.meta['page-next'] : undefined
+  }
+
+  return merged
+}
+
 export type RawNatStatLine = any
 
 /**
@@ -85,7 +149,7 @@ export type RawNatStatLine = any
  * @param date - Date in YYYY-MM-DD format (optional, defaults to today)
  */
 export async function loadForecasts({ league, date }: { league: string; date?: string }): Promise<any> {
-  // Build URL: https://api3.natst.at/{API_KEY}/forecasts/{league}/{date}
+  // Build URL: https://api4.natst.at/{API_KEY}/forecasts/{league}/{date}
   const parts = [NATSTAT_BASE_URL, NATSTAT_API_KEY, 'forecasts', league.toLowerCase()]
   if (date) parts.push(date)
 
@@ -93,7 +157,7 @@ export async function loadForecasts({ league, date }: { league: string; date?: s
 
   logger.info('Loading forecasts from NatStat', { league, date: date ?? 'today' })
 
-  const json = await fetchWithRetry(url, { method: 'GET' })
+  const json = await fetchAllPages(url, 'forecasts')
 
   // Return the full JSON payload
   return json

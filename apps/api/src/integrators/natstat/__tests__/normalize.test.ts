@@ -78,7 +78,7 @@ const forecastSample: any = {
   },
   success: '1',
   query: {
-    uri: 'https://api3.natst.at/667c-ab7f0b/forecasts/pfb/2025-10-19',
+    uri: 'https://api4.natst.at/667c-ab7f0b/forecasts/pfb/2025-10-19',
     endpoint: 'forecasts',
     scope: 'PFB',
     range: '2025-10-19',
@@ -170,6 +170,34 @@ describe('natstat normalizeForecasts', () => {
     expect(spreadLineAfter?.spreadFavouriteId).toBeUndefined() // Should be removed after adjustment
   })
 
+  it('stores a home favorite as negative even when NatStat returns a positive raw spread', () => {
+    const homeTeamFavoritePositiveSpread = {
+      forecasts: {
+        forecast_126: {
+          visitor: 'Boise State',
+          'visitor-code': 'BOIS',
+          home: 'Washington',
+          'home-code': 'WASH',
+          gamedate: '2025-12-13 20:00:00',
+          forecast: {
+            spread: {
+              spread: '+9.5',
+              favourite: '2022688',
+            },
+          },
+        },
+      },
+    }
+
+    const normalized = normalizeForecasts(homeTeamFavoritePositiveSpread, 'CFB')
+    const teamIdToCode = new Map([['2022688', 'WASH']])
+    const adjusted = adjustSpreadSigns(normalized, teamIdToCode)
+    const spreadLine = adjusted[0].lines.find((line) => line.market === 'pointspread')
+
+    expect(spreadLine?.spread).toBe(-9.5)
+    expect(spreadLine?.spreadFavouriteId).toBeUndefined()
+  })
+
   it('adjusts spread correctly when away team is favorite', () => {
     const awayTeamFavorite = {
       forecasts: {
@@ -247,9 +275,44 @@ describe('natstat normalizeForecasts', () => {
     const adjusted = adjustSpreadSigns(normalized, teamIdToCode)
     const spreadLineAfter = adjusted[0].lines.find((l) => l.market === 'pointspread')
 
-    // Away is favorite, so home gets negative of the raw spread
-    expect(spreadLineAfter?.spread).toBe(-3.5)
+    // Away is favorite, so the home team is an underdog and should be positive.
+    expect(spreadLineAfter?.spread).toBe(3.5)
     expect(spreadLineAfter?.spreadFavouriteId).toBeUndefined()
+  })
+
+  it('falls back to team codes when NatStat returns object placeholders', () => {
+    const placeholderSample = {
+      forecasts: {
+        forecast_127: {
+          visitor: {},
+          'visitor-code': 'FAMU',
+          home: 'Mississippi Valley State',
+          'home-code': 'MVSU',
+          gamestatus: {},
+          'score-vis': '31',
+          'score-home': '35',
+          gamedate: '2025-11-29 15:00:00',
+          forecast: {
+            simulation: {
+              'prediction-favourite-code': 'FAMU',
+            },
+          },
+        },
+      },
+      meta: {
+        'processed-at': '9999-99-99 00:00:00',
+      },
+    }
+
+    const normalized = normalizeForecasts(placeholderSample, 'CFB')
+
+    expect(normalized).toHaveLength(1)
+    expect(normalized[0].awayTeam).toBe('FAMU')
+    expect(normalized[0].homeTeam).toBe('Mississippi Valley State')
+    expect(normalized[0].status).toBe('scheduled')
+    expect(normalized[0].homeScore).toBe(35)
+    expect(normalized[0].awayScore).toBe(31)
+    expect(normalized[0].lines).toHaveLength(0)
   })
 
   it('normalizes league code PFB to NFL', () => {

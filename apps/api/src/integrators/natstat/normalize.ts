@@ -1,6 +1,18 @@
 import { natstatToUtcISOString } from '../../utils/natstat'
 import { eventIdentityKey } from './client'
 
+function readString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed ? trimmed : undefined
+}
+
+function parseInteger(value: unknown): number | undefined {
+  if (value == null || value === '') return undefined
+  const parsed = Number.parseInt(String(value), 10)
+  return Number.isNaN(parsed) ? undefined : parsed
+}
+
 export type NormalizedEvent = {
   provider: 'natstat'
   externalEventId?: string
@@ -50,13 +62,13 @@ export function normalizeForecasts(raw: any, league?: string, teamCodeToName?: M
 
   return items.map(([forecastId, forecast]: [string, any]) => {
     // Parse team codes first
-    const homeCode = forecast['home-code']
-    const awayCode = forecast['visitor-code']
+    const homeCode = readString(forecast['home-code'])
+    const awayCode = readString(forecast['visitor-code'])
 
     // Use team codes to look up full team names from database if available
     // Otherwise fall back to the names provided in the forecast data
-    const homeFromApi = forecast.home ?? homeCode
-    const awayFromApi = forecast.visitor ?? awayCode
+    const homeFromApi = readString(forecast.home) ?? homeCode
+    const awayFromApi = readString(forecast.visitor) ?? awayCode
 
     const home = (homeCode && teamCodeToName?.get(homeCode)) ?? homeFromApi
     const away = (awayCode && teamCodeToName?.get(awayCode)) ?? awayFromApi
@@ -64,9 +76,9 @@ export function normalizeForecasts(raw: any, league?: string, teamCodeToName?: M
     const startsAt = natstatToUtcISOString(startsAtRaw)
 
     // Extract status and scores
-    const status = typeof forecast.gamestatus === 'string' ? forecast.gamestatus : 'scheduled'
-    const homeScore = forecast['score-home'] ? parseInt(forecast['score-home'], 10) : undefined
-    const awayScore = forecast['score-vis'] ? parseInt(forecast['score-vis'], 10) : undefined
+    const status = readString(forecast.gamestatus) ?? 'scheduled'
+    const homeScore = parseInteger(forecast['score-home'])
+    const awayScore = parseInteger(forecast['score-vis'])
 
     // Generate identity key
     const identity = eventIdentityKey({
@@ -80,7 +92,7 @@ export function normalizeForecasts(raw: any, league?: string, teamCodeToName?: M
     const externalEventId = forecastId.replace('forecast_', '')
 
     // Use the API metadata for the book/source
-    const book = raw?.query?.uri ?? raw?.meta?.api ?? 'natstat'
+    const book = readString(raw?.query?.uri) ?? readString(raw?.meta?.api) ?? 'natstat'
     const processedAt = raw?.meta?.['processed-at']
     const updatedAt = natstatToUtcISOString(processedAt)
 
@@ -221,13 +233,14 @@ export function adjustSpreadSigns(events: NormalizedEvent[], teamIdToCode: Map<s
       const spreadAppliesToAway = spreadAppliesTo === event.awayTeamCode
 
       let adjustedSpread = line.spread
+      const spreadMagnitude = Math.abs(line.spread)
 
       if (spreadAppliesToHome) {
-        // The spread already applies to home team, use as-is
-        adjustedSpread = line.spread
+        // Store spreads from the home team's perspective: negative means home favored.
+        adjustedSpread = -spreadMagnitude
       } else if (spreadAppliesToAway) {
-        // The spread applies to away team, negate it to make it relative to home
-        adjustedSpread = -line.spread
+        // Store spreads from the home team's perspective: positive means away favored.
+        adjustedSpread = spreadMagnitude
       }
 
       // Remove the favouriteId from the final line
