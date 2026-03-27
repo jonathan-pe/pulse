@@ -1,4 +1,4 @@
-import { loadTeamCodes } from '../integrators/natstat/client.js'
+import { loadTeams } from '../integrators/natstat/client.js'
 import { getTeamsForLeague, extractPrimaryLogo, extractAlternateLogo } from '../integrators/espn/index.js'
 import type { ESPNTeam } from '../integrators/espn/types.js'
 import { prisma } from '@/lib/db'
@@ -8,8 +8,108 @@ const logger = createLogger('SyncNatStatTeams')
 
 type JobInput = { league: string }
 
+type NatStatTeamRecord = {
+  id: string
+  code: string
+  name: string
+  active: boolean
+}
+
+type NatStatApiEnvelope = Record<string, unknown>
+type NatStatApiNode = Record<string, unknown>
+
+function readString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  return trimmed ? trimmed : undefined
+}
+
+function readRecord(value: unknown): NatStatApiNode | undefined {
+  return value && typeof value === 'object' ? (value as NatStatApiNode) : undefined
+}
+
+function readSeasonCode(raw: NatStatApiEnvelope): string | undefined {
+  const query = readRecord(raw.query)
+  const context = readRecord(query?.context)
+  const season = readRecord(context?.season)
+  return readString(season?.season_0)
+}
+
+function readCompetitionNode(teamData: NatStatApiNode, preferredSeason?: string) {
+  const seasonKeys = Object.keys(teamData ?? {}).filter((key) => /^season_\d{4}$/.test(key))
+
+  seasonKeys.sort((left, right) => {
+    if (preferredSeason) {
+      const preferredKey = `season_${preferredSeason}`
+      if (left === preferredKey) return -1
+      if (right === preferredKey) return 1
+    }
+
+    return right.localeCompare(left)
+  })
+
+  for (const seasonKey of seasonKeys) {
+    const seasonNode = teamData?.[seasonKey]
+    if (!seasonNode || typeof seasonNode !== 'object') continue
+
+    const competitionEntries = Object.entries(seasonNode).filter(([key]) => key.startsWith('competition_'))
+    for (const [, competition] of competitionEntries) {
+      if (!competition || typeof competition !== 'object') continue
+
+      const code = readString((competition as { code?: unknown }).code)
+      const name = readString((competition as { name?: unknown }).name)
+
+      if (code || name) {
+        return {
+          seasonKey,
+          competition: competition as Record<string, unknown>,
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+function buildTeamRecord(
+  teamKey: string,
+  teamData: NatStatApiNode,
+  preferredSeason?: string,
+): NatStatTeamRecord | null {
+  const teamId = teamKey.replace('team_', '')
+  const active = readString(teamData?.active) === 'Y'
+  const competitionNode = readCompetitionNode(teamData, preferredSeason)
+  const competition = competitionNode?.competition
+
+  const code = readString(competition?.code)
+  const name = readString(competition?.name) ?? readString(teamData?.name)
+
+  if (!teamId || !code || !name) {
+    return null
+  }
+
+  return {
+    id: teamId,
+    code,
+    name,
+    active,
+  }
+}
+
+function choosePreferredRecord(left: NatStatTeamRecord, right: NatStatTeamRecord) {
+  if (left.active !== right.active) {
+    return left.active ? left : right
+  }
+
+  if (left.name.length !== right.name.length) {
+    return left.name.length <= right.name.length ? left : right
+  }
+
+  return left.id <= right.id ? left : right
+}
+
 /**
- * Sync team codes from NatStat's /teamcodes endpoint to our database,
+ * Sync team metadata from NatStat's /teams endpoint to our database,
  * enriched with badge and logo URLs from ESPN's public teams API.
  * This should be run periodically (e.g., weekly or monthly) to keep team data up-to-date.
  */
@@ -31,14 +131,15 @@ export async function syncNatStatTeams({ league }: JobInput) {
 
   logger.info('Starting team sync', { league: normalizedLeague, natstatLeague })
 
-  // Load team codes from NatStat
-  const teamCodesRaw = await loadTeamCodes({ league: natstatLeague })
+  // Load teams from NatStat v4.
+  const teamsRaw = await loadTeams({ league: natstatLeague })
 
-  // Extract teamcodes map
-  const teamcodes = teamCodesRaw?.teamcodes
-  if (!teamcodes || typeof teamcodes !== 'object') {
-    throw new Error('Invalid team codes response from NatStat')
+  const teamsNode = teamsRaw?.teams
+  if (!teamsNode || typeof teamsNode !== 'object') {
+    throw new Error('Invalid teams response from NatStat')
   }
+
+  const preferredSeason = readSeasonCode(teamsRaw)
 
   // Load team metadata from ESPN
   let espnTeamsMap: Map<string, ESPNTeam> = new Map()
@@ -68,28 +169,41 @@ export async function syncNatStatTeams({ league }: JobInput) {
     // Non-fatal: continue without ESPN enrichment
     logger.warn(
       'Failed to fetch ESPN metadata, continuing without enrichment',
-      error instanceof Error ? { message: error.message } : undefined
+      error instanceof Error ? { message: error.message } : undefined,
     )
   }
 
-  const teams = Object.entries(teamcodes)
+  const teams = Object.entries(teamsNode as NatStatApiNode)
+  const selectedTeams = new Map<string, NatStatTeamRecord>()
   let created = 0
   let updated = 0
   let skipped = 0
   let enriched = 0
 
   for (const [teamKey, teamData] of teams) {
-    // Extract team ID from key (e.g., "team_2022531" -> "2022531")
-    const teamId = teamKey.replace('team_', '')
-    const code = (teamData as { code?: string }).code
-    const name = (teamData as { name?: string }).name
-    const active = (teamData as { active?: string }).active === 'Y'
-
-    if (!code || !name) {
+    if (!teamData || typeof teamData !== 'object') {
       skipped++
       continue
     }
 
+    const record = buildTeamRecord(teamKey, teamData as NatStatApiNode, preferredSeason)
+    if (!record) {
+      skipped++
+      continue
+    }
+
+    const dedupeKey = record.code.toLowerCase()
+    const existing = selectedTeams.get(dedupeKey)
+    if (!existing) {
+      selectedTeams.set(dedupeKey, record)
+      continue
+    }
+
+    selectedTeams.set(dedupeKey, choosePreferredRecord(existing, record))
+    skipped++
+  }
+
+  for (const { id: teamId, code, name, active } of selectedTeams.values()) {
     // Try to find matching ESPN team
     // First try by code (most reliable), then by normalized name
     const normalizedCode = code.toLowerCase()
@@ -215,6 +329,7 @@ export async function syncNatStatTeams({ league }: JobInput) {
   logger.info('Team sync completed', {
     league: normalizedLeague,
     total: teams.length,
+    selected: selectedTeams.size,
     created,
     updated,
     skipped,
@@ -226,6 +341,7 @@ export async function syncNatStatTeams({ league }: JobInput) {
     league: normalizedLeague,
     counts: {
       total: teams.length,
+      selected: selectedTeams.size,
       created,
       updated,
       skipped,

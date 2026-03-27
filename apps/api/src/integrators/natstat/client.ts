@@ -164,6 +164,26 @@ export async function loadForecasts({ league, date }: { league: string; date?: s
 }
 
 /**
+ * Load teams from NatStat's /teams endpoint.
+ * This endpoint replaces the v3 /teamcodes contract and returns team metadata
+ * under a teams.team_* wrapper with optional seasonal competition details.
+ * @param league - Sport code (e.g., 'pfb' for NFL, 'nba', 'mlb', 'nhl')
+ * @param season - Optional season code in YYYY format
+ */
+export async function loadTeams({ league, season }: { league: string; season?: string }): Promise<any> {
+  const parts = [NATSTAT_BASE_URL, NATSTAT_API_KEY, 'teams', league.toLowerCase()]
+  if (season) parts.push(season)
+
+  const url = parts.join('/')
+
+  logger.info('Loading teams from NatStat', { league, season: season ?? 'current' })
+
+  const json = await fetchAllPages(url, 'teams')
+
+  return json
+}
+
+/**
  * Load team codes from NatStat's /teamcodes endpoint.
  * This endpoint provides team IDs, codes, names, and metadata.
  * @param league - Sport code (e.g., 'pfb' for NFL, 'nba', 'mlb', 'nhl')

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { loadForecasts, loadTeamCodes, eventIdentityKey } from '../client'
+import { loadForecasts, loadTeamCodes, loadTeams, eventIdentityKey } from '../client'
 
 // Mock the global fetch
 const mockFetch = vi.fn()
@@ -264,6 +264,41 @@ describe('NatStat Client', () => {
       })
 
       await expect(loadTeamCodes({ league: 'nba' })).rejects.toThrow('natstat: 403')
+    })
+  })
+
+  describe('loadTeams', () => {
+    it('should fetch teams from the v4 teams endpoint', async () => {
+      const mockResponse = {
+        teams: {
+          team_1: {
+            active: 'Y',
+            season_2026: {
+              competition_0: {
+                code: 'KC',
+                name: 'Kansas City Chiefs',
+              },
+            },
+          },
+        },
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockResponse,
+        text: async () => JSON.stringify(mockResponse),
+      })
+
+      const result = await loadTeams({ league: 'pfb', season: '2026' })
+
+      expect(result).toEqual(mockResponse)
+
+      const callUrl = mockFetch.mock.calls[0][0]
+      expect(callUrl).toContain('https://api4.natst.at')
+      expect(callUrl).toContain('teams')
+      expect(callUrl).toContain('pfb')
+      expect(callUrl).toContain('2026')
     })
   })
 
