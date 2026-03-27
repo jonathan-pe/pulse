@@ -52,27 +52,27 @@ The Pulse ingestion system has been migrated from using three separate NatStat e
 **Old (deprecated):**
 
 ```text
-GET https://api3.natst.at/{API_KEY}/moneyline/{league}/{date}
-GET https://api3.natst.at/{API_KEY}/pointspread/{league}/{date}
-GET https://api3.natst.at/{API_KEY}/overunder/{league}/{date}
+GET /moneyline/{league}/{date}
+GET /pointspread/{league}/{date}
+GET /overunder/{league}/{date}
 ```
 
 **New:**
 
 ```text
-GET https://api3.natst.at/{API_KEY}/forecasts/{league}/{date}
+GET https://api4.natst.at/{API_KEY}/forecasts/{league}/{date}
 ```
 
 ## League Code Mapping
 
 The system automatically maps standard league codes to NatStat-specific codes:
 
-| Standard | NatStat | Sport |
-|----------|---------|-------|
-| NFL | pfb | Pro Football |
-| NBA | nba | Basketball |
-| MLB | mlb | Baseball |
-| NHL | nhl | Hockey |
+| Standard | NatStat | Sport        |
+| -------- | ------- | ------------ |
+| NFL      | pfb     | Pro Football |
+| NBA      | nba     | Basketball   |
+| MLB      | mlb     | Baseball     |
+| NHL      | nhl     | Hockey       |
 
 ## Data Flow
 

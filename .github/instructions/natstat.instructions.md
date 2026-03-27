@@ -4,7 +4,7 @@ applyTo: '**'
 
 # Pulse — NatStat Ingestion (High‑Level Outline)
 
-Concise, implementation‑agnostic guidance for an AI code generator to integrate **National Statistical (NatStat)** prematch odds into Pulse. For endpoint names/paths and supported query parameters, consult the official endpoints directory: https://natstat.com/api-v3/endpoints. For additional context, refer to the NatStat API documentation: https://natstat.com/api-v3/docs.
+Concise, implementation‑agnostic guidance for an AI code generator to integrate **National Statistical (NatStat)** prematch odds into Pulse. For endpoint names/paths and supported query parameters, consult the official endpoints directory: https://natstat.com/api-v4/endpoints. For additional context, refer to the NatStat API documentation: https://natstat.com/api-v4/docs.
 
 ---
 
@@ -22,7 +22,7 @@ Concise, implementation‑agnostic guidance for an AI code generator to integrat
 
 Define these runtime variables (names may be adapted to your stack):
 
-- `NATSTAT_BASE_URL` (default `https://natstat.com/api-v3`)
+- `NATSTAT_BASE_URL` (default `https://api4.natst.at`)
 - `NATSTAT_API_KEY`
 - `NATSTAT_AUTH_SCHEME` (one of: `x-api-key`, `bearer`, or `header:Name`)
 - `NATSTAT_TIMEOUT_MS` (e.g., 10000)

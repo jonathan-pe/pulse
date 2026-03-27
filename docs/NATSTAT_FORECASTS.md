@@ -9,7 +9,7 @@ Pulse now uses NatStat's unified `/forecasts` endpoint to ingest odds data. This
 **Base URL Pattern:**
 
 ```text
-https://api3.natst.at/{API_KEY}/forecasts/{league}/{date}
+https://api4.natst.at/{API_KEY}/forecasts/{league}/{date}
 ```
 
 **Supported Leagues:**
@@ -220,7 +220,7 @@ Required configuration in `apps/api/.env`:
 
 ```env
 # NatStat API Configuration
-NATSTAT_BASE_URL=https://api3.natst.at
+NATSTAT_BASE_URL=https://api4.natst.at
 NATSTAT_API_KEY=your-api-key-here
 NATSTAT_AUTH_SCHEME=x-api-key
 NATSTAT_TIMEOUT_MS=10000
@@ -340,7 +340,7 @@ To test the integration manually:
 ```bash
 # 1. Set environment variables
 export NATSTAT_API_KEY="your-key"
-export NATSTAT_BASE_URL="https://api3.natst.at"
+export NATSTAT_BASE_URL="https://api4.natst.at"
 
 # 2. Run ingestion for today
 cd apps/api

@@ -110,15 +110,15 @@ Migrate from three separate NatStat endpoints to the unified `/forecasts` endpoi
 **Old (deprecated):**
 
 ```text
-GET https://api3.natst.at/{API_KEY}/moneyline/{league}/{date}
-GET https://api3.natst.at/{API_KEY}/pointspread/{league}/{date}
-GET https://api3.natst.at/{API_KEY}/overunder/{league}/{date}
+GET /moneyline/{league}/{date}
+GET /pointspread/{league}/{date}
+GET /overunder/{league}/{date}
 ```
 
 **New:**
 
 ```text
-GET https://api3.natst.at/{API_KEY}/forecasts/{league}/{date}
+GET https://api4.natst.at/{API_KEY}/forecasts/{league}/{date}
 ```
 
 ## League Code Mapping

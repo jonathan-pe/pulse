@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { loadForecasts, loadTeamCodes, loadTeams, eventIdentityKey } from '../client'
+import { loadForecasts, loadTeams, eventIdentityKey } from '../client'
 
 // Mock the global fetch
 const mockFetch = vi.fn()
@@ -210,60 +210,6 @@ describe('NatStat Client', () => {
       const headers = mockFetch.mock.calls[0][1].headers
       expect(headers).toBeDefined()
       expect(headers.accept).toBe('application/json')
-    })
-  })
-
-  describe('loadTeamCodes', () => {
-    it('should fetch team codes for a league', async () => {
-      const mockResponse = {
-        teams: [
-          { id: '1', code: 'KC', name: 'Kansas City Chiefs', league: 'NFL' },
-          { id: '2', code: 'BUF', name: 'Buffalo Bills', league: 'NFL' },
-        ],
-      }
-
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => mockResponse,
-        text: async () => JSON.stringify(mockResponse),
-      })
-
-      const result = await loadTeamCodes({ league: 'pfb' })
-
-      expect(mockFetch).toHaveBeenCalledTimes(1)
-      expect(result).toEqual(mockResponse)
-
-      const callUrl = mockFetch.mock.calls[0][0]
-      expect(callUrl).toContain('https://api4.natst.at')
-      expect(callUrl).toContain('teamcodes')
-      expect(callUrl).toContain('pfb')
-    })
-
-    it('should normalize league to lowercase', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({ teams: [] }),
-        text: async () => '{}',
-      })
-
-      await loadTeamCodes({ league: 'MLB' })
-
-      const callUrl = mockFetch.mock.calls[0][0]
-      expect(callUrl).toContain('https://api4.natst.at')
-      expect(callUrl).toContain('mlb')
-      expect(callUrl).not.toContain('MLB')
-    })
-
-    it('should handle errors consistently with loadForecasts', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 403,
-        text: async () => 'Forbidden',
-      })
-
-      await expect(loadTeamCodes({ league: 'nba' })).rejects.toThrow('natstat: 403')
     })
   })
 

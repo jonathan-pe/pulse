@@ -39,7 +39,7 @@ We need to:
 Implement point spread normalization system with three components:
 
 1. **NatStatTeam table** - Cache team ID-to-code mappings in database
-2. **Team sync job** - Populate cache from NatStat `/teamcodes` endpoint
+2. **Team sync job** - Populate cache from NatStat `/teams` endpoint
 3. **Spread adjustment logic** - Use favorite team ID to determine correct spread sign
 
 ### Normalization Rules
@@ -108,11 +108,14 @@ model NatStatTeam {
 
 ### 2. API Client (`apps/api/src/integrators/natstat/client.ts`)
 
-Added function to fetch team codes from NatStat:
+Added function to fetch team metadata from NatStat:
 
 ```typescript
-export async function loadTeamCodes({ league }: { league: string }): Promise<any> {
-  const url = `${NATSTAT_BASE_URL}/${NATSTAT_API_KEY}/teamcodes/${league.toLowerCase()}`
+export async function loadTeams({ league, season }: { league: string; season?: string }): Promise<any> {
+  const parts = [NATSTAT_BASE_URL, NATSTAT_API_KEY, 'teams', league.toLowerCase()]
+  if (season) parts.push(season)
+
+  const url = parts.join('/')
   const json = await fetchWithRetry(url, { method: 'GET' })
   return json
 }
@@ -122,7 +125,7 @@ export async function loadTeamCodes({ league }: { league: string }): Promise<any
 
 New job to populate/update the `NatStatTeam` table:
 
-- Fetches team codes from `/teamcodes` endpoint
+- Fetches team metadata from `/teams` endpoint
 - Upserts teams into database
 - Should be run weekly or monthly (teams rarely change)
 

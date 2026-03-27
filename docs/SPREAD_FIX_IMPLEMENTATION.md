@@ -31,11 +31,14 @@ model NatStatTeam {
 
 ### 2. API Client (`apps/api/src/integrators/natstat/client.ts`)
 
-Added function to fetch team codes from NatStat:
+Added function to fetch team metadata from NatStat:
 
 ```typescript
-export async function loadTeamCodes({ league }: { league: string }): Promise<any> {
-  const url = `${NATSTAT_BASE_URL}/${NATSTAT_API_KEY}/teamcodes/${league.toLowerCase()}`
+export async function loadTeams({ league, season }: { league: string; season?: string }): Promise<any> {
+  const parts = [NATSTAT_BASE_URL, NATSTAT_API_KEY, 'teams', league.toLowerCase()]
+  if (season) parts.push(season)
+
+  const url = parts.join('/')
   const json = await fetchWithRetry(url, { method: 'GET' })
   return json
 }
@@ -45,7 +48,7 @@ export async function loadTeamCodes({ league }: { league: string }): Promise<any
 
 New job to populate/update the `NatStatTeam` table:
 
-- Fetches team codes from `/teamcodes` endpoint
+- Fetches team metadata from `/teams` endpoint
 - Upserts teams into database
 - Should be run weekly or monthly (teams rarely change)
 
@@ -60,10 +63,7 @@ Updated `NormalizedEvent` type to include:
 Added `adjustSpreadSigns()` helper function:
 
 ```typescript
-export function adjustSpreadSigns(
-  events: NormalizedEvent[],
-  teamIdToCode: Map<string, string>
-): NormalizedEvent[]
+export function adjustSpreadSigns(events: NormalizedEvent[], teamIdToCode: Map<string, string>): NormalizedEvent[]
 ```
 
 This function:
@@ -197,18 +197,18 @@ pnpm --filter @pulse/api ingest 2025-10-19 NFL
 ### 4. Verify Spreads
 
 ```sql
-SELECT 
+SELECT
   g."homeTeam",
   g."awayTeam",
   o.spread,
-  CASE 
+  CASE
     WHEN o.spread < 0 THEN g."homeTeam" || ' is favored'
     WHEN o.spread > 0 THEN g."awayTeam" || ' is favored'
     ELSE 'Pick em'
   END as favorite
 FROM "Game" g
 JOIN "GameOdds" o ON o."gameId" = g.id
-WHERE g.league = 'NFL' 
+WHERE g.league = 'NFL'
   AND g."startsAt"::date = '2025-10-19'
   AND o.market = 'pointspread';
 ```
@@ -232,7 +232,7 @@ Expected results:
     "forecast": {
       "spread": {
         "spread": "-3.5",
-        "favourite": "2022531"  // JAX team ID
+        "favourite": "2022531" // JAX team ID
       }
     }
   }

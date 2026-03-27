@@ -165,7 +165,7 @@ export async function loadForecasts({ league, date }: { league: string; date?: s
 
 /**
  * Load teams from NatStat's /teams endpoint.
- * This endpoint replaces the v3 /teamcodes contract and returns team metadata
+ * This endpoint returns team metadata
  * under a teams.team_* wrapper with optional seasonal competition details.
  * @param league - Sport code (e.g., 'pfb' for NFL, 'nba', 'mlb', 'nhl')
  * @param season - Optional season code in YYYY format
@@ -180,23 +180,6 @@ export async function loadTeams({ league, season }: { league: string; season?: s
 
   const json = await fetchAllPages(url, 'teams')
 
-  return json
-}
-
-/**
- * Load team codes from NatStat's /teamcodes endpoint.
- * This endpoint provides team IDs, codes, names, and metadata.
- * @param league - Sport code (e.g., 'pfb' for NFL, 'nba', 'mlb', 'nhl')
- */
-export async function loadTeamCodes({ league }: { league: string }): Promise<any> {
-  // Build URL: https://api3.natst.at/{API_KEY}/teamcodes/{league}
-  const url = `${NATSTAT_BASE_URL}/${NATSTAT_API_KEY}/teamcodes/${league.toLowerCase()}`
-
-  logger.info('Loading team codes from NatStat', { league })
-
-  const json = await fetchWithRetry(url, { method: 'GET' })
-
-  // Return the full JSON payload
   return json
 }
 
