@@ -108,6 +108,94 @@ function choosePreferredRecord(left: NatStatTeamRecord, right: NatStatTeamRecord
   return left.id <= right.id ? left : right
 }
 
+export async function upsertNatStatProviderMapping({
+  teamId,
+  externalId,
+  externalCode,
+  externalName,
+  active,
+  metadata,
+}: {
+  teamId: string
+  externalId: string
+  externalCode: string
+  externalName: string
+  active: boolean
+  metadata?: { badgeUrl: string }
+}) {
+  const provider = 'natstat'
+
+  const [mappingByExternalId, mappingByTeam] = await Promise.all([
+    prisma.teamProviderMapping.findUnique({
+      where: {
+        provider_externalId: {
+          provider,
+          externalId,
+        },
+      },
+    }),
+    prisma.teamProviderMapping.findUnique({
+      where: {
+        teamId_provider: {
+          teamId,
+          provider,
+        },
+      },
+    }),
+  ])
+
+  const updateData = {
+    teamId,
+    externalCode,
+    externalName,
+    active,
+    metadata,
+  }
+
+  if (mappingByExternalId && mappingByTeam && mappingByExternalId.id !== mappingByTeam.id) {
+    await prisma.teamProviderMapping.delete({
+      where: { id: mappingByTeam.id },
+    })
+
+    return prisma.teamProviderMapping.update({
+      where: { id: mappingByExternalId.id },
+      data: updateData,
+    })
+  }
+
+  if (mappingByExternalId) {
+    return prisma.teamProviderMapping.update({
+      where: { id: mappingByExternalId.id },
+      data: updateData,
+    })
+  }
+
+  if (mappingByTeam) {
+    return prisma.teamProviderMapping.update({
+      where: { id: mappingByTeam.id },
+      data: {
+        externalId,
+        externalCode,
+        externalName,
+        active,
+        metadata,
+      },
+    })
+  }
+
+  return prisma.teamProviderMapping.create({
+    data: {
+      teamId,
+      provider,
+      externalId,
+      externalCode,
+      externalName,
+      active,
+      metadata,
+    },
+  })
+}
+
 /**
  * Sync team metadata from NatStat's /teams endpoint to our database,
  * enriched with badge and logo URLs from ESPN's public teams API.
@@ -256,29 +344,13 @@ export async function syncNatStatTeams({ league }: JobInput) {
       },
     })
 
-    // Create or update TeamProviderMapping for NatStat
-    await prisma.teamProviderMapping.upsert({
-      where: {
-        teamId_provider: {
-          teamId: team.id,
-          provider: 'natstat',
-        },
-      },
-      create: {
-        teamId: team.id,
-        provider: 'natstat',
-        externalId: teamId,
-        externalCode: code,
-        externalName: name,
-        active,
-        metadata: badgeUrl ? { badgeUrl } : undefined,
-      },
-      update: {
-        externalCode: code,
-        externalName: name,
-        active,
-        metadata: badgeUrl ? { badgeUrl } : undefined,
-      },
+    await upsertNatStatProviderMapping({
+      teamId: team.id,
+      externalId: teamId,
+      externalCode: code,
+      externalName: name,
+      active,
+      metadata: badgeUrl ? { badgeUrl } : undefined,
     })
 
     // Also update legacy NatStatTeam table for backwards compatibility
