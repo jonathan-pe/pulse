@@ -1,4 +1,4 @@
-import { ShoppingCart } from 'lucide-react'
+import { ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -21,9 +21,9 @@ export default function AppHeader() {
 
           {/* Right side actions */}
           <div className='flex items-center gap-2'>
-            {/* Bet Slip Button with Badge */}
-            <Button variant='ghost' size='icon' onClick={toggleCart} aria-label='Open bet slip' className='relative'>
-              <ShoppingCart />
+            {/* Prediction slip */}
+            <Button variant='ghost' size='icon' onClick={toggleCart} aria-label='Open prediction slip' className='relative'>
+              <ClipboardList />
               {selections.length > 0 && (
                 <Badge className='absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full p-0 text-xs'>
                   {selections.length}
@@ -34,7 +34,7 @@ export default function AppHeader() {
         </div>
       </header>
 
-      {/* Bet Slip Sidebar */}
+      {/* Prediction slip (sheet) */}
       <BetSlipSidebar />
     </>
   )

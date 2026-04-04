@@ -81,8 +81,8 @@ const BetSlipSidebar: React.FC = () => {
     <Sheet open={isOpen} onOpenChange={setCartOpen}>
       <SheetContent side={isMobile ? 'bottom' : 'right'} className={isMobile ? 'h-[80vh]' : 'w-[400px] sm:w-[540px]'}>
         <SheetHeader>
-          <SheetTitle>Bet Slip</SheetTitle>
-          <SheetDescription>Review your selections and submit predictions</SheetDescription>
+          <SheetTitle>Prediction slip</SheetTitle>
+          <SheetDescription>Review your picks and submit them as predictions.</SheetDescription>
         </SheetHeader>
 
         <div className='flex flex-1 flex-col gap-4 overflow-hidden px-4 pb-4'>
@@ -152,7 +152,7 @@ const BetSlipSidebar: React.FC = () => {
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-2'>
                 <h3 className='text-sm font-medium'>
-                  Selections {selections.length > 0 && <Badge variant='secondary'>{selections.length}</Badge>}
+                  Picks {selections.length > 0 && <Badge variant='secondary'>{selections.length}</Badge>}
                 </h3>
                 <TooltipProvider>
                   <Tooltip>
@@ -161,7 +161,7 @@ const BetSlipSidebar: React.FC = () => {
                     </TooltipTrigger>
                     <TooltipContent className='max-w-[250px]'>
                       <p className='text-xs'>
-                        Each selection will be created as an individual prediction. This does not create a parlay.
+                        Each pick becomes its own prediction. This is not a parlay.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -177,8 +177,8 @@ const BetSlipSidebar: React.FC = () => {
             {selections.length === 0 ? (
               <div className='flex flex-1 flex-col items-center justify-center text-center'>
                 <div className='text-muted-foreground'>
-                  <p className='text-sm'>No selections yet</p>
-                  <p className='mt-1 text-xs'>Add games to your bet slip to get started</p>
+                  <p className='text-sm'>No picks yet</p>
+                  <p className='mt-1 text-xs'>Choose sides on upcoming games to add them here.</p>
                 </div>
               </div>
             ) : (
@@ -202,7 +202,7 @@ const BetSlipSidebar: React.FC = () => {
                             {selection.league}
                           </Badge>
 
-                          {/* Bet Details */}
+                          {/* Pick details */}
                           <div className='text-xs text-muted-foreground'>{getBetDetail(selection)}</div>
 
                           {/* Points Preview */}

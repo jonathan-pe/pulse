@@ -1,30 +1,11 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
-export type ViewMode = 'table' | 'cards'
+/**
+ * UI preferences (home feed sort, grouping, etc.).
+ * Table vs cards toggle was removed; persist and additional fields land in a later batch.
+ */
+export interface UIState {}
 
-export interface UIState {
-  viewMode: ViewMode
-  setViewMode: (mode: ViewMode) => void
-  toggleViewMode: () => void
-}
-
-const useUIStore = create<UIState>()(
-  persist(
-    (set) => ({
-      viewMode: 'cards', // Default to cards view (more modern)
-
-      setViewMode: (mode) => set({ viewMode: mode }),
-
-      toggleViewMode: () =>
-        set((state) => ({
-          viewMode: state.viewMode === 'table' ? 'cards' : 'table',
-        })),
-    }),
-    {
-      name: 'pulse-ui-preferences',
-    }
-  )
-)
+const useUIStore = create<UIState>(() => ({}))
 
 export default useUIStore
