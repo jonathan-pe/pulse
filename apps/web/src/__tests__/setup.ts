@@ -1,5 +1,6 @@
 // Vitest setup file for web app
-// Add any global test setup here
+// Stable local calendar keys in date-grouping tests (group-games-by-local-day).
+process.env.TZ = 'UTC'
 
 import '@testing-library/jest-dom'
 

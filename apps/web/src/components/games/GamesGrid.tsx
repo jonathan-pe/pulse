@@ -2,16 +2,21 @@ import React from 'react'
 import type { GameWithUnifiedOdds } from '@pulse/types'
 import GameCard from './GameCard'
 import { Skeleton } from '@/components/ui/skeleton'
+import { groupGamesByLocalDay } from '@/lib/group-games-by-local-day'
 
 interface GamesGridProps {
   games: GameWithUnifiedOdds[]
   isLoading?: boolean
+  /** When true (default), group cards by local kickoff calendar day. */
+  groupByDay?: boolean
 }
 
-const GamesGrid: React.FC<GamesGridProps> = ({ games, isLoading }) => {
+const gamesGridLayoutClass = 'grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3'
+
+const GamesGrid: React.FC<GamesGridProps> = ({ games, isLoading, groupByDay = true }) => {
   if (isLoading) {
     return (
-      <div className='grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3'>
+      <div className={gamesGridLayoutClass}>
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className='space-y-3 rounded-lg border p-4'>
             <div className='flex items-center justify-between'>
@@ -46,10 +51,31 @@ const GamesGrid: React.FC<GamesGridProps> = ({ games, isLoading }) => {
     )
   }
 
+  if (!groupByDay) {
+    return (
+      <div className={gamesGridLayoutClass}>
+        {games.map((game) => (
+          <GameCard key={game.id} game={game} />
+        ))}
+      </div>
+    )
+  }
+
+  const dayGroups = groupGamesByLocalDay(games)
+
   return (
-    <div className='grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3'>
-      {games.map((game) => (
-        <GameCard key={game.id} game={game} />
+    <div className='flex flex-col gap-8 sm:gap-10'>
+      {dayGroups.map(({ dateKey, label, games: dayGames }) => (
+        <section key={dateKey} aria-labelledby={`games-day-${dateKey}`}>
+          <h3 id={`games-day-${dateKey}`} className='text-lg font-semibold tracking-tight text-foreground mb-4'>
+            {label}
+          </h3>
+          <div className={gamesGridLayoutClass}>
+            {dayGames.map((game) => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </div>
+        </section>
       ))}
     </div>
   )
