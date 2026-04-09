@@ -54,6 +54,8 @@ export type GameWithUnifiedOdds = {
   id: string
   league: string
   startsAt: Date | string
+  /** Optional source timestamp for when odds were last refreshed. */
+  oddsUpdatedAt?: Date | string | null
   homeTeam: TeamInfo
   awayTeam: TeamInfo
   status: string
