@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import type { GameWithUnifiedOdds } from '@pulse/types'
 import GameCard from './GameCard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,7 +13,12 @@ interface GamesGridProps {
 
 const gamesGridLayoutClass = 'grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3'
 
-const GamesGrid: React.FC<GamesGridProps> = ({ games, isLoading, groupByDay = true }) => {
+const GamesGrid: React.FC<GamesGridProps> = ({
+  games,
+  isLoading,
+  groupByDay = true,
+}) => {
+  const orderedGames = useMemo(() => [...games].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()), [games])
   if (isLoading) {
     return (
       <div className={gamesGridLayoutClass}>
@@ -40,7 +45,7 @@ const GamesGrid: React.FC<GamesGridProps> = ({ games, isLoading, groupByDay = tr
     )
   }
 
-  if (games.length === 0) {
+  if (orderedGames.length === 0) {
     return (
       <div className='flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center'>
         <div className='text-muted-foreground'>
@@ -54,14 +59,14 @@ const GamesGrid: React.FC<GamesGridProps> = ({ games, isLoading, groupByDay = tr
   if (!groupByDay) {
     return (
       <div className={gamesGridLayoutClass}>
-        {games.map((game) => (
+        {orderedGames.map((game) => (
           <GameCard key={game.id} game={game} />
         ))}
       </div>
     )
   }
 
-  const dayGroups = groupGamesByLocalDay(games)
+  const dayGroups = groupGamesByLocalDay(orderedGames)
 
   return (
     <div className='flex flex-col gap-8 sm:gap-10'>

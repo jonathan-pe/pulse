@@ -41,9 +41,13 @@ function formatGroupLabel(dateKey: string, todayKey: string, tomorrowKey: string
   }).format(date)
 }
 
+function sortByStartTime(games: GameWithUnifiedOdds[]): GameWithUnifiedOdds[] {
+  return [...games].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+}
+
 /**
  * Buckets games by kickoff **local calendar day**, ordered soonest day first.
- * Games within each day stay sorted by `startsAt` ascending.
+ * Within each day, games are ordered by start time.
  */
 export function groupGamesByLocalDay(games: GameWithUnifiedOdds[]): GameDayGroup[] {
   if (games.length === 0) return []
@@ -54,25 +58,21 @@ export function groupGamesByLocalDay(games: GameWithUnifiedOdds[]): GameDayGroup
   const tomorrowKey = localDateKey(tomorrowDate)
   const currentYear = now.getFullYear()
 
-  const sorted = [...games].sort((a, b) => {
-    return new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-  })
-
   const byKey = new Map<string, GameWithUnifiedOdds[]>()
-  const dayOrder: string[] = []
 
-  for (const game of sorted) {
+  for (const game of games) {
     const key = localDateKey(new Date(game.startsAt))
     if (!byKey.has(key)) {
       byKey.set(key, [])
-      dayOrder.push(key)
     }
     byKey.get(key)!.push(game)
   }
 
+  const dayOrder = [...byKey.keys()].sort((a, b) => a.localeCompare(b))
+
   return dayOrder.map((dateKey) => ({
     dateKey,
     label: formatGroupLabel(dateKey, todayKey, tomorrowKey, currentYear),
-    games: byKey.get(dateKey)!,
+    games: sortByStartTime(byKey.get(dateKey)!),
   }))
 }

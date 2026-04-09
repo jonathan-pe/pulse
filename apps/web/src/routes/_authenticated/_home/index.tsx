@@ -12,7 +12,10 @@ function Index() {
 
   return (
     <UpcomingGamesPageLayout title='Upcoming Games'>
-      <GamesGrid games={games ?? []} isLoading={isLoading} />
+      <GamesGrid
+        games={games ?? []}
+        isLoading={isLoading}
+      />
     </UpcomingGamesPageLayout>
   )
 }

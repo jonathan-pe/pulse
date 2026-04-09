@@ -15,7 +15,10 @@ function RouteComponent() {
 
   return (
     <UpcomingGamesPageLayout title={leagueTitle}>
-      <GamesGrid games={games ?? []} isLoading={isLoading} />
+      <GamesGrid
+        games={games ?? []}
+        isLoading={isLoading}
+      />
     </UpcomingGamesPageLayout>
   )
 }
