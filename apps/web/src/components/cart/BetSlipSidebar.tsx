@@ -17,6 +17,7 @@ import {
   formatOdds,
 } from '@pulse/shared'
 import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
+import { getLeagueBadgeColor } from '@/lib/league-colors'
 
 const DAILY_BONUS_TIER_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
 const SOFT_CAP = DEFAULT_SOFT_CAP_THRESHOLD
@@ -192,15 +193,20 @@ const BetSlipSidebar: React.FC = () => {
                     >
                       <div className='flex items-start justify-between gap-3'>
                         <div className='flex-1 space-y-1'>
-                          {/* Team/Game Info */}
-                          <div className='text-sm font-medium'>
-                            {selection.teamName || `${selection.awayTeam} @ ${selection.homeTeam}`}
+                          {/* Matchup + league + pick */}
+                          <div className='space-y-0.5'>
+                            <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+                              <span className='text-sm font-medium leading-snug'>
+                                {selection.awayTeam} @ {selection.homeTeam}
+                              </span>
+                              <Badge variant='outline' className={`shrink-0 text-xs ${getLeagueBadgeColor(selection.league)}`}>
+                                {selection.league}
+                              </Badge>
+                            </div>
+                            {selection.teamName ? (
+                              <div className='text-sm text-muted-foreground leading-snug'>{selection.teamName}</div>
+                            ) : null}
                           </div>
-
-                          {/* League Badge */}
-                          <Badge variant='outline' className='text-xs'>
-                            {selection.league}
-                          </Badge>
 
                           {/* Pick details */}
                           <div className='text-xs text-muted-foreground'>{getBetDetail(selection)}</div>
