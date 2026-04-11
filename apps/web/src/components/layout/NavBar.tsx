@@ -58,8 +58,8 @@ export default function Navbar() {
                 Dashboard
               </Link>
 
-              <Link to='/leaderboard' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
-                Leaderboard
+              <Link to='/community' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>
+                Community
               </Link>
 
               <Link to='/predictions' className='px-2 py-1 rounded hover:bg-accent/60 [ &.active ]:font-semibold'>

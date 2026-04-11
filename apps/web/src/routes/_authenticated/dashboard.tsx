@@ -4,7 +4,7 @@ import { StatsCard } from '@/components/dashboard/StatsCard'
 import { LeagueStatsTable } from '@/components/dashboard/LeagueStatsTable'
 import { PointsChart } from '@/components/dashboard/PointsChart'
 import { RecentPredictions } from '@/components/dashboard/RecentPredictions'
-import { TrendingUp, Target, Award, Flame, Calendar, Trophy } from 'lucide-react'
+import { TrendingUp, Target, Award, Flame, Calendar, Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Link } from '@tanstack/react-router'
@@ -60,7 +60,7 @@ function Dashboard() {
           <StatsCard
             title='Total Points'
             value={stats.totalPoints.toLocaleString()}
-            description={stats.leaderboardRank ? `Rank #${stats.leaderboardRank} on leaderboard` : 'Unranked'}
+            description={stats.leaderboardRank ? `Rank #${stats.leaderboardRank} in the community` : 'Unranked'}
             icon={TrendingUp}
           />
 
@@ -89,10 +89,10 @@ function Dashboard() {
           <StatsCard title='Points Earned Today' value={stats.pointsEarnedToday} icon={Award} />
 
           <StatsCard
-            title='Leaderboard Rank'
+            title='Community rank'
             value={stats.leaderboardRank ?? 'Unranked'}
-            description={stats.leaderboardRank ? 'All-time ranking' : 'Make predictions to get ranked'}
-            icon={Trophy}
+            description={stats.leaderboardRank ? 'All-time, by total points' : 'Make predictions to appear here'}
+            icon={Users}
           />
         </div>
 
@@ -116,7 +116,7 @@ function Dashboard() {
                 <Link to='/'>Make Predictions</Link>
               </Button>
               <Button variant='outline' asChild>
-                <Link to='/leaderboard'>View Leaderboard</Link>
+                <Link to='/community'>View Community</Link>
               </Button>
               <Button variant='outline' asChild>
                 <Link to='/predictions'>My Predictions</Link>

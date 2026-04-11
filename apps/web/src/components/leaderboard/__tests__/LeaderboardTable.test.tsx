@@ -39,34 +39,34 @@ describe('LeaderboardTable', () => {
 
   it('shows loading state', () => {
     renderTable({ isLoading: true })
-    expect(screen.getByText(/loading leaderboard/i)).toBeInTheDocument()
+    expect(screen.getByText(/loading/i)).toBeInTheDocument()
   })
 
   it('shows empty state', () => {
     renderTable({ leaderboard: [] })
-    expect(screen.getByText(/no rankings available yet/i)).toBeInTheDocument()
+    expect(screen.getByText(/no entries for this period yet/i)).toBeInTheDocument()
   })
 
   it('renders entries with ranks and points', () => {
     renderTable()
-    expect(screen.getByText(/today's leaders/i)).toBeInTheDocument()
+    expect(screen.getByText('Today')).toBeInTheDocument()
+    expect(screen.getByText('#1')).toBeInTheDocument()
+    expect(screen.getByText('#2')).toBeInTheDocument()
     expect(screen.getByText('Alpha')).toBeInTheDocument()
     expect(screen.getByText('Bravo')).toBeInTheDocument()
     expect(screen.getByText('1,200')).toBeInTheDocument()
     expect(screen.getByText('980')).toBeInTheDocument()
   })
 
-  it('renders weekly headers and rank change badges', () => {
+  it('renders weekly header', () => {
     renderTable({ period: 'weekly' })
-    expect(screen.getByText(/this week's leaders/i)).toBeInTheDocument()
-    // Rank change badges exist (text values 2 and 1)
-    expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByText('This week')).toBeInTheDocument()
+    expect(screen.getByText('Alpha')).toBeInTheDocument()
   })
 
   it('renders all-time header', () => {
     renderTable({ period: 'alltime' })
-    expect(screen.getByText(/all-time leaders/i)).toBeInTheDocument()
+    expect(screen.getByText('All time')).toBeInTheDocument()
   })
 
   it('shows reset time in local timezone for daily period', () => {

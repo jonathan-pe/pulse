@@ -73,7 +73,7 @@ export function EditProfileForm({ onCancel, onSave }: EditProfileFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] })
-      queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+      queryClient.invalidateQueries({ queryKey: ['points', 'leaderboard'] })
       toast.success('Profile updated successfully')
       onSave()
     },
@@ -96,7 +96,7 @@ export function EditProfileForm({ onCancel, onSave }: EditProfileFormProps) {
       toast.success('Profile image updated successfully')
       // Invalidate user query to refresh image
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] })
-      queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+      queryClient.invalidateQueries({ queryKey: ['points', 'leaderboard'] })
     } catch (error) {
       console.error('Error uploading image:', error)
       toast.error('Failed to upload image')
@@ -171,7 +171,7 @@ export function EditProfileForm({ onCancel, onSave }: EditProfileFormProps) {
                         await clerkUser.setProfileImage({ file: null })
                         toast.success('Profile image removed')
                         queryClient.invalidateQueries({ queryKey: ['user', 'me'] })
-                        queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+                        queryClient.invalidateQueries({ queryKey: ['points', 'leaderboard'] })
                       } catch (error) {
                         toast.error('Failed to remove image')
                       }

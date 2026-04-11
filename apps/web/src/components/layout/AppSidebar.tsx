@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Home, Trophy, LayoutDashboard, type LucideIcon } from 'lucide-react'
+import { Home, Users, LayoutDashboard, type LucideIcon } from 'lucide-react'
 import { GiAmericanFootballBall, GiBaseballGlove, GiHockey } from 'react-icons/gi'
 import { TbCrystalBall } from 'react-icons/tb'
 import { PiBasketballDuotone } from 'react-icons/pi'
@@ -48,9 +48,9 @@ const navMain: NavItem[] = [
     icon: TbCrystalBall,
   },
   {
-    title: 'Leaderboard',
-    url: '/leaderboard',
-    icon: Trophy,
+    title: 'Community',
+    url: '/community',
+    icon: Users,
   },
 ]
 
