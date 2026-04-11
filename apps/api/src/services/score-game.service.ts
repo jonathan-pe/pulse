@@ -186,14 +186,13 @@ export class ScoreGameService {
       league: prediction.game.league,
       type: prediction.type,
       pick: prediction.pick,
-      bonusTier: prediction.bonusTier,
       isCorrect,
       streak: currentStreak, // Tracked for achievements, not used in points
       dailyCount,
     })
 
     // 6. Update streak (cosmetic tracking for achievements)
-    await pointsService.updateUserStreak(prediction.userId, isCorrect, prediction.bonusTier)
+    await pointsService.updateUserStreak(prediction.userId, isCorrect)
 
     // 7. Check and unlock achievements (only for correct predictions)
     if (isCorrect) {
@@ -216,7 +215,6 @@ export class ScoreGameService {
       userId: prediction.userId,
       isCorrect,
       points,
-      bonusTier: prediction.bonusTier,
       streak: currentStreak,
       duration: `${duration}ms`,
     })
@@ -379,7 +377,7 @@ export class ScoreGameService {
       })
 
       // Update streak
-      await pointsService.updateUserStreak(prediction.userId, isCorrect, prediction.bonusTier)
+      await pointsService.updateUserStreak(prediction.userId, isCorrect)
 
       let pointsAwarded = 0
 
@@ -398,7 +396,6 @@ export class ScoreGameService {
         league: prediction.game.league,
         type: prediction.type,
         pick: prediction.pick,
-        bonusTier: prediction.bonusTier,
         dailyCount,
         isCorrect,
         lateScoring: true, // Flag to indicate this was scored after initial game scoring

@@ -4,12 +4,10 @@ import type { PredictionType } from '@/lib/db'
 import { oddsAggregationService } from './odds-aggregation.service'
 import type { OddsSnapshot } from './points.service'
 
-import { DEFAULT_DAILY_BONUS_TIER_LIMIT, DEFAULT_DAILY_TOTAL_LIMIT, DAILY_RESET_HOUR_UTC } from '@pulse/shared'
+import { DEFAULT_DAILY_TOTAL_LIMIT, DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 const logger = createLogger('PredictionsService')
 
-// Constants from business rules (using shared defaults)
-const DAILY_BONUS_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
 const DAILY_TOTAL_LIMIT = DEFAULT_DAILY_TOTAL_LIMIT
 
 export interface CreatePredictionInput {
@@ -265,7 +263,7 @@ export class PredictionsService {
     if (!replacedContradiction) {
       const stats = await this.getDailyStats(input.userId)
       if (stats.totalRemaining <= 0) {
-        throw new Error('Daily prediction limit reached (100)')
+        throw new Error(`Daily prediction limit reached (${DAILY_TOTAL_LIMIT})`)
       }
     }
 
@@ -281,18 +279,6 @@ export class PredictionsService {
       total: unifiedOdds.total ?? undefined,
     }
 
-    // Determine if this is a bonus tier prediction (first of the day)
-    const startOfDay = this.getStartOfDay()
-    const todaysPredictions = await prisma.prediction.count({
-      where: {
-        userId: input.userId,
-        createdAt: { gte: startOfDay },
-      },
-    })
-
-    const isBonusTier = todaysPredictions < DAILY_BONUS_LIMIT
-
-    // Create the prediction with odds snapshot and bonus tier flag
     const prediction = await prisma.prediction.create({
       data: {
         userId: input.userId,
@@ -301,7 +287,6 @@ export class PredictionsService {
         pick: input.pick,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         oddsAtPrediction: oddsSnapshot as any,
-        bonusTier: isBonusTier,
       },
     })
 
@@ -310,7 +295,6 @@ export class PredictionsService {
       userId: input.userId,
       gameId: input.gameId,
       type: input.type,
-      bonusTier: isBonusTier,
       replaced: replacedContradiction,
     })
 
@@ -340,7 +324,7 @@ export class PredictionsService {
       if (currentTotal >= DAILY_TOTAL_LIMIT) {
         errors.push({
           gameId: input.gameId,
-          error: 'Daily prediction limit reached (100)',
+          error: `Daily prediction limit reached (${DAILY_TOTAL_LIMIT})`,
         })
         continue
       }
@@ -374,11 +358,6 @@ export class PredictionsService {
           total: unifiedOdds.total ?? undefined,
         }
 
-        // Determine if this is a bonus tier prediction
-        const currentDailyCount = initialStats.totalToday + totalCreatedInBatch - totalReplacedInBatch
-        const isBonusTier = currentDailyCount < DAILY_BONUS_LIMIT
-
-        // Create the prediction with odds snapshot and bonus tier flag
         const prediction = await prisma.prediction.create({
           data: {
             userId,
@@ -387,7 +366,6 @@ export class PredictionsService {
             pick: input.pick,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             oddsAtPrediction: oddsSnapshot as any,
-            bonusTier: isBonusTier,
           },
         })
 
@@ -526,46 +504,6 @@ export class PredictionsService {
     return result
   }
 
-  /**
-   * Determine if a prediction qualifies for bonus tier at scoring time
-   * Returns true if this prediction was in the first DAILY_BONUS_LIMIT predictions for the day
-   * This should be called when calculating points for a correct prediction
-   */
-  async isBonusTierPrediction(predictionId: string): Promise<boolean> {
-    const prediction = await prisma.prediction.findUnique({
-      where: { id: predictionId },
-      select: {
-        userId: true,
-        createdAt: true,
-      },
-    })
-
-    if (!prediction) {
-      return false
-    }
-
-    // Get start of the day for this prediction
-    const startOfDay = new Date(prediction.createdAt)
-    startOfDay.setUTCHours(0, 0, 0, 0)
-
-    const endOfDay = new Date(startOfDay)
-    endOfDay.setUTCHours(23, 59, 59, 999)
-
-    // Count how many predictions were made before this one on the same day
-    const earlierPredictionsCount = await prisma.prediction.count({
-      where: {
-        userId: prediction.userId,
-        createdAt: {
-          gte: startOfDay,
-          lte: endOfDay,
-          lt: prediction.createdAt, // Strictly before this prediction
-        },
-      },
-    })
-
-    // If this is within the first DAILY_BONUS_LIMIT predictions, it's bonus tier
-    return earlierPredictionsCount < DAILY_BONUS_LIMIT
-  }
 }
 
 // Export singleton instance

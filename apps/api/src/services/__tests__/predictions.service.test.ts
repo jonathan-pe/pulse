@@ -292,8 +292,8 @@ describe('PredictionsService', () => {
 
       vi.mocked(prisma.prediction.findFirst).mockResolvedValue(null)
 
-      // Mock daily stats - 100 predictions already made
-      vi.mocked(prisma.prediction.count).mockResolvedValue(100)
+      // Mock daily stats — at daily cap (DEFAULT_DAILY_TOTAL_LIMIT = 40)
+      vi.mocked(prisma.prediction.count).mockResolvedValue(40)
 
       await expect(
         service.createPrediction({
@@ -302,7 +302,7 @@ describe('PredictionsService', () => {
           type: 'MONEYLINE',
           pick: 'home',
         })
-      ).rejects.toThrow('Daily prediction limit reached (100)')
+      ).rejects.toThrow('Daily prediction limit reached (40)')
     })
   })
 

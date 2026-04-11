@@ -379,7 +379,7 @@ describe('PointsService', () => {
   })
 
   describe('updateUserStreak', () => {
-    it('should increment streak for correct bonus tier prediction', async () => {
+    it('should increment streak for any correct prediction', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
         currentStreak: 3,
@@ -392,7 +392,7 @@ describe('PointsService', () => {
         longestStreak: 4,
       } as any)
 
-      const newStreak = await service.updateUserStreak('user-123', true, true)
+      const newStreak = await service.updateUserStreak('user-123', true)
 
       expect(newStreak).toBe(4)
       expect(prisma.user.update).toHaveBeenCalledWith({
@@ -401,7 +401,7 @@ describe('PointsService', () => {
       })
     })
 
-    it('should reset streak for incorrect bonus tier prediction', async () => {
+    it('should reset streak for incorrect prediction', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
         currentStreak: 5,
@@ -412,25 +412,13 @@ describe('PointsService', () => {
         currentStreak: 0,
       } as any)
 
-      const newStreak = await service.updateUserStreak('user-123', false, true)
+      const newStreak = await service.updateUserStreak('user-123', false)
 
       expect(newStreak).toBe(0)
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
         data: { currentStreak: 0 },
       })
-    })
-
-    it('should not affect streak for non-bonus tier predictions', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-123',
-        currentStreak: 3,
-      } as any)
-
-      const newStreak = await service.updateUserStreak('user-123', true, false)
-
-      expect(newStreak).toBe(3)
-      expect(prisma.user.update).not.toHaveBeenCalled()
     })
   })
 })

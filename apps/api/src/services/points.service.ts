@@ -207,7 +207,6 @@ export class PointsService {
       predictionId: prediction.id,
       odds,
       dailyPredictionCount,
-      bonusTier: prediction.bonusTier,
       isCorrect: true,
       rawPoints,
       finalPoints,
@@ -241,24 +240,14 @@ export class PointsService {
   /**
    * Update user's streak based on prediction correctness
    *
-   * Streaks are now purely cosmetic for achievement tracking.
-   * They don't affect point calculations.
+   * Streaks are cosmetic for achievement tracking only; they do not affect points.
+   * Every scored prediction updates the streak (correct = increment, incorrect = reset).
    *
    * @param userId - User ID
    * @param isCorrect - Whether the prediction was correct
-   * @param isBonusTier - Whether this was a bonus tier prediction
    * @returns New streak value
    */
-  async updateUserStreak(userId: string, isCorrect: boolean, isBonusTier: boolean): Promise<number> {
-    // Only bonus tier predictions affect streak
-    if (!isBonusTier) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { currentStreak: true },
-      })
-      return user?.currentStreak ?? 0
-    }
-
+  async updateUserStreak(userId: string, isCorrect: boolean): Promise<number> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { currentStreak: true, longestStreak: true },
