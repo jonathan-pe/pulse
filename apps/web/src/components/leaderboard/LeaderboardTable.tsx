@@ -91,7 +91,7 @@ export function LeaderboardTable({ leaderboard, isLoading, period }: Leaderboard
                 <div
                   key={entry.userId}
                   className={
-                    'flex items-center gap-4 p-3 rounded-lg border hover:bg-accent/50 transition-colors ' +
+                    'flex items-center gap-4 p-3 rounded-lg border hover:bg-accent/50 ' +
                     (isCurrentUser ? 'bg-primary/10 border-primary' : '')
                   }
                 >

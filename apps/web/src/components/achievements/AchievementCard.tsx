@@ -46,7 +46,7 @@ export function AchievementCard({ achievement, onClick, isSelectable, isSelected
         <TooltipTrigger asChild>
           <Card
             className={`
-              relative transition-all duration-200 cursor-pointer
+              relative transition-[box-shadow,opacity] duration-200 cursor-pointer
               ${isLocked ? 'opacity-60 grayscale' : 'hover:shadow-md'}
               ${isSelectable && isSelected ? 'ring-2 ring-primary' : ''}
             `}

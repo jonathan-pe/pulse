@@ -105,7 +105,7 @@ const BetSlipSidebar: React.FC = () => {
                   return (
                     <div
                       key={getCartKey(selection)}
-                      className='group relative rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50'
+                      className='group relative rounded-lg border bg-card p-3 hover:bg-accent/50'
                     >
                       <div className='flex items-start justify-between gap-3'>
                         <div className='flex-1 space-y-1'>

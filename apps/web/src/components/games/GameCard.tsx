@@ -14,7 +14,7 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
   const { isGameLocked, hasSelection, hasPrediction, handleAddToCart } = useGameCardPickState(game)
 
   return (
-    <Card className='overflow-hidden transition-shadow hover:shadow-md'>
+    <Card className='overflow-hidden hover:shadow-md hover:transition-shadow'>
       <CardContent className='px-6'>
         <GameCardHeader
           league={game.league}
