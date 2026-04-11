@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.43.1",
+    "@fontsource-variable/montserrat": "^5.2.8",
+    "@fontsource-variable/nunito-sans": "^5.2.7",
     "@hookform/resolvers": "^5.2.1",
     "@pulse/shared": "workspace:*",
     "@pulse/types": "workspace:*",
@@ -56,7 +58,7 @@
     "@types/node": "^24.3.0",
     "@vitejs/plugin-react": "^5.0.1",
     "jsdom": "^27.1.0",
-    "shadcn": "^3.5.0",
+    "shadcn": "^4.2.0",
     "tw-animate-css": "^1.3.7",
     "typescript-eslint": "^8.40.0",
     "vite": "^7.1.3"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "new-york",
+  "style": "radix-vega",
   "rsc": false,
   "tsx": true,
   "tailwind": {
@@ -18,6 +18,9 @@
     "hooks": "@/hooks"
   },
   "iconLibrary": "lucide",
+  "rtl": false,
+  "menuColor": "default",
+  "menuAccent": "bold",
   "registries": {
     "@acme": "https://acme.com/r/{name}.json"
   }

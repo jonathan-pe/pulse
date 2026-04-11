@@ -13,6 +13,7 @@ if (!PUBLISHABLE_KEY) {
 }
 
 import AppRouter from '@/components/auth/AppRouter'
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { ClerkWrapper } from '@/auth/clerk'
 import { queryClient } from '@/lib/api'
 
@@ -23,7 +24,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ClerkWrapper>
-        <AppRouter />
+        <TooltipProvider>
+          <AppRouter />
+        </TooltipProvider>
       </ClerkWrapper>
     </QueryClientProvider>
   </StrictMode>
