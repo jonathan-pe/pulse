@@ -9,7 +9,7 @@
  * Can be called from frontend (previews) or backend (scoring) safely.
  */
 
-import { DEFAULT_LOSS_MULTIPLIER, DEFAULT_SOFT_CAP_THRESHOLD, DEFAULT_HARD_CAP_THRESHOLD } from './constants'
+import { DEFAULT_LOSS_MULTIPLIER } from './constants'
 
 /**
  * Calculate implied probability from American odds
@@ -46,7 +46,7 @@ export function calculateImpliedProbability(odds: number): number {
  * Formula: 10 × (100 / ImpliedProbability)
  *
  * @param odds - American odds format (e.g., -150, +200)
- * @returns Base points (before tier multipliers and diminishing returns)
+ * @returns Base points for a correct pick at these odds
  *
  * @example
  * calculateBasePoints(-500) // Returns 12.0 (83% heavy favorite)
@@ -116,66 +116,6 @@ export function calculatePointsForOutcome(odds: number, isCorrect: boolean, loss
     return calculateBasePoints(odds)
   } else {
     return calculateIncorrectPoints(odds, lossMultiplier)
-  }
-}
-
-/**
- * Apply tier multiplier to base points
- *
- * Bonus tier predictions receive a multiplier before diminishing returns.
- * This encourages daily engagement without being overpowered.
- *
- * @param points - Base points before multiplier
- * @param isBonus - Whether this is a bonus tier prediction
- * @param multiplier - Multiplier value (defaults to DEFAULT_BONUS_TIER_MULTIPLIER)
- * @returns Points after tier multiplier
- *
- * @example
- * applyTierMultiplier(15, true)   // Returns 22.5 (15 × 1.5)
- * applyTierMultiplier(15, false)  // Returns 15 (no bonus)
- * applyTierMultiplier(15, true, 2.0) // Returns 30 (custom multiplier)
- */
-export function applyTierMultiplier(points: number, isBonus: boolean, multiplier: number = 1.5): number {
-  return isBonus ? points * multiplier : points
-}
-
-/**
- * Apply diminishing returns based on daily prediction count
- *
- * Implements soft cap system to discourage excessive volume:
- * - Predictions 1-15: 100% of points
- * - Predictions 16-40: 50% of points
- * - Predictions 41+: 0% of points
- *
- * Note: These thresholds can be overridden via constants or config service
- *
- * @param points - Calculated points before diminishing returns
- * @param dailyPredictionCount - Number of predictions made today (1-indexed)
- * @param softCap - Threshold for full points (default: 15)
- * @param hardCap - Threshold for zero points (default: 40)
- * @returns Points after applying diminishing returns
- *
- * @example
- * applyDiminishingReturns(20, 10) // Returns 20 (within first 15)
- * applyDiminishingReturns(20, 25) // Returns 10 (50% reduction)
- * applyDiminishingReturns(20, 45) // Returns 0 (hard cap)
- *
- * @example
- * // With custom thresholds (e.g., from admin config)
- * applyDiminishingReturns(20, 18, 20, 50) // Returns 20 (new soft cap at 20)
- */
-export function applyDiminishingReturns(
-  points: number,
-  dailyPredictionCount: number,
-  softCap: number = DEFAULT_SOFT_CAP_THRESHOLD,
-  hardCap: number = DEFAULT_HARD_CAP_THRESHOLD
-): number {
-  if (dailyPredictionCount <= softCap) {
-    return points // Full points
-  } else if (dailyPredictionCount <= hardCap) {
-    return points * 0.5 // 50% of points
-  } else {
-    return 0 // No points
   }
 }
 

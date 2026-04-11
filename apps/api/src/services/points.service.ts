@@ -2,12 +2,7 @@ import { prisma } from '@/lib/db'
 import type { PredictionType } from '@/lib/db'
 import type { LeagueStats, UserStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
-import {
-  calculateTotalPoints,
-  applyDiminishingReturns,
-  calculateIncorrectPoints,
-  DAILY_RESET_HOUR_UTC,
-} from '@pulse/shared'
+import { calculateTotalPoints, calculateIncorrectPoints, DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 const logger = createLogger('PointsService')
 
@@ -140,15 +135,14 @@ export class PointsService {
    * Calculate points for a prediction (correct or incorrect)
    *
    * For correct predictions:
-   * - Pure probability-based scoring with bonus tier multiplier (1.5x for first pick/day)
-   * - Applies diminishing returns based on daily volume
+   * - Pure probability-based scoring from odds only (no volume or bonus multipliers)
    *
    * For incorrect predictions:
    * - Negative points scaled by probability (favorites cost more than underdogs)
    * - No tier multiplier or diminishing returns applied to losses
    *
    * @param prediction - Prediction with odds and bonus tier status
-   * @param dailyPredictionCount - Number of predictions made today (for diminishing returns)
+   * @param dailyPredictionCount - Number of predictions made today (logged in meta only)
    * @param isCorrect - Whether the prediction was correct
    * @returns Points to award (positive for correct, negative for incorrect)
    */
@@ -205,15 +199,9 @@ export class PointsService {
       return lossPoints // Return negative value (no tier multiplier or diminishing returns)
     }
 
-    // Handle correct predictions (existing logic)
+    // Handle correct predictions — odds-based points only
     const rawPoints = calculateTotalPoints(odds)
-
-    // Apply bonus tier multiplier (1.5x for first pick of the day)
-    const tierMultiplier = prediction.bonusTier ? 1.5 : 1.0
-    const pointsWithBonus = rawPoints * tierMultiplier
-
-    // Apply diminishing returns based on daily volume
-    const finalPoints = applyDiminishingReturns(pointsWithBonus, dailyPredictionCount)
+    const finalPoints = Math.round(rawPoints)
 
     logger.debug('Calculated points', {
       predictionId: prediction.id,
@@ -221,13 +209,11 @@ export class PointsService {
       dailyPredictionCount,
       bonusTier: prediction.bonusTier,
       isCorrect: true,
-      tierMultiplier,
       rawPoints,
-      pointsWithBonus,
       finalPoints,
     })
 
-    return Math.round(finalPoints) // Round to nearest integer
+    return finalPoints
   }
 
   /**
@@ -331,7 +317,7 @@ export class PointsService {
   }
 
   /**
-   * Get count of predictions made today by user (for diminishing returns)
+   * Get count of predictions made today by user (for stats / meta)
    *
    * @param userId - User ID
    * @param beforeTimestamp - Count predictions created before this time

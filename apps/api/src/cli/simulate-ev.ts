@@ -1,9 +1,4 @@
-import {
-  applyDiminishingReturns,
-  calculateBasePoints,
-  calculateImpliedProbability,
-  calculateIncorrectPoints,
-} from '@pulse/shared'
+import { calculateBasePoints, calculateImpliedProbability, calculateIncorrectPoints } from '@pulse/shared'
 
 type Strategy = {
   name: string
@@ -17,13 +12,9 @@ type VolumeProfile = {
 
 type Assumptions = {
   days: number
-  bonusPicksPerDay: number
-  bonusMultiplier: number
-  softCap: number
-  hardCap: number
-  // In production `PointsLedger.delta` is an Int. The scoring code rounds wins,
-  // but currently does not explicitly round losses. We round losses here to
-  // model the stored integer ledger deltas.
+  // In production `PointsLedger.delta` is an Int. The scoring code rounds wins;
+  // losses may be rounded depending on configuration. We round losses here to
+  // model the stored integer ledger deltas when enabled.
   roundLosses: boolean
   // Optional player edge added to implied probability (e.g. +0.03 = +3pp)
   probabilityEdge: number
@@ -70,11 +61,8 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
-function pointsForCorrectPick(odds: number, dailyCount: number, isBonus: boolean, assumptions: Assumptions): number {
-  const rawWin = calculateBasePoints(odds)
-  const bonusApplied = isBonus ? rawWin * assumptions.bonusMultiplier : rawWin
-  const diminished = applyDiminishingReturns(bonusApplied, dailyCount, assumptions.softCap, assumptions.hardCap)
-  return Math.round(diminished)
+function pointsForCorrectPick(odds: number): number {
+  return Math.round(calculateBasePoints(odds))
 }
 
 function pointsForIncorrectPick(odds: number, lossMultiplier: number, assumptions: Assumptions): number {
@@ -82,18 +70,12 @@ function pointsForIncorrectPick(odds: number, lossMultiplier: number, assumption
   return assumptions.roundLosses ? Math.round(rawLoss) : rawLoss
 }
 
-function expectedPointsForPick(
-  odds: number,
-  lossMultiplier: number,
-  dailyCount: number,
-  isBonus: boolean,
-  assumptions: Assumptions
-): number {
+function expectedPointsForPick(odds: number, lossMultiplier: number, assumptions: Assumptions): number {
   const impliedProbPct = calculateImpliedProbability(odds)
   const impliedProb = impliedProbPct / 100
   const winProb = clamp01(impliedProb + assumptions.probabilityEdge)
 
-  const winPts = pointsForCorrectPick(odds, dailyCount, isBonus, assumptions)
+  const winPts = pointsForCorrectPick(odds)
   const lossPts = pointsForIncorrectPick(odds, lossMultiplier, assumptions)
 
   return winProb * winPts + (1 - winProb) * lossPts
@@ -109,11 +91,9 @@ function expectedPointsForPeriod(
 
   for (let day = 0; day < assumptions.days; day++) {
     const picksToday = volume.picksPerDay
-    const bonusToday = Math.min(assumptions.bonusPicksPerDay, picksToday)
 
-    for (let i = 1; i <= picksToday; i++) {
-      const isBonus = i <= bonusToday
-      totalExpected += expectedPointsForPick(strategy.odds, lossMultiplier, i, isBonus, assumptions)
+    for (let i = 0; i < picksToday; i++) {
+      totalExpected += expectedPointsForPick(strategy.odds, lossMultiplier, assumptions)
     }
   }
 
@@ -174,10 +154,10 @@ function printHeader() {
 function printAssumptions(assumptions: Assumptions) {
   console.log(colorize('Simulation Parameters:', 'blue'))
   console.log(colorize('  • Period:', 'dim'), `${assumptions.days} days`)
-  console.log(colorize('  • Bonus picks/day:', 'dim'), assumptions.bonusPicksPerDay)
-  console.log(colorize('  • Bonus multiplier:', 'dim'), `${assumptions.bonusMultiplier}x`)
-  console.log(colorize('  • Soft cap (full pts):', 'dim'), `≤${assumptions.softCap} picks/day`)
-  console.log(colorize('  • Hard cap (0 pts):', 'dim'), `>${assumptions.hardCap} picks/day`)
+  console.log(
+    colorize('  • Win points:', 'dim'),
+    'odds-based only (no bonus tier or volume penalty)'
+  )
   console.log(
     colorize('  • Player edge:', 'dim'),
     `${assumptions.probabilityEdge > 0 ? '+' : ''}${(assumptions.probabilityEdge * 100).toFixed(1)}%`
@@ -270,7 +250,7 @@ function printRecommendation(assumptions: Assumptions) {
   console.log('')
   console.log(colorize('Key insights:', 'blue'))
   console.log(colorize('  • Multiplier 2.0 makes losses meaningful without going negative', 'dim'))
-  console.log(colorize('  • Higher volume players feel penalties more due to diminishing returns', 'dim'))
+  console.log(colorize('  • Win points per pick do not change with daily volume', 'dim'))
   console.log(colorize('  • All strategies remain viable (no dominant picks)', 'dim'))
   console.log('')
 }
@@ -278,10 +258,6 @@ function printRecommendation(assumptions: Assumptions) {
 function run() {
   const assumptions: Assumptions = {
     days: 30,
-    bonusPicksPerDay: 1,
-    bonusMultiplier: 1.5,
-    softCap: 15,
-    hardCap: 40,
     roundLosses: true,
     probabilityEdge: 0,
   }

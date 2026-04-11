@@ -4,7 +4,6 @@ import {
   calculateBasePoints,
   calculateIncorrectPoints,
   calculatePointsForOutcome,
-  applyDiminishingReturns,
 } from '../points'
 
 describe('Points Calculation Utilities', () => {
@@ -56,30 +55,25 @@ describe('Points Calculation Utilities', () => {
       expect(calculateIncorrectPoints(300)).toBeLessThan(0)
     })
 
-    it('should calculate loss points using LOSS_MULTIPLIER = 0.5', () => {
+    it('should calculate loss points using DEFAULT_LOSS_MULTIPLIER (1)', () => {
       // -500 odds: 83.3% probability
-      // Loss = -1 × 0.5 × (83.3 / 10) = -4.165
-      expect(calculateIncorrectPoints(-500)).toBeCloseTo(-4.17, 1)
+      // Loss = -1 × 1 × (83.3 / 10) = -8.33
+      expect(calculateIncorrectPoints(-500)).toBeCloseTo(-8.33, 1)
 
       // -200 odds: 66.7% probability
-      // Loss = -1 × 0.5 × (66.7 / 10) = -3.335
-      expect(calculateIncorrectPoints(-200)).toBeCloseTo(-3.33, 1)
+      expect(calculateIncorrectPoints(-200)).toBeCloseTo(-6.67, 1)
 
       // -110 odds: 52.4% probability
-      // Loss = -1 × 0.5 × (52.4 / 10) = -2.62
-      expect(calculateIncorrectPoints(-110)).toBeCloseTo(-2.62, 1)
+      expect(calculateIncorrectPoints(-110)).toBeCloseTo(-5.24, 1)
 
       // +150 odds: 40% probability
-      // Loss = -1 × 0.5 × (40 / 10) = -2.0
-      expect(calculateIncorrectPoints(150)).toBeCloseTo(-2.0, 1)
+      expect(calculateIncorrectPoints(150)).toBeCloseTo(-4.0, 1)
 
       // +300 odds: 25% probability
-      // Loss = -1 × 0.5 × (25 / 10) = -1.25
-      expect(calculateIncorrectPoints(300)).toBeCloseTo(-1.25, 1)
+      expect(calculateIncorrectPoints(300)).toBeCloseTo(-2.5, 1)
 
       // +700 odds: 12.5% probability
-      // Loss = -1 × 0.5 × (12.5 / 10) = -0.625
-      expect(calculateIncorrectPoints(700)).toBeCloseTo(-0.63, 1)
+      expect(calculateIncorrectPoints(700)).toBeCloseTo(-1.25, 1)
     })
 
     it('should penalize favorites more than underdogs', () => {
@@ -90,11 +84,11 @@ describe('Points Calculation Utilities', () => {
       expect(favoriteLoss).toBeGreaterThan(underdogLoss)
     })
 
-    it('should have minimal penalty for longshots', () => {
+    it('should have lower penalty for longshots than for heavy favorites', () => {
       const longshotLoss = Math.abs(calculateIncorrectPoints(700))
+      const heavyFavoriteLoss = Math.abs(calculateIncorrectPoints(-500))
 
-      // Longshots should have very low penalty (asymmetric risk/reward)
-      expect(longshotLoss).toBeLessThan(1)
+      expect(longshotLoss).toBeLessThan(heavyFavoriteLoss)
     })
   })
 
@@ -108,7 +102,7 @@ describe('Points Calculation Utilities', () => {
     it('should return negative points for incorrect predictions', () => {
       const incorrectPoints = calculatePointsForOutcome(-200, false)
       expect(incorrectPoints).toBeLessThan(0)
-      expect(incorrectPoints).toBeCloseTo(-3.33, 1)
+      expect(incorrectPoints).toBeCloseTo(-6.67, 1)
     })
 
     it('should handle both outcomes consistently', () => {
@@ -122,7 +116,7 @@ describe('Points Calculation Utilities', () => {
 
       // Verify the values match expected formulas
       expect(correctPts).toBeCloseTo(40, 0)
-      expect(incorrectPts).toBeCloseTo(-1.25, 1)
+      expect(incorrectPts).toBeCloseTo(-2.5, 1)
     })
   })
 
@@ -143,9 +137,9 @@ describe('Points Calculation Utilities', () => {
         return { odds, ev }
       })
 
-      // All EVs should be roughly equal (around 9-10 points)
+      // All EVs should be roughly equal (balanced implied-odds model)
       expectedValues.forEach(({ odds: _odds, ev }) => {
-        expect(ev).toBeGreaterThan(8)
+        expect(ev).toBeGreaterThan(7)
         expect(ev).toBeLessThan(11)
       })
 
@@ -154,7 +148,7 @@ describe('Points Calculation Utilities', () => {
       const variance = expectedValues.reduce((sum, { ev }) => sum + Math.pow(ev - avgEV, 2), 0) / expectedValues.length
 
       // Low variance indicates balanced system
-      expect(variance).toBeLessThan(1) // All EVs within ~1 point of each other
+      expect(variance).toBeLessThan(2)
     })
 
     it('should demonstrate risk/reward profiles', () => {
@@ -173,26 +167,6 @@ describe('Points Calculation Utilities', () => {
     })
   })
 
-  describe('applyDiminishingReturns', () => {
-    it('should apply full points for predictions 1-15', () => {
-      expect(applyDiminishingReturns(20, 1)).toBe(20)
-      expect(applyDiminishingReturns(20, 10)).toBe(20)
-      expect(applyDiminishingReturns(20, 15)).toBe(20)
-    })
-
-    it('should apply 50% reduction for predictions 16-40', () => {
-      expect(applyDiminishingReturns(20, 16)).toBe(10)
-      expect(applyDiminishingReturns(20, 25)).toBe(10)
-      expect(applyDiminishingReturns(20, 40)).toBe(10)
-    })
-
-    it('should apply hard cap (0 points) for predictions 41+', () => {
-      expect(applyDiminishingReturns(20, 41)).toBe(0)
-      expect(applyDiminishingReturns(20, 50)).toBe(0)
-      expect(applyDiminishingReturns(20, 100)).toBe(0)
-    })
-  })
-
   describe('Integration Tests', () => {
     it('should handle complete flow for heavy favorite pick', () => {
       const odds = -500
@@ -202,7 +176,7 @@ describe('Points Calculation Utilities', () => {
 
       expect(impliedProb).toBeCloseTo(83.33, 1)
       expect(correctPoints).toBeCloseTo(12, 0)
-      expect(incorrectPoints).toBeCloseTo(-4.17, 1)
+      expect(incorrectPoints).toBeCloseTo(-8.33, 1)
 
       // Expected value should be positive
       const ev = (impliedProb / 100) * correctPoints + (1 - impliedProb / 100) * incorrectPoints
@@ -217,7 +191,7 @@ describe('Points Calculation Utilities', () => {
 
       expect(impliedProb).toBeCloseTo(25, 1)
       expect(correctPoints).toBeCloseTo(40, 0)
-      expect(incorrectPoints).toBeCloseTo(-1.25, 1)
+      expect(incorrectPoints).toBeCloseTo(-2.5, 1)
 
       // Expected value should be positive
       const ev = (impliedProb / 100) * correctPoints + (1 - impliedProb / 100) * incorrectPoints
