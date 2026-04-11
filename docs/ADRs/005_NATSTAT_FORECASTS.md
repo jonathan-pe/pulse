@@ -204,38 +204,45 @@ Orchestrates the full ingestion pipeline:
 
 ## Usage
 
+Canonical, maintained copy: [NATSTAT_FORECASTS.md](../NATSTAT_FORECASTS.md).
+
 ### Via Admin API Endpoint
 
 **POST** `/admin/ingest-natstat`
 
-**Headers:**
+**Headers (when `ADMIN_API_KEY` is set in the environment):**
 
 ```text
-x-cron-token: <CRON_TOKEN>
+x-admin-key: <ADMIN_API_KEY>
 ```
+
+You can also pass the key as `adminKey` in the query string or JSON body.
 
 **Body:**
 
 ```json
 {
-  "league": "NFL"
+  "league": "NFL",
+  "dateRange": "2025-10-19,2025-10-26"
 }
 ```
+
+`league` is required for ingestion. `dateRange` is optional: a single `YYYY-MM-DD` or `YYYY-MM-DD,YYYY-MM-DD` range; if omitted, the server builds a default range (**2 days** before through **2 days** after today).
 
 **Response:**
 
 ```json
 {
   "ok": true,
-  "range": "2025-10-19,2025-10-26",
+  "range": "2025-10-19,2025-10-23",
   "result": {
     "ok": true,
     "counts": {
-      "datesProcessed": 7,
-      "events": 84,
-      "games": 84,
-      "oddsLines": 252,
-      "scoresUpdated": 12
+      "datesProcessed": 5,
+      "events": 40,
+      "games": 40,
+      "oddsLines": 120,
+      "scoresUpdated": 6
     }
   }
 }
@@ -243,15 +250,29 @@ x-cron-token: <CRON_TOKEN>
 
 ### Via CLI
 
+The ingest CLI (`apps/api/src/cli/ingest.ts`, script: `pnpm ingest` in `@pulse/api`) takes **league first**, then an optional **date or range**.
+
+**Default date window:** if you omit the date argument, the CLI uses **3 days** before through **3 days** after local midnight today (`YYYY-MM-DD,YYYY-MM-DD`). That span covers **7 calendar dates** (inclusive).
+
+**Leagues:** pass a single code (`NFL`) or a **comma-separated** list (`NFL,NBA` or `NFL, NBA` — spaces after commas are fine). Each league is ingested in sequence with the same date/range.
+
+**Stdout:** for **one** league, JSON output is unchanged: `{ "ok", "counts", "details" }`. For **multiple** leagues, output is `{ "ok", "leagues": [ { "league", "ok", "counts", "details" }, ... ], "combinedCounts" }`.
+
 ```bash
-# Ingest for today (NFL)
+# Default window (3 days back, 3 days forward), NFL only
 pnpm --filter @pulse/api ingest NFL
 
-# Ingest for specific date
-pnpm --filter @pulse/api ingest 2025-10-19 NFL
+# Same window, multiple leagues
+pnpm --filter @pulse/api ingest NFL,NBA
 
-# Ingest for date range
-pnpm --filter @pulse/api ingest "2025-10-19,2025-10-26" NFL
+# Single calendar day
+pnpm --filter @pulse/api ingest NFL 2025-10-19
+
+# Explicit range (quote so the shell keeps one argument)
+pnpm --filter @pulse/api ingest NFL "2025-10-19,2025-10-26"
+
+# Multiple leagues with an explicit range — quote both args so commas are not split by the shell
+pnpm --filter @pulse/api ingest "NFL,NBA" "2025-10-19,2025-10-26"
 ```
 
 ## Environment Variables
@@ -265,8 +286,8 @@ NATSTAT_API_KEY=your-api-key-here
 NATSTAT_AUTH_SCHEME=x-api-key
 NATSTAT_TIMEOUT_MS=10000
 
-# Admin Security
-CRON_TOKEN=your-secure-token-here
+# Admin routes (optional; when set, requests must include the key — see Via Admin API Endpoint)
+ADMIN_API_KEY=your-secure-admin-key-here
 ```
 
 ## Database Schema
@@ -337,7 +358,7 @@ Games with missing required fields (homeTeam, awayTeam, startsAt) are skipped wi
 
 ## Scheduling
 
-The admin endpoint processes date ranges (e.g., 2 days before → 2 days after today) in a single call. Recommended schedule:
+The admin endpoint processes date ranges (**2 days** before → **2 days** after today by default) in a single call. The CLI’s default window when run without a date is **3 days** before and **3 days** after today (see Via CLI above). Recommended schedule:
 
 - **Hourly** during active game hours (08:00-23:00 local)
 - **Every 10 minutes** on event days for live updates
@@ -347,7 +368,7 @@ Example cron expression (every hour during game time):
 
 ```text
 0 8-23 * * * curl -X POST https://api.pulse.app/admin/ingest-natstat \
-  -H "x-cron-token: $CRON_TOKEN" \
+  -H "x-admin-key: $ADMIN_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"league":"NFL"}'
 ```
@@ -382,9 +403,10 @@ To test the integration manually:
 export NATSTAT_API_KEY="your-key"
 export NATSTAT_BASE_URL="https://api4.natst.at"
 
-# 2. Run ingestion for today
+# 2. Run ingestion (default 3-day lookback/lookahead), or pass a date after the league
 cd apps/api
-pnpm tsx src/cli/ingest.ts "$(date +%Y-%m-%d)" NFL
+pnpm tsx src/cli/ingest.ts NFL
+# Or: pnpm tsx src/cli/ingest.ts NFL "$(date +%Y-%m-%d)"
 
 # 3. Verify database records
 # Check games were created/updated

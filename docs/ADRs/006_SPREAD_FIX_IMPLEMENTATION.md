@@ -268,7 +268,7 @@ Should show teams like:
 ### 3. Run Ingestion
 
 ```bash
-pnpm --filter @pulse/api ingest 2025-10-19 NFL
+pnpm --filter @pulse/api ingest NFL 2025-10-19
 ```
 
 ### 4. Verify Spreads

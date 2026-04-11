@@ -140,7 +140,7 @@ No migration needed. The new ingestion will:
 ```bash
 # Test with current day's data
 curl -X POST http://localhost:4000/admin/ingest-natstat \
-  -H "x-cron-token: $CRON_TOKEN" \
+  -H "x-admin-key: $ADMIN_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"league":"NFL"}'
 
@@ -200,7 +200,7 @@ For issues or questions:
 
 1. Check logs for error messages (correlation ID in metadata)
 2. Review documentation: `docs/NATSTAT_FORECASTS.md`
-3. Test with CLI: `pnpm --filter @pulse/api ingest <date> <league>`
+3. Test with CLI: `pnpm --filter @pulse/api ingest <league> [date-or-range]` (see `docs/NATSTAT_FORECASTS.md`)
 4. Verify environment variables are set correctly
 
 ## Changelog

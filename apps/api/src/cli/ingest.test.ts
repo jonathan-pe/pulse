@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildDefaultDateRange, parseIngestArgs } from './ingest.js'
+import { buildDefaultDateRange, parseIngestArgs, parseLeagueArg } from './ingest.js'
 
 describe('buildDefaultDateRange', () => {
-  it('builds a one-week lookback and lookahead range', () => {
+  it('builds a 3-day lookback and lookahead range', () => {
     const range = buildDefaultDateRange(new Date('2026-03-22T15:30:00.000Z'))
 
-    expect(range).toBe('2026-03-15,2026-03-29')
+    expect(range).toBe('2026-03-19,2026-03-25')
   })
 })
 
@@ -31,8 +31,8 @@ describe('parseIngestArgs', () => {
 
     try {
       expect(parseIngestArgs(['nba'])).toEqual({
-        league: 'NBA',
-        date: '2026-03-15,2026-03-29',
+        leagues: ['NBA'],
+        date: '2026-03-19,2026-03-25',
       })
     } finally {
       globalThis.Date = realDate
@@ -41,15 +41,26 @@ describe('parseIngestArgs', () => {
 
   it('accepts a single explicit date after the league', () => {
     expect(parseIngestArgs(['NFL', '2025-10-19'])).toEqual({
-      league: 'NFL',
+      leagues: ['NFL'],
       date: '2025-10-19',
     })
   })
 
   it('accepts an explicit date range after the league', () => {
     expect(parseIngestArgs(['MLB', '2025-10-19,2025-10-26'])).toEqual({
-      league: 'MLB',
+      leagues: ['MLB'],
       date: '2025-10-19,2025-10-26',
     })
+  })
+
+  it('accepts a comma-delimited list of leagues', () => {
+    expect(parseIngestArgs(['NFL,NBA', '2025-10-19'])).toEqual({
+      leagues: ['NFL', 'NBA'],
+      date: '2025-10-19',
+    })
+  })
+
+  it('trims spaces around comma-separated leagues', () => {
+    expect(parseLeagueArg(' nfl , NBA ')).toEqual(['NFL', 'NBA'])
   })
 })

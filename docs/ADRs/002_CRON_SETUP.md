@@ -4,6 +4,8 @@
 
 **Accepted** - Implemented on 2025
 
+Operational setup for cron-job.org is also documented in [CRON_SETUP.md](../CRON_SETUP.md). NatStat ingestion behavior (CLI vs admin defaults) is in [NATSTAT_FORECASTS.md](../NATSTAT_FORECASTS.md).
+
 ## Context
 
 Pulse requires regular automated execution of two critical tasks:
@@ -34,7 +36,7 @@ Use **cron-job.org** (external free CRON service) to schedule and trigger Pulse 
 
 ### Key Implementation Details
 
-- API endpoints protected by `x-cron-token` header authentication
+- Admin API endpoints optionally protected by `ADMIN_API_KEY` (send as `x-admin-key` or `adminKey` when the env var is set)
 - Separate jobs per league (NFL, NBA, MLB, NHL) for independent scheduling
 - JSON request bodies specify league and optional date ranges
 - Jobs can be enabled/disabled seasonally to conserve API quota
@@ -98,11 +100,11 @@ You'll create one job per league. Here's how:
 | **Request Headers** | See below                                      |
 | **Request Body**    | `{"league":"NFL"}`                             |
 
-**Request Headers:**
+**Request Headers** (when `ADMIN_API_KEY` is set on the API):
 
 ```
 Content-Type: application/json
-x-cron-token: YOUR_CRON_TOKEN
+x-admin-key: YOUR_ADMIN_API_KEY
 ```
 
 3. Click **"CREATE"**
@@ -137,7 +139,7 @@ Create one job per league to sync team metadata before each season:
 
 ```
 Content-Type: application/json
-x-cron-token: YOUR_CRON_TOKEN
+x-admin-key: YOUR_ADMIN_API_KEY
 ```
 
 ### Step 4: Configure Schedules
@@ -163,13 +165,13 @@ Use the "Advanced" schedule option with cron expressions:
 
 ### POST `/admin/ingest-natstat`
 
-Ingests game data and odds for a league.
+Ingests game data and odds for a league. Default date window when `dateRange` is omitted: **2 days** before through **2 days** after today.
 
-**Headers:**
+**Headers** (required only if `ADMIN_API_KEY` is set):
 
 ```
 Content-Type: application/json
-x-cron-token: <CRON_TOKEN>
+x-admin-key: <ADMIN_API_KEY>
 ```
 
 **Body:**
@@ -177,9 +179,11 @@ x-cron-token: <CRON_TOKEN>
 ```json
 {
   "league": "NFL",
-  "dateRange": "2024-12-08,2024-12-10" // Optional, defaults to 2 days before and 2 days after today
+  "dateRange": "2024-12-08,2024-12-10"
 }
 ```
+
+`league` is required. `dateRange` is optional (`YYYY-MM-DD` or `YYYY-MM-DD,YYYY-MM-DD`).
 
 **Response:**
 
@@ -188,9 +192,14 @@ x-cron-token: <CRON_TOKEN>
   "ok": true,
   "range": "2024-12-08,2024-12-10",
   "result": {
+    "ok": true,
     "counts": {
-      "games": 15,
-      "odds": 45
+      "datesProcessed": 3,
+      "events": 24,
+      "games": 24,
+      "oddsLines": 72,
+      "scoresUpdated": 4,
+      "gamesScored": 2
     }
   }
 }
@@ -200,11 +209,11 @@ x-cron-token: <CRON_TOKEN>
 
 Syncs team metadata (names, logos) for a league.
 
-**Headers:**
+**Headers** (required only if `ADMIN_API_KEY` is set):
 
 ```
 Content-Type: application/json
-x-cron-token: <CRON_TOKEN>
+x-admin-key: <ADMIN_API_KEY>
 ```
 
 **Body:**
@@ -233,12 +242,12 @@ x-cron-token: <CRON_TOKEN>
 
 Ensure your API has these environment variables set:
 
-| Variable          | Description                                   |
-| ----------------- | --------------------------------------------- |
-| `CRON_TOKEN`      | Secret token for authenticating cron requests |
-| `NATSTAT_API_KEY` | API key for NatStat data provider             |
+| Variable          | Description                                                                 |
+| ----------------- | --------------------------------------------------------------------------- |
+| `ADMIN_API_KEY`   | Optional. When set, admin routes require `x-admin-key` (or `adminKey`) to match |
+| `NATSTAT_API_KEY` | API key for NatStat data provider                                           |
 
-Generate a secure CRON_TOKEN:
+Generate a secure `ADMIN_API_KEY`:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -277,9 +286,9 @@ Disable or reduce frequency to daily/weekly to save API calls.
 
 ### Job Returns 401 Unauthorized
 
-- Verify `x-cron-token` header matches your API's `CRON_TOKEN` env var
-- Check for typos or extra whitespace in the token
-- Ensure the header name is exactly `x-cron-token` (lowercase)
+- Verify `ADMIN_API_KEY` is set on the API and the `x-admin-key` header matches it (or pass `adminKey` in the query/body)
+- Check for typos or extra whitespace in the key
+- Ensure the header name is exactly `x-admin-key` (lowercase)
 
 ### Job Returns 500 Error
 
@@ -296,7 +305,7 @@ Disable or reduce frequency to daily/weekly to save API calls.
 ```bash
 curl -X POST "https://YOUR_API_URL/admin/ingest-natstat" \
   -H "Content-Type: application/json" \
-  -H "x-cron-token: YOUR_TOKEN" \
+  -H "x-admin-key: YOUR_ADMIN_API_KEY" \
   -d '{"league":"NFL"}'
 ```
 
