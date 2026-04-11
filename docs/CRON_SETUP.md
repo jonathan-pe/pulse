@@ -30,6 +30,7 @@ You'll create one job per league. Here's how:
 1. Click **"CREATE CRONJOB"**
 2. Fill in the details:
 
+
 | Field               | Value                                          |
 | ------------------- | ---------------------------------------------- |
 | **Title**           | Pulse - Ingest NFL Games                       |
@@ -39,6 +40,7 @@ You'll create one job per league. Here's how:
 | **Request Headers** | See below                                      |
 | **Request Body**    | `{"league":"NFL"}`                             |
 
+
 **Request Headers** (when `ADMIN_API_KEY` is set on the API — see [Environment Variables](#environment-variables)):
 
 ```
@@ -46,11 +48,12 @@ Content-Type: application/json
 x-admin-key: YOUR_ADMIN_API_KEY
 ```
 
-3. Click **"CREATE"**
+1. Click **"CREATE"**
 
 #### Repeat for Other Leagues
 
 Create similar jobs for NBA, MLB, and NHL:
+
 
 | Job Title                | Request Body       | Active Months |
 | ------------------------ | ------------------ | ------------- |
@@ -59,11 +62,13 @@ Create similar jobs for NBA, MLB, and NHL:
 | Pulse - Ingest MLB Games | `{"league":"MLB"}` | Mar - Oct     |
 | Pulse - Ingest NHL Games | `{"league":"NHL"}` | Oct - Jun     |
 
+
 > **Tip:** You can enable/disable jobs based on season to avoid unnecessary API calls during off-season.
 
 ### Step 3: Create Team Sync Jobs
 
 Create one job per league to sync team metadata before each season:
+
 
 | Job Title              | Request Body       | Schedule                    |
 | ---------------------- | ------------------ | --------------------------- |
@@ -71,6 +76,7 @@ Create one job per league to sync team metadata before each season:
 | Pulse - Sync NBA Teams | `{"league":"NBA"}` | September 1st, 3:00 AM UTC  |
 | Pulse - Sync MLB Teams | `{"league":"MLB"}` | February 1st, 3:00 AM UTC   |
 | Pulse - Sync NHL Teams | `{"league":"NHL"}` | September 15th, 3:00 AM UTC |
+
 
 **URL:** `https://YOUR_API_URL/admin/sync-teams`
 
@@ -95,7 +101,7 @@ In cron-job.org schedule settings:
 
 Use the "Advanced" schedule option with cron expressions:
 
-- NFL (Aug 1): `0 3 1 8 *`
+- NFL (Aug 1): `0 3 1 8 `*
 - NBA (Sep 1): `0 3 1 9 *`
 - MLB (Feb 1): `0 3 1 2 *`
 - NHL (Sep 15): `0 3 15 9 *`
@@ -183,10 +189,12 @@ x-admin-key: <ADMIN_API_KEY>
 
 Ensure your API has these environment variables set:
 
-| Variable          | Description                                                                 |
-| ----------------- | --------------------------------------------------------------------------- |
+
+| Variable          | Description                                                                     |
+| ----------------- | ------------------------------------------------------------------------------- |
 | `ADMIN_API_KEY`   | Optional. When set, admin routes require `x-admin-key` (or `adminKey`) to match |
-| `NATSTAT_API_KEY` | API key for NatStat data provider                                           |
+| `NATSTAT_API_KEY` | API key for NatStat data provider                                               |
+
 
 Generate a secure `ADMIN_API_KEY`:
 
@@ -198,12 +206,14 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ### During Active Season
 
+
 | League | Frequency       | Why                                 |
 | ------ | --------------- | ----------------------------------- |
 | NFL    | Every 15-30 min | Fewer games, odds change frequently |
 | NBA    | Every 15-30 min | Many games daily                    |
 | MLB    | Every 30-60 min | Many games, odds relatively stable  |
 | NHL    | Every 15-30 min | Moderate game count                 |
+
 
 ### Off-Season
 
@@ -260,12 +270,14 @@ curl -X POST "https://YOUR_API_URL/admin/ingest-natstat" \
 
 If cron-job.org doesn't meet your needs:
 
+
 | Service                                      | Free Tier      | Min Interval      |
 | -------------------------------------------- | -------------- | ----------------- |
 | [cron-job.org](https://cron-job.org)         | Unlimited jobs | 1 minute          |
 | [EasyCron](https://www.easycron.com)         | 1 job          | 20 minutes        |
 | [Cronhub](https://cronhub.io)                | 5 jobs         | 1 minute          |
 | [Upstash QStash](https://upstash.com/qstash) | 500 msgs/day   | N/A (queue-based) |
+
 
 ## Manual Triggers (GitHub Actions)
 
@@ -281,3 +293,4 @@ This is useful for:
 - Testing changes
 - One-off data refreshes
 - Debugging issues
+

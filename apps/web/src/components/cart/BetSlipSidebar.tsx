@@ -1,13 +1,12 @@
 import React from 'react'
-import { XIcon, TrendingUp, InfoIcon } from 'lucide-react'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { XIcon, InfoIcon } from 'lucide-react'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import useCartStore, { getCartKey, calculateSelectionPoints, type CartSelection } from '@/store/cart'
 import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
-import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { calculateIncorrectPoints, formatOdds } from '@pulse/shared'
 import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
@@ -22,7 +21,6 @@ const BetSlipSidebar: React.FC = () => {
   const clearCart = useCartStore((s) => s.clearCart)
 
   const createPredictions = useCreatePredictionsFromCart()
-  const { data: dailyStats } = useDailyPredictionStats()
 
   const handleSubmitPredictions = async () => {
     if (selections.length === 0) return
@@ -45,9 +43,6 @@ const BetSlipSidebar: React.FC = () => {
     return sum + loss
   }, 0)
 
-  const predictionsToday = dailyStats?.totalToday ?? 0
-  const predictionsAfterCart = predictionsToday + selections.length
-
   const getBetDetail = (selection: CartSelection): string => {
     switch (selection.market) {
       case 'moneyline':
@@ -66,23 +61,9 @@ const BetSlipSidebar: React.FC = () => {
       <SheetContent side={isMobile ? 'bottom' : 'right'} className={isMobile ? 'h-[80vh]' : 'w-[400px] sm:w-[540px]'}>
         <SheetHeader>
           <SheetTitle>Prediction slip</SheetTitle>
-          <SheetDescription>Review your picks and submit them as predictions.</SheetDescription>
         </SheetHeader>
 
         <div className='flex flex-1 flex-col gap-4 overflow-hidden px-4 pb-4'>
-          <div className='rounded-lg border bg-card p-3'>
-            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-              <TrendingUp className='h-4 w-4' />
-              <span>Today after submit</span>
-            </div>
-            <div className='mt-1 text-lg font-semibold'>
-              {predictionsAfterCart}
-              <span className='text-sm font-normal text-muted-foreground'> predictions today after submit</span>
-            </div>
-          </div>
-
-          <Separator />
-
           {/* Selections List */}
           <div className='flex min-h-0 flex-1 flex-col gap-2'>
             <div className='flex items-center justify-between'>
