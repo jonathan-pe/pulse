@@ -543,6 +543,14 @@ Current: **Single provider** (NatStat)
 - Forces strategic prioritization
 - **Consideration**: May complicate UI/UX, needs careful balancing
 
+### Future social product (principles only)
+
+These are **design principles** for any later social work—not shipped features or commitments.
+
+- **Not implemented** in the personal-first stack unless a dedicated task explicitly requires it.
+- If social surfaces are built later: avoid default **zero-sum** framing (“you lost to X”) as the primary loop; prefer **user-scoped** stats and **opt-in** comparisons.
+- **Schema**: do not add tables for follows, pools, groups, or similar unless a task explicitly requires them.
+
 ---
 
 ## Common Debugging Scenarios
@@ -605,5 +613,5 @@ Current: **Single provider** (NatStat)
 
 ---
 
-*Last updated: December 9, 2025*
+*Last updated: April 10, 2026*
 *For current feature status and roadmap, see Notion Documentation Hub*
