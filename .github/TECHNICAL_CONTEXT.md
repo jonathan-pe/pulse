@@ -243,7 +243,7 @@ lossPoints = -1 * LOSS_MULTIPLIER * (impliedProbability / 10)
 ### Personal-first scoring (current)
 
 - **Odds-only**: Wins use implied-probability base points; no bonus tier and no diminishing returns on volume.
-- **Daily cap**: Total predictions per day are capped (`DEFAULT_DAILY_TOTAL_LIMIT` in `@pulse/shared`; enforced in predictions service).
+- **No daily prediction cap** in product logic (abuse prevention may add rate limits later).
 - **Streaks**: Updated on every scored pick (not gated on a special tier).
 
 ### Expected Value Fairness

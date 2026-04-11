@@ -31,17 +31,6 @@
 export const DAILY_RESET_HOUR_UTC = 10
 
 /**
- * Total maximum predictions allowed per day (default)
- *
- * Hard cap to prevent abuse while allowing casual engagement.
- *
- * Can be overridden via:
- * - Environment: DAILY_TOTAL_LIMIT=50
- * - Database: ConfigService.getDailyTotalLimit()
- */
-export const DEFAULT_DAILY_TOTAL_LIMIT = 40
-
-/**
  * Point loss multiplier for incorrect predictions (default)
  *
  * Scales the penalty for missed predictions relative to implied probability.
@@ -66,9 +55,6 @@ export const DEFAULT_STREAK_HIGHLIGHT_THRESHOLD = 3
 
 // Convenience exports (for backward compatibility and simpler imports)
 // These can be used directly in code that doesn't need dynamic config
-
-/** @deprecated Use DEFAULT_DAILY_TOTAL_LIMIT for clarity. Kept for backward compatibility. */
-export const DAILY_TOTAL_LIMIT = DEFAULT_DAILY_TOTAL_LIMIT
 
 /** @deprecated Use DEFAULT_LOSS_MULTIPLIER for clarity. Kept for backward compatibility. */
 export const LOSS_MULTIPLIER = DEFAULT_LOSS_MULTIPLIER

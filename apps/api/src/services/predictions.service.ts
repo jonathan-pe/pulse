@@ -4,11 +4,9 @@ import type { PredictionType } from '@/lib/db'
 import { oddsAggregationService } from './odds-aggregation.service'
 import type { OddsSnapshot } from './points.service'
 
-import { DEFAULT_DAILY_TOTAL_LIMIT, DAILY_RESET_HOUR_UTC } from '@pulse/shared'
+import { DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 const logger = createLogger('PredictionsService')
-
-const DAILY_TOTAL_LIMIT = DEFAULT_DAILY_TOTAL_LIMIT
 
 export interface CreatePredictionInput {
   userId: string
@@ -36,7 +34,6 @@ export interface CreatePredictionsResult {
   }>
   dailyStats: {
     totalToday: number
-    totalRemaining: number
   }
 }
 
@@ -64,7 +61,7 @@ export class PredictionsService {
   }
 
   /**
-   * Get daily prediction stats for a user
+   * Count predictions created since the current daily reset (for stats / UI)
    */
   async getDailyStats(userId: string) {
     const startOfDay = this.getStartOfDay()
@@ -78,7 +75,6 @@ export class PredictionsService {
 
     return {
       totalToday,
-      totalRemaining: Math.max(0, DAILY_TOTAL_LIMIT - totalToday),
     }
   }
 
@@ -256,16 +252,7 @@ export class PredictionsService {
       throw new Error(validationError.message)
     }
 
-    // Check for and handle contradicting predictions
-    const replacedContradiction = await this.handleContradictingPrediction(input)
-
-    // Check daily limits only if we're NOT replacing a contradicting prediction
-    if (!replacedContradiction) {
-      const stats = await this.getDailyStats(input.userId)
-      if (stats.totalRemaining <= 0) {
-        throw new Error(`Daily prediction limit reached (${DAILY_TOTAL_LIMIT})`)
-      }
-    }
+    await this.handleContradictingPrediction(input)
 
     // Fetch current odds for this game
     const gameOdds = await prisma.gameOdds.findMany({
@@ -295,7 +282,6 @@ export class PredictionsService {
       userId: input.userId,
       gameId: input.gameId,
       type: input.type,
-      replaced: replacedContradiction,
     })
 
     return prediction
@@ -312,23 +298,7 @@ export class PredictionsService {
     const created: CreatePredictionsResult['created'] = []
     const errors: CreatePredictionsResult['errors'] = []
 
-    // Get current stats
-    const initialStats = await this.getDailyStats(userId)
-    let totalCreatedInBatch = 0
-    let totalReplacedInBatch = 0
-
-    // Process each prediction
     for (const input of inputs) {
-      // Check if we've hit limits during this batch (excluding replacements)
-      const currentTotal = initialStats.totalToday + totalCreatedInBatch - totalReplacedInBatch
-      if (currentTotal >= DAILY_TOTAL_LIMIT) {
-        errors.push({
-          gameId: input.gameId,
-          error: `Daily prediction limit reached (${DAILY_TOTAL_LIMIT})`,
-        })
-        continue
-      }
-
       try {
         // Validate the prediction
         const validationError = await this.validatePrediction({ ...input, userId })
@@ -340,11 +310,7 @@ export class PredictionsService {
           continue
         }
 
-        // Check for and handle contradicting predictions
-        const replacedContradiction = await this.handleContradictingPrediction({ ...input, userId })
-        if (replacedContradiction) {
-          totalReplacedInBatch++
-        }
+        await this.handleContradictingPrediction({ ...input, userId })
 
         // Fetch current odds for this game
         const gameOdds = await prisma.gameOdds.findMany({
@@ -377,14 +343,11 @@ export class PredictionsService {
           createdAt: prediction.createdAt,
         })
 
-        totalCreatedInBatch++
-
         logger.info('Prediction created in batch', {
           predictionId: prediction.id,
           userId,
           gameId: input.gameId,
           type: input.type,
-          replaced: replacedContradiction,
         })
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
@@ -396,7 +359,6 @@ export class PredictionsService {
       }
     }
 
-    // Get final stats
     const finalStats = await this.getDailyStats(userId)
 
     return {
@@ -502,7 +464,6 @@ export class PredictionsService {
     logger.info('Locked predictions for game', { gameId, count: result.count })
     return result
   }
-
 }
 
 // Export singleton instance

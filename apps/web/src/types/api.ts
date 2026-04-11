@@ -30,7 +30,6 @@ export interface BatchPredictionsResult {
  */
 export interface DailyStats {
   totalToday: number
-  totalRemaining: number
 }
 
 /**

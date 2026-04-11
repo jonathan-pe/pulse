@@ -9,11 +9,9 @@ import useCartStore, { getCartKey, calculateSelectionPoints, type CartSelection 
 import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useDailyPredictionStats } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { DEFAULT_DAILY_TOTAL_LIMIT, calculateIncorrectPoints, formatOdds } from '@pulse/shared'
+import { calculateIncorrectPoints, formatOdds } from '@pulse/shared'
 import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
 import { getLeagueBadgeColor } from '@/lib/league-colors'
-
-const DAILY_TOTAL_LIMIT = DEFAULT_DAILY_TOTAL_LIMIT
 
 const BetSlipSidebar: React.FC = () => {
   const isMobile = useIsMobile()
@@ -78,8 +76,8 @@ const BetSlipSidebar: React.FC = () => {
               <span>Today after submit</span>
             </div>
             <div className='mt-1 text-lg font-semibold'>
-              {predictionsAfterCart} / {DAILY_TOTAL_LIMIT}
-              <span className='text-sm font-normal text-muted-foreground'> predictions (daily max)</span>
+              {predictionsAfterCart}
+              <span className='text-sm font-normal text-muted-foreground'> predictions today after submit</span>
             </div>
           </div>
 

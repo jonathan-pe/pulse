@@ -41,7 +41,6 @@ describe('PredictionsService', () => {
 
       expect(stats).toEqual({
         totalToday: 0,
-        totalRemaining: 40,
       })
     })
 
@@ -52,18 +51,6 @@ describe('PredictionsService', () => {
 
       expect(stats).toEqual({
         totalToday: 3,
-        totalRemaining: 37,
-      })
-    })
-
-    it('should handle limit reached', async () => {
-      vi.mocked(prisma.prediction.count).mockResolvedValue(40)
-
-      const stats = await service.getDailyStats('user-123')
-
-      expect(stats).toEqual({
-        totalToday: 40,
-        totalRemaining: 0,
       })
     })
   })
@@ -280,30 +267,6 @@ describe('PredictionsService', () => {
       expect(result.pick).toBe('home')
     })
 
-    it('should throw error when daily limit reached', async () => {
-      const futureDate = new Date()
-      futureDate.setHours(futureDate.getHours() + 2)
-
-      vi.mocked(prisma.game.findUnique).mockResolvedValue({
-        id: 'game-456',
-        startsAt: futureDate,
-        status: 'scheduled',
-      } as any)
-
-      vi.mocked(prisma.prediction.findFirst).mockResolvedValue(null)
-
-      // Mock daily stats — at daily cap (DEFAULT_DAILY_TOTAL_LIMIT = 40)
-      vi.mocked(prisma.prediction.count).mockResolvedValue(40)
-
-      await expect(
-        service.createPrediction({
-          userId: 'user-123',
-          gameId: 'game-456',
-          type: 'MONEYLINE',
-          pick: 'home',
-        })
-      ).rejects.toThrow('Daily prediction limit reached (40)')
-    })
   })
 
   describe('createPredictions (batch)', () => {
@@ -398,7 +361,7 @@ describe('PredictionsService', () => {
       })
     })
 
-    it('should respect daily limits in batch', async () => {
+    it('should create multiple predictions when already near prior daily cap (no daily max)', async () => {
       const futureDate = new Date()
       futureDate.setHours(futureDate.getHours() + 2)
 
@@ -410,21 +373,38 @@ describe('PredictionsService', () => {
 
       vi.mocked(prisma.prediction.findFirst).mockResolvedValue(null)
 
-      // Mock 39 existing predictions (at limit - 1)
-      vi.mocked(prisma.prediction.count).mockResolvedValue(39)
+      vi.mocked(prisma.prediction.count).mockResolvedValue(100)
 
-      // Mock gameOdds for odds aggregation
       vi.mocked(prisma.gameOdds.findMany).mockResolvedValue([])
 
-      vi.mocked(prisma.prediction.create).mockResolvedValue({
-        id: 'pred-1',
-        userId: 'user-123',
-        gameId: 'game-1',
-        type: 'MONEYLINE',
-        pick: 'home',
-        createdAt: new Date(),
-        lockedAt: null,
-      } as any)
+      vi.mocked(prisma.prediction.create)
+        .mockResolvedValueOnce({
+          id: 'pred-1',
+          userId: 'user-123',
+          gameId: 'game-1',
+          type: 'MONEYLINE',
+          pick: 'home',
+          createdAt: new Date(),
+          lockedAt: null,
+        } as any)
+        .mockResolvedValueOnce({
+          id: 'pred-2',
+          userId: 'user-123',
+          gameId: 'game-2',
+          type: 'MONEYLINE',
+          pick: 'home',
+          createdAt: new Date(),
+          lockedAt: null,
+        } as any)
+        .mockResolvedValueOnce({
+          id: 'pred-3',
+          userId: 'user-123',
+          gameId: 'game-3',
+          type: 'MONEYLINE',
+          pick: 'home',
+          createdAt: new Date(),
+          lockedAt: null,
+        } as any)
 
       const result = await service.createPredictions('user-123', [
         { gameId: 'game-1', type: 'MONEYLINE', pick: 'home' },
@@ -432,10 +412,8 @@ describe('PredictionsService', () => {
         { gameId: 'game-3', type: 'MONEYLINE', pick: 'home' },
       ])
 
-      // Only first prediction should succeed (reaching limit of 40)
-      expect(result.created).toHaveLength(1)
-      expect(result.errors).toHaveLength(2)
-      expect(result.errors[0].error).toContain('Daily prediction limit reached')
+      expect(result.created).toHaveLength(3)
+      expect(result.errors).toHaveLength(0)
     })
   })
 

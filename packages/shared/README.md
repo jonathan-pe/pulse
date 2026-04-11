@@ -14,12 +14,10 @@ This package contains code that must remain synchronized between frontend and ba
 All constants in this package are **DEFAULT** values designed to be overridable:
 
 ```typescript
-// Frontend: Shows users what's typical
-import { DEFAULT_DAILY_TOTAL_LIMIT } from '@pulse/shared'
+// Frontend: Shared defaults (e.g. loss multiplier) stay in sync with API scoring
+import { DEFAULT_LOSS_MULTIPLIER } from '@pulse/shared'
 
-// Backend: Can override with runtime config
-const limit = await configService.getDailyTotalLimit()
-// Falls back to DEFAULT_DAILY_TOTAL_LIMIT if no override exists
+// Backend: Can override with runtime config when you add ConfigService
 ```
 
 ### Migration to Dynamic Config (Future)
@@ -58,10 +56,7 @@ import {
 } from '@pulse/shared'
 
 // Import constants
-import {
-  DEFAULT_DAILY_TOTAL_LIMIT,
-  DEFAULT_LOSS_MULTIPLIER
-} from '@pulse/shared'
+import { DEFAULT_LOSS_MULTIPLIER } from '@pulse/shared'
 
 // Import formatting
 import { formatOdds, getLeagueBadgeColor } from '@pulse/shared'
@@ -69,7 +64,7 @@ import { formatOdds, getLeagueBadgeColor } from '@pulse/shared'
 
 ## Exports
 
-- `constants.ts` - Business rule defaults (limits, multipliers)
+- `constants.ts` - Business rule defaults (loss multiplier, streak highlight, daily reset hour)
 - `points.ts` - Points calculation functions
 - `formatting.ts` - Display formatting utilities
 - `index.ts` - Main entry point (re-exports all)
