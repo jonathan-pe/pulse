@@ -8,10 +8,6 @@ import { TrendingUp, Target, Award, Flame, Calendar, Trophy } from 'lucide-react
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Link } from '@tanstack/react-router'
-import { DEFAULT_DAILY_BONUS_TIER_LIMIT } from '@pulse/shared'
-
-const DAILY_BONUS_TIER_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
-
 export const Route = createFileRoute('/_authenticated/dashboard')({
   component: Dashboard,
 })
@@ -49,7 +45,6 @@ function Dashboard() {
   }
 
   const winRatePercent = (stats.overallWinRate * 100).toFixed(1)
-  const todayBonusRemaining = DAILY_BONUS_TIER_LIMIT - stats.bonusTierUsed
 
   return (
     <div className='w-full h-full overflow-y-auto'>
@@ -87,7 +82,7 @@ function Dashboard() {
           <StatsCard
             title="Today's Predictions"
             value={stats.predictionsToday}
-            description={`${todayBonusRemaining} bonus ${todayBonusRemaining === 1 ? 'pick' : 'picks'} remaining`}
+            description='Predictions placed since the daily reset'
             icon={Calendar}
           />
 

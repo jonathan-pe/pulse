@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express'
 import type { Router as ExpressRouter } from 'express'
 import { z } from 'zod'
 import { getAuth } from '@clerk/express'
+import type { UserStats } from '@pulse/types'
 import { prisma } from '@/lib/db'
 import { pointsService } from '../services/points.service'
 import { DAILY_RESET_HOUR_UTC } from '@pulse/shared'
@@ -205,7 +206,7 @@ pointsRouter.get('/stats', async (req: Request, res: Response) => {
     }
 
     const stats = await pointsService.getUserStats(userId)
-    res.json(stats)
+    res.json(stats satisfies UserStats)
   } catch {
     res.status(500).json({ error: 'Internal server error' })
   }

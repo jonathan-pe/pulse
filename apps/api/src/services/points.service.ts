@@ -19,7 +19,6 @@ export interface PredictionWithGame {
   type: PredictionType
   pick: string
   oddsAtPrediction: OddsSnapshot | null
-  bonusTier: boolean
   isCorrect: boolean | null
   game: {
     league: string
@@ -547,7 +546,6 @@ export class PointsService {
       overallWinRate,
       pointsEarnedToday: todayStats.pointsEarned,
       predictionsToday: todayStats.predictionsToday,
-      bonusTierUsed: todayStats.bonusTierUsed,
       leaderboardRank,
       byLeague,
       pointsOverTime,
@@ -558,11 +556,11 @@ export class PointsService {
    * Get today's statistics for a user
    *
    * @param userId - User ID
-   * @returns Today's points, predictions, and bonus tier usage
+   * @returns Today's points and prediction count
    */
   private async getTodayStats(
     userId: string
-  ): Promise<{ pointsEarned: number; predictionsToday: number; bonusTierUsed: number }> {
+  ): Promise<{ pointsEarned: number; predictionsToday: number }> {
     const now = new Date()
     const startOfDay = new Date(now)
     startOfDay.setUTCHours(DAILY_RESET_HOUR_UTC, 0, 0, 0)
@@ -572,7 +570,7 @@ export class PointsService {
       startOfDay.setDate(startOfDay.getDate() - 1)
     }
 
-    const [pointsResult, predictionsToday, bonusTierCount] = await Promise.all([
+    const [pointsResult, predictionsToday] = await Promise.all([
       prisma.pointsLedger.aggregate({
         where: { userId, createdAt: { gte: startOfDay } },
         _sum: { delta: true },
@@ -580,15 +578,11 @@ export class PointsService {
       prisma.prediction.count({
         where: { userId, createdAt: { gte: startOfDay } },
       }),
-      prisma.prediction.count({
-        where: { userId, createdAt: { gte: startOfDay }, bonusTier: true },
-      }),
     ])
 
     return {
       pointsEarned: pointsResult._sum.delta ?? 0,
       predictionsToday,
-      bonusTierUsed: bonusTierCount,
     }
   }
 

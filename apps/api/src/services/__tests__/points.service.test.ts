@@ -288,9 +288,7 @@ describe('PointsService', () => {
       vi.mocked(prisma.pointsLedger.findMany).mockResolvedValue([])
       vi.mocked(prisma.pointsLedger.groupBy).mockResolvedValue([])
 
-      vi.mocked(prisma.prediction.count)
-        .mockResolvedValueOnce(3) // total today
-        .mockResolvedValueOnce(2) // bonus tier used
+      vi.mocked(prisma.prediction.count).mockResolvedValueOnce(3) // predictions today
 
       // Mock rank calculation
       vi.mocked(prisma.$queryRaw).mockResolvedValue([{ count: BigInt(23) }] as any)
@@ -305,7 +303,6 @@ describe('PointsService', () => {
         correctPredictions: 2,
         overallWinRate: expect.closeTo(0.667, 2),
         predictionsToday: 3,
-        bonusTierUsed: 2,
         leaderboardRank: 24,
       })
 
@@ -344,7 +341,6 @@ describe('PointsService', () => {
         correctPredictions: 0,
         overallWinRate: 0,
         predictionsToday: 0,
-        bonusTierUsed: 0,
         leaderboardRank: null, // No rank if no points
         byLeague: [],
         pointsOverTime: [],

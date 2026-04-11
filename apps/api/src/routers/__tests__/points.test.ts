@@ -324,9 +324,7 @@ describe('Points Router Integration Tests', () => {
 
       vi.mocked(prisma.pointsLedger.groupBy).mockResolvedValue([])
 
-      vi.mocked(prisma.prediction.count)
-        .mockResolvedValueOnce(3) // predictionsToday
-        .mockResolvedValueOnce(3) // bonusTierUsed
+      vi.mocked(prisma.prediction.count).mockResolvedValueOnce(3) // predictionsToday
 
       vi.mocked(prisma.$queryRaw).mockResolvedValue([{ count: BigInt(23) }] as any)
 
@@ -339,9 +337,9 @@ describe('Points Router Integration Tests', () => {
         totalPredictions: 3,
         correctPredictions: 2,
         predictionsToday: 3,
-        bonusTierUsed: 3,
         leaderboardRank: 24,
       })
+      expect(response.body).not.toHaveProperty('bonusTierUsed')
       expect(response.body.byLeague).toBeDefined()
       expect(response.body.pointsOverTime).toBeDefined()
     })

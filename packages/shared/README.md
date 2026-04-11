@@ -15,11 +15,11 @@ All constants in this package are **DEFAULT** values designed to be overridable:
 
 ```typescript
 // Frontend: Shows users what's typical
-import { DAILY_BONUS_TIER_LIMIT } from '@pulse/shared'
+import { DEFAULT_DAILY_TOTAL_LIMIT } from '@pulse/shared'
 
 // Backend: Can override with runtime config
-const limit = await configService.getDailyBonusTierLimit() 
-// Falls back to DEFAULT_DAILY_BONUS_TIER_LIMIT if no override exists
+const limit = await configService.getDailyTotalLimit()
+// Falls back to DEFAULT_DAILY_TOTAL_LIMIT if no override exists
 ```
 
 ### Migration to Dynamic Config (Future)
@@ -51,17 +51,16 @@ The shared package becomes your "sensible defaults" library, not a constraint.
 
 ```typescript
 // Import calculations
-import { 
-  calculateBasePoints, 
+import {
+  calculateBasePoints,
   calculateImpliedProbability,
-  calculatePointsForOutcome 
+  calculatePointsForOutcome
 } from '@pulse/shared'
 
 // Import constants
-import { 
-  DEFAULT_DAILY_BONUS_TIER_LIMIT,
+import {
   DEFAULT_DAILY_TOTAL_LIMIT,
-  DEFAULT_BONUS_TIER_MULTIPLIER 
+  DEFAULT_LOSS_MULTIPLIER
 } from '@pulse/shared'
 
 // Import formatting

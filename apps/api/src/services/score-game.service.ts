@@ -352,7 +352,6 @@ export class ScoreGameService {
         oddsAtPrediction: prediction.oddsAtPrediction as Parameters<
           typeof pointsService.isPredictionCorrect
         >[0]['oddsAtPrediction'],
-        bonusTier: prediction.bonusTier,
         isCorrect: prediction.isCorrect,
         createdAt: prediction.createdAt,
         game: {

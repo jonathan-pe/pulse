@@ -425,7 +425,6 @@ export class PredictionsService {
         pick: true,
         createdAt: true,
         lockedAt: true,
-        bonusTier: true,
         isCorrect: true,
         processedAt: true,
         oddsAtPrediction: true,

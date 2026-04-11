@@ -107,7 +107,6 @@ export interface UserStats {
   overallWinRate: number
   pointsEarnedToday: number
   predictionsToday: number
-  bonusTierUsed: number // 0-5
   leaderboardRank: number | null
   byLeague: LeagueStats[]
   pointsOverTime: PointsTimeSeries[]

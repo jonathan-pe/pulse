@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { CheckCircle, XCircle, Clock, ChevronRight, Award, TrendingUp, Timer } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, ChevronRight, TrendingUp, Timer } from 'lucide-react'
 import { getLeagueBadgeColor } from '@/lib/league-colors'
 import { cn } from '@/lib/utils'
 
@@ -140,7 +140,6 @@ export function RecentPredictions() {
               <div className='flex-1 min-w-0'>
                 <div className='flex items-center gap-2 mb-0.5'>
                   <span className='font-medium text-sm'>{pickDisplay}</span>
-                  {prediction.bonusTier && <Award className='h-3.5 w-3.5 text-amber-500 flex-shrink-0' />}
                 </div>
                 <div className='flex items-center gap-2 text-xs text-muted-foreground'>
                   <span className='font-medium'>{pickSubtitle}</span>

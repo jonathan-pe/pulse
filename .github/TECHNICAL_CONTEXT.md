@@ -197,8 +197,8 @@ impliedProbability = odds < 0
 // For CORRECT predictions
 basePoints = 10 * (100 / impliedProbability)
 
-// For INCORRECT predictions (PLANNED FEATURE)
-const LOSS_MULTIPLIER = 0.5  // Configurable
+// For INCORRECT predictions
+const LOSS_MULTIPLIER = 1  // Default; configurable via env / config service
 lossPoints = -1 * LOSS_MULTIPLIER * (impliedProbability / 10)
 ```
 
@@ -208,35 +208,17 @@ lossPoints = -1 * LOSS_MULTIPLIER * (impliedProbability / 10)
 - `+150` (40% underdog): +25 points
 - `+700` (12.5% longshot): +80 points
 
-**Incorrect Prediction Examples** (with LOSS_MULTIPLIER = 0.5):
-- `-500` (83% favorite): -4.2 points (high penalty for missing "sure thing")
-- `-110` (52% favorite): -2.6 points
-- `+150` (40% underdog): -2.0 points
-- `+700` (12.5% longshot): -0.63 points (minimal penalty for missing longshot)
+**Incorrect Prediction Examples** (with default `LOSS_MULTIPLIER = 1`):
+- `-500` (83% favorite): -8.3 points (higher penalty for missing "sure thing")
+- `-110` (52% favorite): -5.2 points
+- `+150` (40% underdog): -4.0 points
+- `+700` (12.5% longshot): -1.25 points (lower penalty for missing longshot)
 
-> **Planned Enhancement**: Point loss for incorrect predictions is documented in [Notion: Point Loss Scoring Refactor](https://www.notion.so/2c5bc10acace81d3af96e2db1ed991c5). This creates risk/reward balance where favorites have low reward but high penalty when wrong, and underdogs have high reward but minimal penalty when wrong.
+### Personal-first scoring (current)
 
-### Bonus Tier Multiplier
-- **Bonus Tier** predictions get a **1.5x multiplier** applied to base points (before diminishing returns)
-- **Baseline Tier** predictions get the standard 1.0x multiplier
-
-### Tier System
-1. **Bonus Tier**: First prediction daily (by `createdAt` timestamp)
-   - Base points × 1.5 multiplier
-   - Tier status locked at creation (replacements inherit tier)
-   - Only bonus tier predictions affect streak tracking (for achievements)
-2. **Baseline Tier**: Unlimited predictions
-   - Base points × 1.0 (no multiplier)
-   - Do not affect streak tracking
-3. **Diminishing Returns** (applied after bonus tier multiplier):
-   - Predictions 1-30: 100% points
-   - Predictions 31-75: 50% points
-   - Predictions 76+: 0 points
-
-**Bonus Tier Examples**:
-- Pick -200 favorite in bonus tier: 15 base × 1.5 = 22.5 points (before diminishing returns)
-- Pick -200 favorite in baseline tier: 15 base × 1.0 = 15 points (before diminishing returns)
-- Pick +300 underdog in bonus tier: 40 base × 1.5 = 60 points (before diminishing returns)
+- **Odds-only**: Wins use implied-probability base points; no bonus tier and no diminishing returns on volume.
+- **Daily cap**: Total predictions per day are capped (`DEFAULT_DAILY_TOTAL_LIMIT` in `@pulse/shared`; enforced in predictions service).
+- **Streaks**: Updated on every scored pick (not gated on a special tier).
 
 ### Expected Value Fairness
 System is mathematically balanced so all strategies have approximately equal EV (~9-10 points):
@@ -266,7 +248,6 @@ The `PointsLedger.meta` JSON field should contain:
   league: string         // Required: For per-league stats aggregation
   type: string           // Prediction type (moneyline, spread, total)
   pick: string           // User's pick
-  bonusTier: boolean     // Whether bonus tier
   streak: number         // Streak at time of award
   dailyCount: number     // Prediction count for the day
 }
@@ -292,7 +273,6 @@ When adding new aggregation or filtering features (e.g., points by prediction ty
 - Points by odds range: Would need `odds` or `oddsRange` field added
 - Points by time of day: Would need `hour` or `timeOfDay` field added
 - Points by streak tier: Already have `streak` field
-- Points by bonus vs baseline: Already have `bonusTier` field
 
 ---
 

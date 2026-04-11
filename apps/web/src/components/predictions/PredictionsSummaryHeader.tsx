@@ -1,10 +1,9 @@
 import { useUserStats } from '@/hooks/usePoints'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, Award, Target, Flame, Calendar } from 'lucide-react'
+import { TrendingUp, Target, Flame, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { DEFAULT_DAILY_BONUS_TIER_LIMIT, DEFAULT_STREAK_HIGHLIGHT_THRESHOLD } from '@pulse/shared'
+import { DEFAULT_STREAK_HIGHLIGHT_THRESHOLD } from '@pulse/shared'
 
-const DAILY_BONUS_TIER_LIMIT = DEFAULT_DAILY_BONUS_TIER_LIMIT
 const STREAK_HIGHLIGHT_THRESHOLD = DEFAULT_STREAK_HIGHLIGHT_THRESHOLD
 
 export function PredictionsSummaryHeader() {
@@ -24,7 +23,6 @@ export function PredictionsSummaryHeader() {
     return null
   }
 
-  const bonusRemaining = DAILY_BONUS_TIER_LIMIT - stats.bonusTierUsed
   const winRatePercent = (stats.overallWinRate * 100).toFixed(1)
 
   return (
@@ -37,25 +35,7 @@ export function PredictionsSummaryHeader() {
         <CardDescription>Track your predictions and see how they impact your score</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
-          {/* Bonus Picks Remaining */}
-          <div className='flex flex-col gap-1'>
-            <div className='flex items-center gap-2 text-muted-foreground text-sm'>
-              <Award className='h-4 w-4' />
-              <span>Bonus Pick Today</span>
-            </div>
-            <div className='text-2xl font-bold'>
-              {bonusRemaining > 0 ? (
-                <span className='text-primary'>{bonusRemaining}</span>
-              ) : (
-                <span className='text-muted-foreground'>0</span>
-              )}
-            </div>
-            <div className='text-xs text-muted-foreground'>
-              {bonusRemaining > 0 ? '1.5x points multiplier' : 'Used for today'}
-            </div>
-          </div>
-
+        <div className='grid grid-cols-2 sm:grid-cols-3 gap-4'>
           {/* Points Earned Today */}
           <div className='flex flex-col gap-1'>
             <div className='flex items-center gap-2 text-muted-foreground text-sm'>

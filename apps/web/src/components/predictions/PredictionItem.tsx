@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, XCircle, Award, TrendingUp } from 'lucide-react'
+import { CheckCircle, XCircle, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PredictionWithGame } from '@/types/api'
 
@@ -59,14 +59,6 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
         <div className='flex-1 min-w-0'>
           <div className='flex items-center gap-2 mb-1'>
             <span className='text-xs font-medium text-muted-foreground uppercase'>{prediction.type}</span>
-
-            {/* Bonus tier badge */}
-            {prediction.bonusTier && (
-              <Badge variant='secondary' className='h-5 bg-amber-500/10 text-amber-700 border-amber-500/20'>
-                <Award className='h-2.5 w-2.5 mr-1' />
-                Bonus
-              </Badge>
-            )}
 
             {/* Result badge - only Win/Loss shown here, Live/Pending are at card level */}
             {isCorrect && (
