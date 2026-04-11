@@ -13,6 +13,7 @@
 ### When to Update This Document
 
 **Always update when**:
+
 - Making architectural decisions (API design, data modeling, integration patterns)
 - Discovering non-obvious behavior or gotchas
 - Changing existing patterns (e.g., scoring logic, normalization rules)
@@ -21,6 +22,7 @@
 - Encountering and solving complex bugs
 
 **What to update**:
+
 - Add new sections for new features/patterns
 - Update existing sections when behavior changes
 - Add to "Known Issues & Gotchas" when discovering edge cases
@@ -30,6 +32,7 @@
 ### When to Update Notion Documentation
 
 **User-facing changes**:
+
 - New API endpoints or endpoint changes → Update "API Endpoints" page
 - New CLI commands or changed usage → Update "CLI Commands" page
 - Setup/installation changes → Update "Getting Started" or "Database Setup"
@@ -43,12 +46,14 @@
 ## Architecture Overview
 
 ### Tech Stack
+
 - **Backend**: Express (Node.js) + TypeScript + Prisma ORM + PostgreSQL
 - **Frontend**: Vite + React + TanStack Router + TanStack Query
 - **Auth**: Clerk
 - **Data Sources**: NatStat API (odds/scores), ESPN API (team metadata)
 
 ### Migration History
+
 - **tRPC → Express REST**: Migrated from tRPC to standard REST API for simpler stack and better HTTP client compatibility
   - All `/api/*` endpoints now use Express routers
   - Zod validation still used at route level
@@ -62,10 +67,12 @@
 **CRITICAL**: All point spreads are stored **relative to the home team**.
 
 ### Storage Rule
+
 - **Negative spread** (`-7.5`) = Home team is **favored** (gives points)
 - **Positive spread** (`+3.5`) = Home team is **underdog** (receives points)
 
 ### Implementation Details
+
 - NatStat provides `spread.favourite` team ID to indicate which team is favored
 - We map team IDs to team codes using `NatStatTeam` lookup table
 - `adjustSpreadSigns()` in `normalize.ts` ensures home-relative storage:
@@ -79,7 +86,9 @@
 - **Why**: Consistency across all markets, simplifies prediction evaluation logic
 
 ### Scoring Logic
+
 When evaluating spread predictions:
+
 - Home pick: `homeScore + spread > awayScore` (negative spread means home needs to win by more)
 - Away pick: `awayScore > homeScore + spread` (positive spread means home can lose by less)
 
@@ -88,6 +97,7 @@ When evaluating spread predictions:
 ## Auto-Scoring System
 
 ### Implementation Pattern
+
 Auto-scoring is **embedded in the ingestion job**, not a separate process.
 
 ```typescript
@@ -104,13 +114,16 @@ if (gameHasResult && !result.scoredAt) {
 ```
 
 ### Key Principles
+
 1. **Idempotent**: Safe to run multiple times (checks `scoredAt` timestamp)
 2. **Error Isolated**: Scoring failures don't break ingestion
 3. **Automatic**: No manual intervention needed for 95%+ of games
 4. **Fallback Available**: Admin endpoints + CLI for edge cases
 
 ### Prediction Locking
+
 Predictions are locked at two points:
+
 1. **During ingestion**: When game status changes from 'scheduled' to any other status
 2. **During scoring**: Safety net to catch any unlocked predictions
 
@@ -119,23 +132,29 @@ Predictions are locked at two points:
 ## NatStat Integration
 
 ### Unified Endpoint
+
 We use `/forecasts` endpoint (not separate moneyline/spread/total endpoints).
 
 **Benefits**:
+
 - Single API call per league/date (was 3 calls)
 - All markets guaranteed from same snapshot
 - Includes game status, scores, venue, ELO ratings
 - Automatic score ingestion for completed games
 
 ### League Code Mapping
-| Standard | NatStat | Sport |
-|----------|---------|-------|
-| NFL | pfb | Pro Football |
-| NBA | nba | Basketball |
-| MLB | mlb | Baseball |
-| NHL | nhl | Hockey |
+
+
+| Standard | NatStat | Sport        |
+| -------- | ------- | ------------ |
+| NFL      | pfb     | Pro Football |
+| NBA      | nba     | Basketball   |
+| MLB      | mlb     | Baseball     |
+| NHL      | nhl     | Hockey       |
+
 
 ### Response Structure
+
 ```json
 {
   "forecasts": [
@@ -166,19 +185,23 @@ We use `/forecasts` endpoint (not separate moneyline/spread/total endpoints).
 ## Team Data Management
 
 ### NatStatTeam Table
+
 Caches team data to avoid repeated API lookups.
 
 **Purpose**:
+
 1. Map NatStat team IDs to team codes (for spread normalization)
 2. Store ESPN logo URLs for UI display
 3. Track active/inactive teams per league
 
 **Sync Schedule**: Yearly, one month before season start
+
 - NFL: Aug 1
 - NBA/NHL: Sep 1
 - MLB: Mar 1
 
 ### ESPN Integration
+
 - **Public API**: No auth required
 - **Logo Types**: `badgeUrl` (primary), `logoUrl` (alternate/dark)
 - **Endpoints**: `https://site.api.espn.com/apis/site/v2/sports/{sport}/{league}/teams`
@@ -189,6 +212,7 @@ Caches team data to avoid repeated API lookups.
 ## Point Scoring Algorithm
 
 ### Base Points (All Tiers)
+
 ```typescript
 impliedProbability = odds < 0 
   ? Math.abs(odds) / (Math.abs(odds) + 100) * 100
@@ -203,12 +227,14 @@ lossPoints = -1 * LOSS_MULTIPLIER * (impliedProbability / 10)
 ```
 
 **Correct Prediction Examples**:
+
 - `-500` (83% favorite): +12 points
 - `-110` (52% favorite): +19 points  
 - `+150` (40% underdog): +25 points
 - `+700` (12.5% longshot): +80 points
 
 **Incorrect Prediction Examples** (with default `LOSS_MULTIPLIER = 1`):
+
 - `-500` (83% favorite): -8.3 points (higher penalty for missing "sure thing")
 - `-110` (52% favorite): -5.2 points
 - `+150` (40% underdog): -4.0 points
@@ -221,14 +247,17 @@ lossPoints = -1 * LOSS_MULTIPLIER * (impliedProbability / 10)
 - **Streaks**: Updated on every scored pick (not gated on a special tier).
 
 ### Expected Value Fairness
+
 System is mathematically balanced so all strategies have approximately equal EV (~9-10 points):
 
 **Current (correct predictions only)**:
+
 - Heavy favorite (-300): 0.75 × 13.3 = 10.0 EV
 - Pick'em (+100): 0.50 × 20.0 = 10.0 EV
 - Longshot (+700): 0.125 × 80.0 = 10.0 EV
 
 **With Point Loss System (planned)**:
+
 - Heavy favorite (-500): (0.833 × 12) + (0.167 × -4.2) = 9.3 EV
 - Pick'em (-110): (0.524 × 19) + (0.476 × -2.6) = 8.7 EV
 - Underdog (+300): (0.25 × 40) + (0.75 × -1.25) = 9.1 EV
@@ -241,6 +270,7 @@ System is mathematically balanced so all strategies have approximately equal EV 
 **CRITICAL**: When awarding points, always include contextual metadata for aggregation.
 
 The `PointsLedger.meta` JSON field should contain:
+
 ```typescript
 {
   predictionId: string    // Required: Links points to prediction
@@ -254,6 +284,7 @@ The `PointsLedger.meta` JSON field should contain:
 ```
 
 **Why This Matters**:
+
 - `league` field is used by `getWinRateByLeague()` to attribute points to correct league
 - Without `league`, points show as 0 for all leagues in dashboard
 - `predictionId` provides fallback lookup if `league` is missing (for legacy entries)
@@ -262,6 +293,7 @@ The `PointsLedger.meta` JSON field should contain:
 
 **⚡ Future Feature Development**:
 When adding new aggregation or filtering features (e.g., points by prediction type, points by time of day, points by odds range), consider:
+
 1. **Check existing meta fields first**: Many dimensions are already captured
 2. **Add new fields proactively**: If adding a feature that requires grouping/filtering points, ensure the necessary field is added to `meta` at award time
 3. **Provide fallback logic**: For backward compatibility, implement lookup fallbacks like the `predictionId` → `league` pattern
@@ -269,6 +301,7 @@ When adding new aggregation or filtering features (e.g., points by prediction ty
 5. **Consider data migration**: If feature needs historical data, may need to backfill `meta` fields
 
 **Examples of future features that would use meta**:
+
 - Points by prediction type: Already have `type` field
 - Points by odds range: Would need `odds` or `oddsRange` field added
 - Points by time of day: Would need `hour` or `timeOfDay` field added
@@ -279,6 +312,7 @@ When adding new aggregation or filtering features (e.g., points by prediction ty
 ## Database Patterns
 
 ### Idempotency via Composite Keys
+
 ```prisma
 // Games: Upserted by external ID or deterministic hash
 @@unique([externalId])
@@ -298,6 +332,7 @@ Prediction {
 ```
 
 ### Team Identity
+
 - **Primary Key**: NatStat team ID (e.g., "2022531")
 - **Unique Constraint**: `(league, code)` for lookups
 - **Code Examples**: "JAX" (NFL), "LAL" (NBA), "BOS" (MLB)
@@ -307,7 +342,9 @@ Prediction {
 ## Known Issues & Gotchas
 
 ### 1. Points Ledger Metadata Requirements ⚠️
+
 **Fixed: November 28, 2025**
+
 - **Issue**: Points weren't attributed to leagues in dashboard (showed 0 points per league)
 - **Root Cause**: `meta.league` field was missing from points ledger entries
 - **Solution**: 
@@ -317,22 +354,26 @@ Prediction {
 - **Impact**: Affects any aggregation by metadata fields (league stats, prediction type analysis, etc.)
 
 ### 2. Push Handling (Not Yet Implemented)
+
 - Currently, pushes (tie on spread/total) count as **incorrect**
 - **TODO**: Should return `null` for `isCorrect` to preserve streak
 - Affects user experience on spread/total predictions
 
 ### 3. Odds Capture Requirement
+
 - Predictions created before odds capture feature will have `oddsAtPrediction: null`
 - These predictions may have scoring issues (used fallback -110 odds)
 - **TODO**: Consider stricter validation to require odds at creation time
 
 ### 4. Timezone Considerations
+
 - All CRON schedules in Pacific Time (PT)
 - PT = UTC-7 (PDT, March-Nov) or UTC-8 (PST, Nov-March)
 - Ingestion jobs use 15-minute intervals during active hours
 - Team sync uses yearly schedules (one month before season)
 
 ### 5. Rate Limiting
+
 - NatStat: 15-minute intervals = ~4 calls/hour per league (within limits)
 - ESPN: Public endpoint, no strict limits but use reasonable intervals
 - Both use single retry with exponential backoff on 5xx errors
@@ -361,16 +402,19 @@ pnpm --filter @pulse/api score-games                   # Score all ready games
 ## Testing Philosophy
 
 ### Service Layer
+
 - Unit tests with mocked Prisma client
 - Test business logic independently
 - Focus on edge cases (ties, missing odds, etc.)
 
 ### Integration Layer
+
 - Test normalization functions with real-world data shapes
 - Verify spread sign adjustment logic
 - Test error handling and partial data scenarios
 
 ### E2E (Future)
+
 - Playwright tests for critical user flows
 - Seed database with known game data
 - Verify scoring calculations end-to-end
@@ -380,24 +424,32 @@ pnpm --filter @pulse/api score-games                   # Score all ready games
 ## Future Architectural Considerations
 
 ### Webhook vs Polling
+
 Current: **Polling** (15-minute CRON jobs)
+
 - Simpler to implement and maintain
 - Sufficient for current scale
 - Consider webhooks if NatStat offers them in future
 
 ### Caching Strategy
+
 Current: **Database-backed** (NatStatTeam table)
+
 - Simple, persistent, no external dependencies
 - Consider Redis if performance becomes issue
 
 ### Monitoring
+
 Current: **Structured logging** (Winston)
+
 - Info/warn/error with context
 - Ready for integration with Datadog/CloudWatch
 - Consider adding OpenTelemetry for distributed tracing
 
 ### Multi-Provider Odds
+
 Current: **Single provider** (NatStat)
+
 - Simplifies implementation
 - Consider adding FanDuel/DraftKings APIs for:
   - Best line selection
@@ -411,7 +463,9 @@ Current: **Single provider** (NatStat)
 ### Planned Features (Under Development)
 
 #### Achievements System (In Progress - Nov 2025)
+
 **Status**: Schema and backend implemented, UI components ready
+
 - **Architecture**: Separate `Achievement` and `UserAchievement` tables with flexible criteria system
 - **Categories**: Streak, Milestone, League Expertise, Social, Special
 - **Rarity Tiers**: Common, Rare, Epic, Legendary
@@ -427,7 +481,9 @@ Current: **Single provider** (NatStat)
 ### Future Considerations (Not Yet Started)
 
 #### Point Loss for Incorrect Predictions (Planned Q1 2025)
+
 **Concept**: Deduct points for incorrect predictions, scaled by probability
+
 - **Formula**: `lossPoints = -1 × LOSS_MULTIPLIER × (impliedProbability / 10)`
 - **Default LOSS_MULTIPLIER**: 0.5 (configurable via env var)
 - **Key Design Principle**: 
@@ -447,7 +503,9 @@ Current: **Single provider** (NatStat)
 - **Legal Note**: Does NOT create gambling concerns - users don't wager points; system applies automatic penalty
 
 #### Daily/Weekly Challenges
+
 **Concept**: Themed prediction objectives that refresh daily/weekly
+
 - **Examples**:
   - "Pick an underdog (+150 or higher)" 
   - "Make predictions in 3 different leagues"
@@ -468,14 +526,18 @@ Current: **Single provider** (NatStat)
 - **Decision**: Holding on this until we see user engagement with achievements
 
 #### Social Prediction Pools
+
 **Concept**: Private groups where friends compete on predictions
+
 - Create/join pools with invite codes
 - Separate leaderboards per pool
 - Optional pool-specific challenges
 - **Consideration**: Requires additional auth/permissions layer
 
 #### Confidence System
+
 **Concept**: Daily allocation of "confidence units" to distribute across predictions
+
 - Users get X units per day (e.g., 100)
 - Allocate 1-50 units per prediction as multiplier
 - Forces strategic prioritization
@@ -486,19 +548,24 @@ Current: **Single provider** (NatStat)
 ## Common Debugging Scenarios
 
 ### Missing League Points in Dashboard
+
 **Symptom**: League stats show 0 points despite correct predictions
 **Diagnosis**:
+
 1. Check points ledger entries: `SELECT * FROM "PointsLedger" WHERE "userId" = ? AND reason LIKE 'Correct%'`
 2. Verify `meta` field contains `league`: `SELECT meta FROM "PointsLedger" WHERE ...`
 3. Check if `predictionId` is in meta (used as fallback)
 
 **Solutions**:
+
 - **For new predictions**: Ensure `score-game.service.ts` includes `league` in `awardPoints()` meta
 - **For existing entries**: `getWinRateByLeague()` will fallback to lookup via `predictionId`
 - **If both missing**: Points cannot be attributed; may require data migration
 
 ### Game Not Scoring
+
 **Diagnosis**:
+
 1. Check if result exists: `SELECT * FROM "Result" WHERE "gameId" = ?`
 2. Check if already scored: Check `scoredAt` field
 3. Check game status: Must contain 'final' (case-insensitive)
@@ -506,7 +573,9 @@ Current: **Single provider** (NatStat)
 **Solution**: Manually trigger: `POST /api/admin/games/:id/score`
 
 ### Spread Sign Issues
+
 **Diagnosis**:
+
 1. Verify `NatStatTeam` data exists for both teams
 2. Check `spreadFavouriteId` in raw NatStat response
 3. Verify `adjustSpreadSigns()` mapping logic
@@ -515,7 +584,9 @@ Current: **Single provider** (NatStat)
 **Solution**: Re-run team sync if team data is missing
 
 ### Predictions Not Locking
+
 **Diagnosis**:
+
 1. Check game status in database (should not be 'scheduled')
 2. Verify ingestion job is running
 3. Check logs for locking SQL updates
@@ -523,7 +594,9 @@ Current: **Single provider** (NatStat)
 **Solution**: Manually lock via admin endpoint if needed
 
 ### Missing Team Logos
+
 **Diagnosis**:
+
 1. Run `sync-teams` for the league
 2. Verify ESPN API is accessible
 3. Check team code matching logic
