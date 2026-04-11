@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Target, Zap, Award, Trophy, CheckCircle2 } from 'lucide-react'
+import { Target, Award, Users, CheckCircle2, Scale } from 'lucide-react'
 
 export function Features() {
   return (
@@ -8,7 +8,7 @@ export function Features() {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='text-center mb-16'>
           <h2 className='text-3xl sm:text-4xl font-bold mb-4'>What Makes This Awesome?</h2>
-          <p className='text-xl text-muted-foreground max-w-2xl mx-auto'>You vs. the numbers. Let's go.</p>
+          <p className='text-xl text-muted-foreground max-w-2xl mx-auto'>You vs. the odds. We keep the rules simple.</p>
         </div>
 
         {/* Main Visual Feature with Image */}
@@ -17,20 +17,21 @@ export function Features() {
             <div className='relative h-64 md:h-auto'>
               <img
                 src='/features/climb-the-ranks.jpg'
-                alt='Leaderboard competition'
+                alt='People following sports together'
                 className='w-full h-full object-cover'
               />
             </div>
             <div className='p-8 flex flex-col justify-center'>
-              <Trophy className='h-12 w-12 text-primary mb-4' />
-              <h3 className='text-2xl font-bold mb-3'>Climb the Ranks</h3>
+              <Users className='h-12 w-12 text-primary mb-4' />
+              <h3 className='text-2xl font-bold mb-3'>Community, not a podium</h3>
               <p className='text-muted-foreground text-lg mb-4'>
-                Daily, weekly, all-time—there's always someone to chase. Prove you're the best.
+                See how other predictors are doing over daily, weekly, or all-time windows—helpful context, not the
+                main scoreboard for your week.
               </p>
               <div className='flex gap-2'>
-                <Badge>🔥 Daily</Badge>
-                <Badge>💪 Weekly</Badge>
-                <Badge>👑 All-Time</Badge>
+                <Badge>Today</Badge>
+                <Badge>This week</Badge>
+                <Badge>All time</Badge>
               </div>
             </div>
           </div>
@@ -42,7 +43,7 @@ export function Features() {
             <CardHeader>
               <Target className='h-10 w-10 text-primary mb-2' />
               <CardTitle>Risk It, Earn It</CardTitle>
-              <CardDescription>Safe bet = small reward. Longshot = huge points. Your call.</CardDescription>
+              <CardDescription>Safe bet = smaller reward. Longshot = bigger reward. Your call.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='space-y-2 text-sm'>
@@ -56,32 +57,32 @@ export function Features() {
                 </div>
                 <div className='flex justify-between'>
                   <span className='text-muted-foreground'>Longshot (+300):</span>
-                  <span className='font-semibold'>+40 pts 🔥</span>
+                  <span className='font-semibold'>+40 pts</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Daily Bonus Multiplier */}
+          {/* Fair rules */}
           <Card>
             <CardHeader>
-              <Zap className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Daily Power Pick</CardTitle>
-              <CardDescription>First pick each day gets 1.5x boost. Then play unlimited.</CardDescription>
+              <Scale className='h-10 w-10 text-primary mb-2' />
+              <CardTitle>Same rules every pick</CardTitle>
+              <CardDescription>No bonus tiers or volume penalties on wins—points follow the odds.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='space-y-2 text-sm'>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>1st pick: 1.5x BOOST ⚡</span>
+                  <span>Wins: implied-probability scoring</span>
                 </div>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Unlimited after</span>
+                  <span>Losses: scaled by the same math</span>
                 </div>
                 <div className='flex items-center gap-2'>
                   <CheckCircle2 className='h-4 w-4 text-primary' />
-                  <span>Resets daily</span>
+                  <span>What you see is what we score</span>
                 </div>
               </div>
             </CardContent>
@@ -91,15 +92,15 @@ export function Features() {
           <Card>
             <CardHeader>
               <Award className='h-10 w-10 text-primary mb-2' />
-              <CardTitle>Flex Your Trophies</CardTitle>
-              <CardDescription>Collect badges. Show off. Brag.</CardDescription>
+              <CardTitle>Achievements & streaks</CardTitle>
+              <CardDescription>Cosmetic goals—badges and streaks don&apos;t multiply your points.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='flex flex-wrap gap-2'>
-                <Badge variant='outline'>🔥 5 Streak</Badge>
-                <Badge variant='outline'>🎯 75% Win Rate</Badge>
-                <Badge variant='outline'>⚡ 100 Picks</Badge>
-                <Badge variant='outline'>🏆 Top 10</Badge>
+                <Badge variant='outline'>5 streak</Badge>
+                <Badge variant='outline'>75% win rate</Badge>
+                <Badge variant='outline'>100 picks</Badge>
+                <Badge variant='outline'>League milestones</Badge>
               </div>
             </CardContent>
           </Card>

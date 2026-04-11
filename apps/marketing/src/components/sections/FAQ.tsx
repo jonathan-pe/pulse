@@ -16,7 +16,8 @@ export function FAQ() {
             </CardHeader>
             <CardContent>
               <p className='text-muted-foreground'>
-                <strong>Nope.</strong> Zero money. Zero prizes. Just points, leaderboards, and bragging rights.
+                <strong>Nope.</strong> Zero money. Zero prizes—just points, streaks, achievements, and optional
+                community rankings for context.
               </p>
             </CardContent>
           </Card>
@@ -55,11 +56,12 @@ export function FAQ() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Can I spam picks to win?</CardTitle>
+              <CardTitle>Does picking more games weaken my points?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className='text-muted-foreground'>
-                <strong>Nope.</strong> Anti-spam kicks in after 15 picks. Skill matters, not volume.
+                <strong>Correct picks don&apos;t get weaker because you picked a lot.</strong> Scoring is odds-based,
+                not volume-penalized. We may add rate limits later to keep the service healthy.
               </p>
             </CardContent>
           </Card>

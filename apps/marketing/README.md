@@ -26,7 +26,7 @@ src/
 │   ├── sections/                # Page sections
 │   │   ├── Hero.tsx            # Hero with CTA and placeholder image
 │   │   ├── NoGamblingDisclaimer.tsx  # Legal compliance messaging
-│   │   ├── Features.tsx         # Feature cards (6 features)
+│   │   ├── Features.tsx         # Feature cards + community hero
 │   │   ├── HowItWorks.tsx      # 4-step process + scoring example
 │   │   ├── FAQ.tsx             # 9 common questions
 │   │   └── CTA.tsx             # Final call-to-action
@@ -53,13 +53,11 @@ src/
 - Explains Pulse is NOT sports betting or gambling
 - Emphasizes no real money, no prizes, no financial transactions
 
-### 3. Features (6 cards)
-1. **Probability-Based Scoring** - Mathematical fairness with examples
-2. **Daily Bonus Multiplier** - 1.5x multiplier for first prediction
-3. **Unlock Achievements** - Cosmetic badges and trophy case
-4. **Compete on Leaderboards** - Daily, weekly, all-time rankings
-5. **Multi-Sport Coverage** - NFL, NBA, MLB, NHL
-6. **Fair Competition** - Anti-abuse mechanisms
+### 3. Features
+- **Community context** - See how others are doing (daily / weekly / all-time); framed as context, not a trophy chase
+- **Probability-based scoring** - Examples for favorites vs underdogs
+- **Same rules every pick** - No bonus tiers or volume penalties on wins (aligned with the web app)
+- **Achievements & streaks** - Cosmetic milestones
 
 ### 4. How It Works
 - 4-step process: Browse → Predict → Resolve → Earn
@@ -67,16 +65,12 @@ src/
 - Expected value explanation
 
 ### 5. FAQ
-9 common questions covering:
+Common questions covering:
 - Is this gambling? (No)
-- How are points calculated?
-- What are achievements?
-- Can I game the system? (No)
-- Sports/leagues supported
-- Prediction types available
-- Diminishing returns
-- Streak mechanics
-- Pricing (Free)
+- Cost (free)
+- Sports and bet types
+- Whether more picks weaken points (no—odds-based scoring; rate limits may come later)
+- How points work (high level)
 
 ### 6. CTA
 - Final call to action to get started
@@ -155,5 +149,5 @@ Configured for Vercel deployment via `vercel.json`. Supports:
 2. **Educational** - Explain probability-based scoring with examples
 3. **Transparency** - Show how points work, no hidden mechanics
 4. **Skill-Based** - Focus on prediction accuracy, not luck
-5. **Fair Competition** - Equal expected value, anti-abuse systems
+5. **Honest mechanics** - Marketing copy should match the app (personal-first stats, community as context)
 6. **Accessible** - Responsive, semantic HTML, ARIA labels where needed

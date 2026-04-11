@@ -10,8 +10,8 @@ export function NoGamblingDisclaimer() {
             <h3 className='text-lg font-semibold mb-2'>100% Legal & Compliant</h3>
             <p className='text-muted-foreground'>
               Pulse is <strong>not sports betting or gambling</strong>. No real money is involved, no prizes are
-              awarded, and no financial transactions occur. We're a skill-based prediction platform for entertainment
-              and friendly competition only. Safe, legal, and fun for all sports enthusiasts.
+              awarded, and no financial transactions occur. We&apos;re a skill-based prediction app for entertainment
+              and friendly sports banter—no wagering. Safe, legal, and fun for sports fans.
             </p>
           </div>
         </div>

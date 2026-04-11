@@ -30,7 +30,9 @@ export function Hero({ appUrl, onLearnMore }: HeroProps) {
               <br />
               <span className='text-primary'>Prove It.</span>
             </h1>
-            <p className='text-xl text-muted-foreground mb-8'>Call your shots. Stack points. Own the leaderboard.</p>
+            <p className='text-xl text-muted-foreground mb-8'>
+              Call your shots. Earn points from the odds. Track your stats—and peek at how others are doing.
+            </p>
             <div className='flex flex-col sm:flex-row lg:justify-start justify-center gap-4'>
               <Button asChild size='lg' className='text-lg px-8'>
                 <a href={appUrl} target='_blank' rel='noopener noreferrer'>

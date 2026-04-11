@@ -67,8 +67,11 @@ export function HowItWorks() {
               <div className='inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary text-primary-foreground text-xl font-bold mb-3'>
                 4
               </div>
-              <h3 className='text-xl font-semibold mb-2'>Stack Your Points</h3>
-              <p className='text-muted-foreground'>Hit it? Points up. Miss it? Points down. Climb that board.</p>
+              <h3 className='text-xl font-semibold mb-2'>See Your Results</h3>
+              <p className='text-muted-foreground'>
+                Hit it? Points up. Miss it? Points down. Your dashboard shows trends and history—no tricks tied to how
+                many picks you make.
+              </p>
             </div>
           </div>
         </div>
@@ -87,7 +90,7 @@ export function HowItWorks() {
                     <Badge variant='secondary'>Safe</Badge>
                   </div>
                   <p className='text-sm font-semibold text-primary'>✅ Win: +15 pts</p>
-                  <p className='text-sm font-semibold text-destructive'>❌ Lose: -3 pts</p>
+                  <p className='text-sm font-semibold text-destructive'>❌ Lose: ~−6.7 pts</p>
                 </div>
 
                 <div className='p-4 bg-muted rounded-lg'>
@@ -96,7 +99,7 @@ export function HowItWorks() {
                     <Badge variant='secondary'>Risky</Badge>
                   </div>
                   <p className='text-sm font-semibold text-primary'>✅ Win: +40 pts</p>
-                  <p className='text-sm font-semibold text-destructive'>❌ Lose: -1 pt</p>
+                  <p className='text-sm font-semibold text-destructive'>❌ Lose: ~−2.5 pts</p>
                 </div>
 
                 <div className='flex items-start gap-2 p-4 border-l-4 border-primary bg-primary/5 rounded'>
