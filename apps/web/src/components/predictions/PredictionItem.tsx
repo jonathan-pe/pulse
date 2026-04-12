@@ -10,8 +10,9 @@ interface PredictionItemProps {
 
 export function PredictionItem({ prediction, showDivider = false }: PredictionItemProps) {
   const game = prediction.game
-  const isCorrect = prediction.isCorrect === true
-  const isIncorrect = prediction.isCorrect === false
+  const isCorrect = prediction.outcome === 'WIN'
+  const isIncorrect = prediction.outcome === 'LOSS'
+  const isPush = prediction.outcome === 'PUSH'
 
   // Format the pick for display with actual odds
   let pickDisplay = ''
@@ -71,6 +72,11 @@ export function PredictionItem({ prediction, showDivider = false }: PredictionIt
               <Badge variant='default' className='h-5 bg-destructive hover:bg-destructive/90'>
                 <XCircle className='h-2.5 w-2.5 mr-1' />
                 Loss
+              </Badge>
+            )}
+            {isPush && (
+              <Badge variant='secondary' className='h-5'>
+                Push
               </Badge>
             )}
           </div>

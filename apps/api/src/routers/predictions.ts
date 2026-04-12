@@ -5,6 +5,7 @@ import { getAuth } from '@clerk/express'
 import { PREDICTION_TYPES } from '@pulse/types'
 import { predictionsService } from '../services/predictions.service'
 import { usersService } from '../services/users.service'
+import { PredictionRejectedError } from '../lib/api-errors'
 
 const PredictionInputSchema = z.object({
   gameId: z.string(),
@@ -40,6 +41,10 @@ predictionsRouter.post('/', async (req: Request, res: Response) => {
 
     res.json(prediction)
   } catch (error) {
+    if (error instanceof PredictionRejectedError) {
+      res.status(error.httpStatus).json({ error: error.message, code: error.code })
+      return
+    }
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: 'Invalid input', details: error.issues })
       return
@@ -81,6 +86,10 @@ predictionsRouter.post('/batch', async (req: Request, res: Response) => {
     const result = await predictionsService.createPredictions(userId, input.predictions)
     res.json(result)
   } catch (error) {
+    if (error instanceof PredictionRejectedError) {
+      res.status(error.httpStatus).json({ error: error.message, code: error.code })
+      return
+    }
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: 'Invalid input', details: error.issues })
       return

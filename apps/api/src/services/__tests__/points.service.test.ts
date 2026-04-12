@@ -117,23 +117,23 @@ describe('PointsService', () => {
     it('should return win rate breakdown by league', async () => {
       const mockPredictions = [
         {
-          isCorrect: true,
+          outcome: 'WIN' as const,
           game: { league: 'NBA' },
         },
         {
-          isCorrect: false,
+          outcome: 'LOSS' as const,
           game: { league: 'NBA' },
         },
         {
-          isCorrect: true,
+          outcome: 'WIN' as const,
           game: { league: 'NFL' },
         },
         {
-          isCorrect: true,
+          outcome: 'WIN' as const,
           game: { league: 'NFL' },
         },
         {
-          isCorrect: true,
+          outcome: 'WIN' as const,
           game: { league: 'NFL' },
         },
       ]
@@ -226,7 +226,7 @@ describe('PointsService', () => {
     it('should calculate longest streak correctly', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
-        longestStreak: 3,
+        singlesLongestStreak: 3,
       } as any)
 
       const longestStreak = await service.getLongestStreak('user-123')
@@ -237,7 +237,7 @@ describe('PointsService', () => {
     it('should return 0 for no predictions', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
-        longestStreak: 0,
+        singlesLongestStreak: 0,
       } as any)
 
       const longestStreak = await service.getLongestStreak('user-123')
@@ -248,7 +248,7 @@ describe('PointsService', () => {
     it('should handle perfect streak', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
-        longestStreak: 5,
+        singlesLongestStreak: 5,
       } as any)
 
       const longestStreak = await service.getLongestStreak('user-123')
@@ -259,15 +259,14 @@ describe('PointsService', () => {
 
   describe('getUserStats', () => {
     it('should return comprehensive user statistics', async () => {
-      // Mock user with current streak - will be called twice (once for currentStreak, once for longestStreak)
       vi.mocked(prisma.user.findUnique)
         .mockResolvedValueOnce({
           id: 'user-123',
-          currentStreak: 5,
+          singlesCurrentStreak: 5,
         } as any)
         .mockResolvedValueOnce({
           id: 'user-123',
-          longestStreak: 2,
+          singlesLongestStreak: 2,
         } as any)
 
       // Mock total points
@@ -277,9 +276,9 @@ describe('PointsService', () => {
 
       // Mock all predictions - need to return consistent data for all calls
       const allPredictions = [
-        { isCorrect: true, game: { league: 'NBA' } },
-        { isCorrect: true, game: { league: 'NBA' } },
-        { isCorrect: false, game: { league: 'NBA' } },
+        { outcome: 'WIN' as const, game: { league: 'NBA' } },
+        { outcome: 'WIN' as const, game: { league: 'NBA' } },
+        { outcome: 'LOSS' as const, game: { league: 'NBA' } },
       ]
 
       vi.mocked(prisma.prediction.findMany).mockResolvedValue(allPredictions as any)
@@ -314,11 +313,11 @@ describe('PointsService', () => {
       vi.mocked(prisma.user.findUnique)
         .mockResolvedValueOnce({
           id: 'user-123',
-          currentStreak: 0,
+          singlesCurrentStreak: 0,
         } as any)
         .mockResolvedValueOnce({
           id: 'user-123',
-          longestStreak: 0,
+          singlesLongestStreak: 0,
         } as any)
 
       vi.mocked(prisma.pointsLedger.aggregate).mockResolvedValue({
@@ -374,47 +373,60 @@ describe('PointsService', () => {
     })
   })
 
-  describe('updateUserStreak', () => {
-    it('should increment streak for any correct prediction', async () => {
+  describe('updateSinglesStreak', () => {
+    it('should increment streak for a win', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
-        currentStreak: 3,
-        longestStreak: 3,
+        singlesCurrentStreak: 3,
+        singlesLongestStreak: 3,
       } as any)
 
       vi.mocked(prisma.user.update).mockResolvedValue({
         id: 'user-123',
-        currentStreak: 4,
-        longestStreak: 4,
+        singlesCurrentStreak: 4,
+        singlesLongestStreak: 4,
       } as any)
 
-      const newStreak = await service.updateUserStreak('user-123', true)
+      const newStreak = await service.updateSinglesStreak('user-123', 'WIN')
 
       expect(newStreak).toBe(4)
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
-        data: { currentStreak: 4, longestStreak: 4 },
+        data: { singlesCurrentStreak: 4, singlesLongestStreak: 4 },
       })
     })
 
-    it('should reset streak for incorrect prediction', async () => {
+    it('should reset streak for a loss', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'user-123',
-        currentStreak: 5,
+        singlesCurrentStreak: 5,
+        singlesLongestStreak: 5,
       } as any)
 
       vi.mocked(prisma.user.update).mockResolvedValue({
         id: 'user-123',
-        currentStreak: 0,
+        singlesCurrentStreak: 0,
       } as any)
 
-      const newStreak = await service.updateUserStreak('user-123', false)
+      const newStreak = await service.updateSinglesStreak('user-123', 'LOSS')
 
       expect(newStreak).toBe(0)
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 'user-123' },
-        data: { currentStreak: 0 },
+        data: { singlesCurrentStreak: 0 },
       })
+    })
+
+    it('should not change streak on push', async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-123',
+        singlesCurrentStreak: 2,
+      } as any)
+
+      const newStreak = await service.updateSinglesStreak('user-123', 'PUSH')
+
+      expect(newStreak).toBe(2)
+      expect(prisma.user.update).not.toHaveBeenCalled()
     })
   })
 })

@@ -1,0 +1,53 @@
+// parlay.prisma — Parlay tickets and legs (see docs/specs/parlays-and-same-game-parlays.md)
+
+enum ParlayTicketType {
+  MULTI_GAME
+  SAME_GAME
+}
+
+enum ParlayTicketStatus {
+  PENDING
+  WON
+  LOST
+  PUSHED
+}
+
+enum ParlayLegOutcome {
+  WIN
+  LOSS
+  PUSH
+}
+
+model Parlay {
+  id                         String             @id @default(cuid())
+  userId                     String
+  user                       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketType                 ParlayTicketType
+  status                     ParlayTicketStatus @default(PENDING)
+  pricingVersion             String
+  combinedImpliedProbability Float?
+  sgpMetadata                Json?
+  createdAt                  DateTime           @default(now())
+  processedAt                DateTime?
+
+  legs ParlayLeg[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model ParlayLeg {
+  id           String            @id @default(cuid())
+  parlayId     String
+  parlay       Parlay            @relation(fields: [parlayId], references: [id], onDelete: Cascade)
+  gameId       String
+  game         Game              @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  type         PredictionType
+  pick         String
+  oddsSnapshot Json
+  outcome      ParlayLegOutcome?
+
+  @@unique([parlayId, gameId, type, pick])
+  @@index([gameId])
+  @@index([parlayId])
+}

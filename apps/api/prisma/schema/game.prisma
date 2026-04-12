@@ -15,6 +15,7 @@ model Game {
 
   odds        GameOdds[]
   predictions Prediction[]
+  parlayLegs  ParlayLeg[]
   result      Result?
 
   @@index([league, startsAt])

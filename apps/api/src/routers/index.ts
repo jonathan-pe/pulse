@@ -8,6 +8,7 @@ import { gamesRouter } from './games'
 import { predictionsRouter } from './predictions'
 import { pointsRouter } from './points'
 import { achievementsRouter } from './achievements'
+import { parlaysRouter } from './parlays'
 
 export const router: ExpressRouter = Router()
 
@@ -17,5 +18,6 @@ router.use('/webhooks', webhooksRouter)
 router.use('/auth', authRouter)
 router.use('/games', gamesRouter)
 router.use('/predictions', predictionsRouter)
+router.use('/parlays', parlaysRouter)
 router.use('/points', pointsRouter)
 router.use('/achievements', achievementsRouter)

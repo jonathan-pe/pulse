@@ -303,19 +303,24 @@ describe('Points Router Integration Tests', () => {
       vi.mocked(getAuth).mockReturnValue({ userId: 'user-123' } as any)
 
       // Mock all the Prisma calls that getUserStats makes
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'user-123',
-        currentStreak: 5,
-      } as any)
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce({
+          id: 'user-123',
+          singlesCurrentStreak: 5,
+        } as any)
+        .mockResolvedValueOnce({
+          id: 'user-123',
+          singlesLongestStreak: 2,
+        } as any)
 
       vi.mocked(prisma.pointsLedger.aggregate).mockResolvedValue({
         _sum: { delta: 1250 },
       } as any)
 
       vi.mocked(prisma.prediction.findMany).mockResolvedValue([
-        { isCorrect: true, game: { league: 'NBA' } },
-        { isCorrect: true, game: { league: 'NBA' } },
-        { isCorrect: false, game: { league: 'NBA' } },
+        { outcome: 'WIN', game: { league: 'NBA' } },
+        { outcome: 'WIN', game: { league: 'NBA' } },
+        { outcome: 'LOSS', game: { league: 'NBA' } },
       ] as any)
 
       vi.mocked(prisma.pointsLedger.findMany).mockResolvedValue([
@@ -356,10 +361,15 @@ describe('Points Router Integration Tests', () => {
     it('should handle users with no stats gracefully', async () => {
       vi.mocked(getAuth).mockReturnValue({ userId: 'new-user' } as any)
 
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        id: 'new-user',
-        currentStreak: 0,
-      } as any)
+      vi.mocked(prisma.user.findUnique)
+        .mockResolvedValueOnce({
+          id: 'new-user',
+          singlesCurrentStreak: 0,
+        } as any)
+        .mockResolvedValueOnce({
+          id: 'new-user',
+          singlesLongestStreak: 0,
+        } as any)
 
       vi.mocked(prisma.pointsLedger.aggregate).mockResolvedValue({
         _sum: { delta: null },

@@ -57,9 +57,9 @@ function PredictionsPage() {
 
       // Result filter (only applies to completed predictions)
       if (resultFilter !== 'all') {
-        if (prediction.isCorrect === null) return false // Not yet scored
-        if (resultFilter === 'wins' && prediction.isCorrect !== true) return false
-        if (resultFilter === 'losses' && prediction.isCorrect !== false) return false
+        if (prediction.outcome === null) return false // Not yet scored
+        if (resultFilter === 'wins' && prediction.outcome !== 'WIN') return false
+        if (resultFilter === 'losses' && prediction.outcome !== 'LOSS') return false
       }
 
       return true

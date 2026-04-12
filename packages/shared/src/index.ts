@@ -17,5 +17,8 @@ export * from './constants'
 // Points - Calculation functions
 export * from './points'
 
+// Parlay pricing / combined probability helpers
+export * from './parlay'
+
 // Formatting - Display utilities
 export * from './formatting'

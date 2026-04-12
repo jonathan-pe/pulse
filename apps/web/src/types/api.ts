@@ -77,7 +77,7 @@ export interface BasePrediction {
  * Prediction with full game details (from /predictions/history)
  */
 export interface PredictionWithGame extends BasePrediction {
-  isCorrect: boolean | null // Result of prediction (null = not yet scored)
+  outcome: 'WIN' | 'LOSS' | 'PUSH' | null // Result (null = not yet scored)
   processedAt: string | null // When prediction was scored
   pointsEarned: number | null // Points awarded for this prediction
   oddsAtPrediction: OddsSnapshot | null // Odds when prediction was made

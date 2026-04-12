@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import type { PredictionOutcome } from '@/lib/db'
 import { createLogger } from '../lib/logger'
 import { pointsService } from './points.service'
 import type { PredictionWithGame as BasePredictionWithGame } from './points.service'
@@ -149,53 +150,49 @@ export class ScoreGameService {
   private async scorePrediction(prediction: PredictionWithGame): Promise<void> {
     const startTime = Date.now()
 
-    // 1. Determine if prediction is correct
-    const isCorrect = pointsService.isPredictionCorrect(prediction)
+    const resolution = pointsService.getPredictionOutcome(prediction)
+    const outcome: PredictionOutcome = resolution
 
-    // 2. Get user's current streak and daily prediction count
     const user = await prisma.user.findUnique({
       where: { id: prediction.userId },
-      select: { currentStreak: true },
+      select: { singlesCurrentStreak: true },
     })
 
-    const currentStreak = user?.currentStreak ?? 0
+    const streakBefore = user?.singlesCurrentStreak ?? 0
 
-    // Get daily prediction count at time of prediction
     const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
 
-    // 3. Calculate points (handles both correct and incorrect predictions)
-    const points = pointsService.calculatePoints(prediction, dailyCount, isCorrect)
+    const points = pointsService.calculatePoints(prediction, dailyCount, resolution)
 
-    // 4. Update prediction with result
     await prisma.prediction.update({
       where: { id: prediction.id },
       data: {
-        isCorrect,
+        outcome,
         processedAt: new Date(),
       },
     })
 
-    // 5. Award or deduct points
-    const pointsReason = isCorrect
-      ? `Correct prediction on game ${prediction.gameId}`
-      : `Incorrect prediction on game ${prediction.gameId}`
+    const pointsReason =
+      resolution === 'PUSH'
+        ? `Push on game ${prediction.gameId}`
+        : resolution === 'WIN'
+          ? `Correct prediction on game ${prediction.gameId}`
+          : `Incorrect prediction on game ${prediction.gameId}`
 
-    await pointsService.awardPoints(prediction.userId, points, pointsReason, {
+    await pointsService.awardPoints(prediction.userId, Math.round(points), pointsReason, {
       predictionId: prediction.id,
       gameId: prediction.gameId,
       league: prediction.game.league,
       type: prediction.type,
       pick: prediction.pick,
-      isCorrect,
-      streak: currentStreak, // Tracked for achievements, not used in points
+      outcome,
+      streak: streakBefore,
       dailyCount,
     })
 
-    // 6. Update streak (cosmetic tracking for achievements)
-    await pointsService.updateUserStreak(prediction.userId, isCorrect)
+    await pointsService.updateSinglesStreak(prediction.userId, resolution)
 
-    // 7. Check and unlock achievements (only for correct predictions)
-    if (isCorrect) {
+    if (resolution === 'WIN') {
       const { achievementsService } = await import('./achievements.service.js')
       const newAchievements = await achievementsService.checkAndUnlockAchievements(prediction.userId)
 
@@ -213,9 +210,9 @@ export class ScoreGameService {
     logger.info('Prediction scored', {
       predictionId: prediction.id,
       userId: prediction.userId,
-      isCorrect,
+      outcome,
       points,
-      streak: currentStreak,
+      streak: streakBefore,
       duration: `${duration}ms`,
     })
   }
@@ -282,12 +279,12 @@ export class ScoreGameService {
    */
   async findUnscoredPredictionsOnFinishedGames(): Promise<string[]> {
     // Find predictions where:
-    // 1. isCorrect is null (not yet scored)
+    // 1. outcome is null (not yet scored)
     // 2. Game has a result (game was already scored)
     // 3. Game status indicates finished (Final)
     const predictions = await prisma.prediction.findMany({
       where: {
-        isCorrect: null,
+        outcome: null,
         processedAt: null,
         game: {
           result: {
@@ -330,7 +327,7 @@ export class ScoreGameService {
         return { scored: false, pointsAwarded: 0, error: 'Game has no result' }
       }
 
-      if (prediction.isCorrect !== null) {
+      if (prediction.outcome !== null) {
         return { scored: false, pointsAwarded: 0, error: 'Prediction already scored' }
       }
 
@@ -349,10 +346,7 @@ export class ScoreGameService {
         gameId: prediction.gameId,
         type: prediction.type,
         pick: prediction.pick,
-        oddsAtPrediction: prediction.oddsAtPrediction as Parameters<
-          typeof pointsService.isPredictionCorrect
-        >[0]['oddsAtPrediction'],
-        isCorrect: prediction.isCorrect,
+        oddsAtPrediction: prediction.oddsAtPrediction as BasePredictionWithGame['oddsAtPrediction'],
         createdAt: prediction.createdAt,
         game: {
           league: prediction.game.league,
@@ -363,31 +357,29 @@ export class ScoreGameService {
         },
       }
 
-      // Determine if prediction is correct
-      const isCorrect = pointsService.isPredictionCorrect(predictionWithGame)
+      const resolution = pointsService.getPredictionOutcome(predictionWithGame)
+      const outcome: PredictionOutcome = resolution
 
-      // Update prediction with result
       await prisma.prediction.update({
         where: { id: predictionId },
         data: {
-          isCorrect,
+          outcome,
           processedAt: new Date(),
         },
       })
 
-      // Update streak
-      await pointsService.updateUserStreak(prediction.userId, isCorrect)
+      await pointsService.updateSinglesStreak(prediction.userId, resolution)
 
-      let pointsAwarded = 0
-
-      // Calculate points (positive or negative based on result)
       const dailyCount = await pointsService.getDailyPredictionCount(prediction.userId, prediction.createdAt)
-      pointsAwarded = pointsService.calculatePoints(predictionWithGame, dailyCount, isCorrect)
+      const rawPoints = pointsService.calculatePoints(predictionWithGame, dailyCount, resolution)
+      const pointsAwarded = Math.round(rawPoints)
 
-      // Award or deduct points
-      const pointsReason = isCorrect
-        ? `Correct prediction on game ${prediction.gameId}`
-        : `Incorrect prediction on game ${prediction.gameId}`
+      const pointsReason =
+        resolution === 'PUSH'
+          ? `Push on game ${prediction.gameId}`
+          : resolution === 'WIN'
+            ? `Correct prediction on game ${prediction.gameId}`
+            : `Incorrect prediction on game ${prediction.gameId}`
 
       await pointsService.awardPoints(prediction.userId, pointsAwarded, pointsReason, {
         predictionId: prediction.id,
@@ -396,19 +388,18 @@ export class ScoreGameService {
         type: prediction.type,
         pick: prediction.pick,
         dailyCount,
-        isCorrect,
-        lateScoring: true, // Flag to indicate this was scored after initial game scoring
+        outcome,
+        lateScoring: true,
       })
 
-      // Check achievements (only for correct predictions)
-      if (isCorrect) {
+      if (resolution === 'WIN') {
         const { achievementsService } = await import('./achievements.service.js')
         await achievementsService.checkAndUnlockAchievements(prediction.userId)
       }
 
       logger.info('Scored missed prediction', {
         predictionId,
-        isCorrect,
+        outcome,
         pointsAwarded,
       })
 

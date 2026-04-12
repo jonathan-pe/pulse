@@ -13,6 +13,9 @@ vi.mock('@/lib/db', () => ({
       updateMany: vi.fn(),
       count: vi.fn(),
     },
+    parlayLeg: {
+      findFirst: vi.fn(),
+    },
     game: {
       findUnique: vi.fn(),
     },
@@ -31,6 +34,7 @@ describe('PredictionsService', () => {
   beforeEach(() => {
     service = new PredictionsService()
     vi.clearAllMocks()
+    vi.mocked(prisma.parlayLeg.findFirst).mockResolvedValue(null)
   })
 
   describe('getDailyStats', () => {
@@ -95,6 +99,29 @@ describe('PredictionsService', () => {
       })
     })
 
+    it('should throw MARKET_ALREADY_IN_PARLAY when a pending parlay includes this market', async () => {
+      const futureDate = new Date()
+      futureDate.setHours(futureDate.getHours() + 2)
+
+      vi.mocked(prisma.game.findUnique).mockResolvedValue({
+        id: 'game-456',
+        startsAt: futureDate,
+        status: 'scheduled',
+        result: null,
+      } as any)
+
+      vi.mocked(prisma.parlayLeg.findFirst).mockResolvedValue({ id: 'leg-1' } as any)
+
+      await expect(
+        service.validatePrediction({
+          userId: 'user-123',
+          gameId: 'game-456',
+          type: 'MONEYLINE',
+          pick: 'home',
+        })
+      ).rejects.toMatchObject({ code: 'MARKET_ALREADY_IN_PARLAY' })
+    })
+
     it('should return error if exact duplicate prediction exists', async () => {
       const futureDate = new Date()
       futureDate.setHours(futureDate.getHours() + 2)
@@ -103,6 +130,7 @@ describe('PredictionsService', () => {
         id: 'game-456',
         startsAt: futureDate,
         status: 'scheduled',
+        result: null,
       } as any)
 
       // Mock finding an exact duplicate (same game, type, and pick)

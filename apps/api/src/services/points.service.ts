@@ -1,10 +1,13 @@
 import { prisma } from '@/lib/db'
-import type { PredictionType } from '@/lib/db'
+import type { PredictionOutcome, PredictionType } from '@/lib/db'
 import type { LeagueStats, UserStats } from '@pulse/types'
 import { createLogger } from '../lib/logger'
 import { calculateTotalPoints, calculateIncorrectPoints, DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
 const logger = createLogger('PointsService')
+
+/** Singles scoring result from game outcome (not stored until scored). */
+export type PredictionResolution = 'WIN' | 'LOSS' | 'PUSH'
 
 export interface OddsSnapshot {
   moneyline?: { home: number; away: number }
@@ -19,7 +22,7 @@ export interface PredictionWithGame {
   type: PredictionType
   pick: string
   oddsAtPrediction: OddsSnapshot | null
-  isCorrect: boolean | null
+  outcome?: PredictionOutcome | null
   game: {
     league: string
     result: {
@@ -31,7 +34,7 @@ export interface PredictionWithGame {
 
 export interface ScoringResult {
   predictionId: string
-  isCorrect: boolean
+  outcome: PredictionOutcome
   pointsAwarded: number
   streakBefore: number
   streakAfter: number
@@ -42,12 +45,9 @@ export interface ScoringResult {
  */
 export class PointsService {
   /**
-   * Determine if a prediction is correct based on game result
-   *
-   * @param prediction - Prediction with type, pick, and game result
-   * @returns true if prediction was correct, false otherwise
+   * Resolve prediction to WIN / LOSS / PUSH from game result (Pulse push rules).
    */
-  isPredictionCorrect(prediction: PredictionWithGame): boolean {
+  getPredictionOutcome(prediction: PredictionWithGame): PredictionResolution {
     const result = prediction.game.result
     if (!result) {
       throw new Error(`Game ${prediction.gameId} has no result`)
@@ -58,24 +58,21 @@ export class PointsService {
 
     switch (type) {
       case 'MONEYLINE': {
-        // Simple: did the picked team win?
         const homeWon = homeScore > awayScore
         const awayWon = awayScore > homeScore
         const tie = homeScore === awayScore
 
         if (tie) {
-          // Ties are treated as incorrect (push in betting terms)
-          logger.debug('Moneyline prediction resulted in tie', { predictionId: prediction.id })
-          return false
+          logger.debug('Moneyline prediction resulted in push', { predictionId: prediction.id })
+          return 'PUSH'
         }
 
-        if (pick === 'home') return homeWon
-        if (pick === 'away') return awayWon
+        if (pick === 'home') return homeWon ? 'WIN' : 'LOSS'
+        if (pick === 'away') return awayWon ? 'WIN' : 'LOSS'
         throw new Error(`Invalid moneyline pick: ${pick}`)
       }
 
       case 'SPREAD': {
-        // Check if team covered the spread
         const oddsData = prediction.oddsAtPrediction
         const spread = oddsData?.spread?.value
 
@@ -83,9 +80,6 @@ export class PointsService {
           throw new Error(`No spread data for prediction ${prediction.id}`)
         }
 
-        // Spread is from home team's perspective
-        // Negative spread = home is favored, must win by more than |spread|
-        // Positive spread = away is favored, home gets points
         const homeScoreWithSpread = homeScore + spread
         const homeCovered = homeScoreWithSpread > awayScore
         const awayCovered = awayScore > homeScoreWithSpread
@@ -93,16 +87,15 @@ export class PointsService {
 
         if (push) {
           logger.debug('Spread prediction resulted in push', { predictionId: prediction.id })
-          return false
+          return 'PUSH'
         }
 
-        if (pick === 'home') return homeCovered
-        if (pick === 'away') return awayCovered
+        if (pick === 'home') return homeCovered ? 'WIN' : 'LOSS'
+        if (pick === 'away') return awayCovered ? 'WIN' : 'LOSS'
         throw new Error(`Invalid spread pick: ${pick}`)
       }
 
       case 'TOTAL': {
-        // Check if total went over or under
         const oddsData = prediction.oddsAtPrediction
         const total = oddsData?.total?.value
 
@@ -117,11 +110,11 @@ export class PointsService {
 
         if (push) {
           logger.debug('Total prediction resulted in push', { predictionId: prediction.id })
-          return false
+          return 'PUSH'
         }
 
-        if (pick === 'over') return isOver
-        if (pick === 'under') return isUnder
+        if (pick === 'over') return isOver ? 'WIN' : 'LOSS'
+        if (pick === 'under') return isUnder ? 'WIN' : 'LOSS'
         throw new Error(`Invalid total pick: ${pick}`)
       }
 
@@ -131,27 +124,24 @@ export class PointsService {
   }
 
   /**
-   * Calculate points for a prediction (correct or incorrect)
+   * Calculate points for a prediction (WIN / LOSS / PUSH)
    *
-   * For correct predictions:
-   * - Pure probability-based scoring from odds only (no volume or bonus multipliers)
-   *
-   * For incorrect predictions:
-   * - Negative points scaled by probability (favorites cost more than underdogs)
-   * - No tier multiplier or diminishing returns applied to losses
-   *
-   * @param prediction - Prediction with odds and bonus tier status
-   * @param dailyPredictionCount - Number of predictions made today (logged in meta only)
-   * @param isCorrect - Whether the prediction was correct
-   * @returns Points to award (positive for correct, negative for incorrect)
+   * PUSH → 0 points. WIN / LOSS use the same odds-based rules as before.
    */
-  calculatePoints(prediction: PredictionWithGame, dailyPredictionCount: number, isCorrect: boolean): number {
+  calculatePoints(
+    prediction: PredictionWithGame,
+    dailyPredictionCount: number,
+    outcome: PredictionResolution
+  ): number {
+    if (outcome === 'PUSH') {
+      return 0
+    }
+
     const oddsData = prediction.oddsAtPrediction
     if (!oddsData) {
       throw new Error(`No odds data for prediction ${prediction.id}`)
     }
 
-    // Extract the relevant odds based on prediction type
     let odds: number
 
     switch (prediction.type) {
@@ -164,15 +154,13 @@ export class PointsService {
         break
       }
       case 'SPREAD': {
-        // Use the spread price if available, otherwise estimate from spread value
         const pickSide = prediction.pick === 'home' ? 'homePrice' : 'awayPrice'
-        odds = oddsData.spread?.[pickSide] ?? -110 // Default to -110 if no price
+        odds = oddsData.spread?.[pickSide] ?? -110
         break
       }
       case 'TOTAL': {
-        // Use over/under price if available
         const pickSide = prediction.pick === 'over' ? 'overPrice' : 'underPrice'
-        odds = oddsData.total?.[pickSide] ?? -110 // Default to -110 if no price
+        odds = oddsData.total?.[pickSide] ?? -110
         break
       }
       default:
@@ -183,22 +171,17 @@ export class PointsService {
       throw new Error(`Could not extract odds for prediction ${prediction.id}`)
     }
 
-    // Handle incorrect predictions
-    if (!isCorrect) {
-      // Calculate loss (negative points)
+    if (outcome === 'LOSS') {
       const lossPoints = calculateIncorrectPoints(odds)
-
       logger.debug('Calculated loss points', {
         predictionId: prediction.id,
         odds,
-        isCorrect: false,
+        outcome: 'LOSS',
         lossPoints,
       })
-
-      return lossPoints // Return negative value (no tier multiplier or diminishing returns)
+      return lossPoints
     }
 
-    // Handle correct predictions — odds-based points only
     const rawPoints = calculateTotalPoints(odds)
     const finalPoints = Math.round(rawPoints)
 
@@ -206,7 +189,7 @@ export class PointsService {
       predictionId: prediction.id,
       odds,
       dailyPredictionCount,
-      isCorrect: true,
+      outcome: 'WIN',
       rawPoints,
       finalPoints,
     })
@@ -237,36 +220,35 @@ export class PointsService {
   }
 
   /**
-   * Update user's streak based on prediction correctness
-   *
-   * Streaks are cosmetic for achievement tracking only; they do not affect points.
-   * Every scored prediction updates the streak (correct = increment, incorrect = reset).
-   *
-   * @param userId - User ID
-   * @param isCorrect - Whether the prediction was correct
-   * @returns New streak value
+   * Update singles-only streak (standalone predictions). PUSH does not change the streak.
    */
-  async updateUserStreak(userId: string, isCorrect: boolean): Promise<number> {
+  async updateSinglesStreak(userId: string, outcome: PredictionResolution): Promise<number> {
+    if (outcome === 'PUSH') {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { singlesCurrentStreak: true },
+      })
+      return user?.singlesCurrentStreak ?? 0
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { currentStreak: true, longestStreak: true },
+      select: { singlesCurrentStreak: true, singlesLongestStreak: true },
     })
 
-    const currentStreak = user?.currentStreak ?? 0
-    const longestStreak = user?.longestStreak ?? 0
+    const currentStreak = user?.singlesCurrentStreak ?? 0
+    const longestStreak = user?.singlesLongestStreak ?? 0
 
-    if (isCorrect) {
-      // Increment streak
+    if (outcome === 'WIN') {
       const newStreak = currentStreak + 1
 
-      // Update longest streak if new record
-      const updateData: { currentStreak: number; longestStreak?: number } = {
-        currentStreak: newStreak,
+      const updateData: { singlesCurrentStreak: number; singlesLongestStreak?: number } = {
+        singlesCurrentStreak: newStreak,
       }
 
       if (newStreak > longestStreak) {
-        updateData.longestStreak = newStreak
-        logger.debug('New longest streak record!', { userId, newStreak })
+        updateData.singlesLongestStreak = newStreak
+        logger.debug('New longest singles streak record!', { userId, newStreak })
       }
 
       await prisma.user.update({
@@ -274,19 +256,18 @@ export class PointsService {
         data: updateData,
       })
 
-      logger.debug('Streak incremented', { userId, from: currentStreak, to: newStreak })
+      logger.debug('Singles streak incremented', { userId, from: currentStreak, to: newStreak })
       return newStreak
-    } else {
-      // Reset streak
-      if (currentStreak > 0) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { currentStreak: 0 },
-        })
-        logger.debug('Streak reset', { userId, from: currentStreak })
-      }
-      return 0
     }
+
+    if (currentStreak > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { singlesCurrentStreak: 0 },
+      })
+      logger.debug('Singles streak reset', { userId, from: currentStreak })
+    }
+    return 0
   }
 
   /**
@@ -375,7 +356,7 @@ export class PointsService {
       where: {
         userId,
         processedAt: { not: null },
-        isCorrect: { not: null },
+        outcome: { not: null },
       },
       include: {
         game: true,
@@ -396,10 +377,11 @@ export class PointsService {
     const leagueMap = new Map<string, { total: number; correct: number; points: number }>()
 
     for (const pred of predictions) {
+      if (pred.outcome === 'PUSH' || pred.outcome === null) continue
       const league = pred.game.league
       const current = leagueMap.get(league) ?? { total: 0, correct: 0, points: 0 }
       current.total++
-      if (pred.isCorrect) current.correct++
+      if (pred.outcome === 'WIN') current.correct++
       leagueMap.set(league, current)
     }
 
@@ -438,7 +420,7 @@ export class PointsService {
       league,
       totalPredictions: stats.total,
       correctPredictions: stats.correct,
-      winRate: stats.total > 0 ? stats.correct / stats.total : 0,
+      winRate: stats.total > 0 ? stats.correct / stats.total : 0, // WIN / (all scored legs); pushes count in total
       pointsEarned: stats.points,
     }))
   }
@@ -501,13 +483,12 @@ export class PointsService {
    * @returns Longest streak achieved
    */
   async getLongestStreak(userId: string): Promise<number> {
-    // Retrieve from user record (tracked in real-time now)
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { longestStreak: true },
+      select: { singlesLongestStreak: true },
     })
 
-    return user?.longestStreak ?? 0
+    return user?.singlesLongestStreak ?? 0
   }
 
   /**
@@ -521,11 +502,11 @@ export class PointsService {
     const [totalPoints, user, longestStreak, allPredictions, todayStats, byLeague, pointsOverTime, leaderboardRank] =
       await Promise.all([
         this.getUserPoints(userId),
-        prisma.user.findUnique({ where: { id: userId }, select: { currentStreak: true } }),
+        prisma.user.findUnique({ where: { id: userId }, select: { singlesCurrentStreak: true } }),
         this.getLongestStreak(userId),
         prisma.prediction.findMany({
-          where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
-          select: { isCorrect: true },
+          where: { userId, processedAt: { not: null }, outcome: { not: null } },
+          select: { outcome: true },
         }),
         this.getTodayStats(userId),
         this.getWinRateByLeague(userId),
@@ -533,13 +514,14 @@ export class PointsService {
         this.getUserRank(userId),
       ])
 
-    const totalPredictions = allPredictions.length
-    const correctPredictions = allPredictions.filter((p) => p.isCorrect).length
+    const decided = allPredictions.filter((p) => p.outcome === 'WIN' || p.outcome === 'LOSS')
+    const totalPredictions = decided.length
+    const correctPredictions = allPredictions.filter((p) => p.outcome === 'WIN').length
     const overallWinRate = totalPredictions > 0 ? correctPredictions / totalPredictions : 0
 
     return {
       totalPoints,
-      currentStreak: user?.currentStreak ?? 0,
+      currentStreak: user?.singlesCurrentStreak ?? 0,
       longestStreak,
       totalPredictions,
       correctPredictions,

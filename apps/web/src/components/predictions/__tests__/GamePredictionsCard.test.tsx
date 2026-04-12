@@ -10,7 +10,7 @@ function makePrediction(overrides: Partial<PredictionWithGame> = {}): Prediction
     pick: 'home',
     createdAt: '2025-12-01T12:00:00Z',
     lockedAt: null,
-    isCorrect: null,
+    outcome: null,
     processedAt: null,
     pointsEarned: 0,
     oddsAtPrediction: null,

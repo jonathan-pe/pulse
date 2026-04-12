@@ -3,6 +3,7 @@ import { createLogger } from '../lib/logger'
 import type { PredictionType } from '@/lib/db'
 import { oddsAggregationService } from './odds-aggregation.service'
 import type { OddsSnapshot } from './points.service'
+import { PredictionRejectedError } from '../lib/api-errors'
 
 import { DAILY_RESET_HOUR_UTC } from '@pulse/shared'
 
@@ -31,6 +32,7 @@ export interface CreatePredictionsResult {
   errors: Array<{
     gameId: string
     error: string
+    code?: string
   }>
   dailyStats: {
     totalToday: number
@@ -95,9 +97,13 @@ export class PredictionsService {
   }
 
   /**
-   * Validate a single prediction before creation
+   * Validate a single prediction before creation.
+   * @param forParlayLeg — when true, skips standalone duplicate-prediction check (parlay legs use `ParlayLeg` rows only).
    */
-  async validatePrediction(input: CreatePredictionInput): Promise<PredictionValidationError | null> {
+  async validatePrediction(
+    input: CreatePredictionInput,
+    options?: { forParlayLeg?: boolean; skipUserConflictChecks?: boolean }
+  ): Promise<PredictionValidationError | null> {
     // 1. Check if game exists
     const game = await prisma.game.findUnique({
       where: { id: input.gameId },
@@ -135,18 +141,36 @@ export class PredictionsService {
       return { field: 'gameId', message: 'Game has already started' }
     }
 
-    // 2. Check for exact duplicate prediction (same game, type, and pick)
-    const exactDuplicate = await prisma.prediction.findFirst({
-      where: {
-        userId: input.userId,
-        gameId: input.gameId,
-        type: input.type,
-        pick: input.pick,
-      },
-    })
+    if (!options?.skipUserConflictChecks) {
+      const pendingParlayLeg = await prisma.parlayLeg.findFirst({
+        where: {
+          gameId: input.gameId,
+          type: input.type,
+          pick: input.pick,
+          parlay: { userId: input.userId, status: 'PENDING' },
+        },
+      })
+      if (pendingParlayLeg) {
+        throw new PredictionRejectedError(
+          'MARKET_ALREADY_IN_PARLAY',
+          'This market is already used on a pending parlay ticket.'
+        )
+      }
+    }
 
-    if (exactDuplicate) {
-      return { field: 'pick', message: 'You already have this exact prediction' }
+    if (!options?.forParlayLeg) {
+      const exactDuplicate = await prisma.prediction.findFirst({
+        where: {
+          userId: input.userId,
+          gameId: input.gameId,
+          type: input.type,
+          pick: input.pick,
+        },
+      })
+
+      if (exactDuplicate) {
+        return { field: 'pick', message: 'You already have this exact prediction' }
+      }
     }
 
     // 3. Validate pick format based on type
@@ -300,7 +324,6 @@ export class PredictionsService {
 
     for (const input of inputs) {
       try {
-        // Validate the prediction
         const validationError = await this.validatePrediction({ ...input, userId })
         if (validationError) {
           errors.push({
@@ -350,6 +373,14 @@ export class PredictionsService {
           type: input.type,
         })
       } catch (error) {
+        if (error instanceof PredictionRejectedError) {
+          errors.push({
+            gameId: input.gameId,
+            error: error.message,
+            code: error.code,
+          })
+          continue
+        }
         const message = error instanceof Error ? error.message : 'Unknown error'
         errors.push({
           gameId: input.gameId,
@@ -387,7 +418,7 @@ export class PredictionsService {
         pick: true,
         createdAt: true,
         lockedAt: true,
-        isCorrect: true,
+        outcome: true,
         processedAt: true,
         oddsAtPrediction: true,
         game: {

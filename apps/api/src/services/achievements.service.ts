@@ -61,9 +61,9 @@ export class AchievementsService {
       case 'streak': {
         const user = await prisma.user.findUnique({
           where: { id: userId },
-          select: { longestStreak: true },
+          select: { singlesLongestStreak: true },
         })
-        return (user?.longestStreak ?? 0) >= criteria.value
+        return (user?.singlesLongestStreak ?? 0) >= criteria.value
       }
 
       case 'total_predictions': {
@@ -83,13 +83,13 @@ export class AchievementsService {
 
       case 'win_rate': {
         const predictions = await prisma.prediction.findMany({
-          where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
-          select: { isCorrect: true },
+          where: { userId, processedAt: { not: null }, outcome: { in: ['WIN', 'LOSS'] } },
+          select: { outcome: true },
         })
 
         if (predictions.length < criteria.minPredictions) return false
 
-        const correct = predictions.filter((p) => p.isCorrect).length
+        const correct = predictions.filter((p) => p.outcome === 'WIN').length
         const winRate = correct / predictions.length
         return winRate >= criteria.winRate
       }
@@ -99,38 +99,38 @@ export class AchievementsService {
           where: {
             userId,
             processedAt: { not: null },
-            isCorrect: { not: null },
+            outcome: { in: ['WIN', 'LOSS'] },
             game: { league: criteria.league },
           },
-          select: { isCorrect: true },
+          select: { outcome: true },
         })
 
         if (predictions.length < criteria.minPredictions) return false
 
-        const correct = predictions.filter((p) => p.isCorrect).length
+        const correct = predictions.filter((p) => p.outcome === 'WIN').length
         const winRate = correct / predictions.length
         return winRate >= criteria.winRate
       }
 
       case 'perfect_days': {
-        // Count days where all predictions were correct
         const predictions = await prisma.prediction.findMany({
-          where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
-          select: { isCorrect: true, createdAt: true },
+          where: { userId, processedAt: { not: null }, outcome: { not: null } },
+          select: { outcome: true, createdAt: true },
           orderBy: { createdAt: 'asc' },
         })
 
-        const dayMap = new Map<string, { total: number; correct: number }>()
+        const dayMap = new Map<string, { total: number; wins: number }>()
 
         for (const pred of predictions) {
+          if (pred.outcome === 'PUSH') continue
           const day = pred.createdAt.toISOString().split('T')[0]
-          const current = dayMap.get(day) ?? { total: 0, correct: 0 }
+          const current = dayMap.get(day) ?? { total: 0, wins: 0 }
           current.total++
-          if (pred.isCorrect) current.correct++
+          if (pred.outcome === 'WIN') current.wins++
           dayMap.set(day, current)
         }
 
-        const perfectDays = Array.from(dayMap.values()).filter((d) => d.total === d.correct && d.total > 0).length
+        const perfectDays = Array.from(dayMap.values()).filter((d) => d.total === d.wins && d.total > 0).length
 
         return perfectDays >= criteria.value
       }
@@ -140,17 +140,16 @@ export class AchievementsService {
           where: {
             userId,
             processedAt: { not: null },
-            isCorrect: { not: null },
+            outcome: { in: ['WIN', 'LOSS'] },
           },
           select: {
-            isCorrect: true,
+            outcome: true,
             oddsAtPrediction: true,
             type: true,
             pick: true,
           },
         })
 
-        // Filter to underdogs meeting min odds
         const underdogPredictions = predictions.filter((pred) => {
           const odds = this.extractOdds(pred)
           return odds !== null && odds >= criteria.minOdds
@@ -158,7 +157,7 @@ export class AchievementsService {
 
         if (underdogPredictions.length < criteria.minPredictions) return false
 
-        const correct = underdogPredictions.filter((p) => p.isCorrect).length
+        const correct = underdogPredictions.filter((p) => p.outcome === 'WIN').length
         const winRate = correct / underdogPredictions.length
         return winRate >= criteria.winRate
       }
@@ -264,9 +263,9 @@ export class AchievementsService {
       case 'streak': {
         const user = await prisma.user.findUnique({
           where: { id: userId },
-          select: { longestStreak: true },
+          select: { singlesLongestStreak: true },
         })
-        return user?.longestStreak ?? 0
+        return user?.singlesLongestStreak ?? 0
       }
 
       case 'total_predictions': {
@@ -291,20 +290,20 @@ export class AchievementsService {
 
         if (criteria.type === 'win_rate') {
           count = await prisma.prediction.count({
-            where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
+            where: { userId, processedAt: { not: null }, outcome: { in: ['WIN', 'LOSS'] } },
           })
         } else if (criteria.type === 'league_accuracy') {
           count = await prisma.prediction.count({
             where: {
               userId,
               processedAt: { not: null },
-              isCorrect: { not: null },
+              outcome: { in: ['WIN', 'LOSS'] },
               game: { league: criteria.league },
             },
           })
         } else if (criteria.type === 'underdog_specialist') {
           const predictions = await prisma.prediction.findMany({
-            where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
+            where: { userId, processedAt: { not: null }, outcome: { in: ['WIN', 'LOSS'] } },
             select: { oddsAtPrediction: true, type: true, pick: true },
           })
           count = predictions.filter((pred) => {
@@ -318,21 +317,22 @@ export class AchievementsService {
 
       case 'perfect_days': {
         const predictions = await prisma.prediction.findMany({
-          where: { userId, processedAt: { not: null }, isCorrect: { not: null } },
-          select: { isCorrect: true, createdAt: true },
+          where: { userId, processedAt: { not: null }, outcome: { not: null } },
+          select: { outcome: true, createdAt: true },
         })
 
-        const dayMap = new Map<string, { total: number; correct: number }>()
+        const dayMap = new Map<string, { total: number; wins: number }>()
 
         for (const pred of predictions) {
+          if (pred.outcome === 'PUSH') continue
           const day = pred.createdAt.toISOString().split('T')[0]
-          const current = dayMap.get(day) ?? { total: 0, correct: 0 }
+          const current = dayMap.get(day) ?? { total: 0, wins: 0 }
           current.total++
-          if (pred.isCorrect) current.correct++
+          if (pred.outcome === 'WIN') current.wins++
           dayMap.set(day, current)
         }
 
-        return Array.from(dayMap.values()).filter((d) => d.total === d.correct && d.total > 0).length
+        return Array.from(dayMap.values()).filter((d) => d.total === d.wins && d.total > 0).length
       }
 
       case 'multi_sport': {
@@ -450,7 +450,7 @@ export class AchievementsService {
   async getAchievementStats(userId: string): Promise<AchievementStats> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { currentStreak: true, longestStreak: true },
+      select: { singlesCurrentStreak: true, singlesLongestStreak: true },
     })
 
     const allAchievements = await prisma.achievement.findMany()
@@ -471,8 +471,8 @@ export class AchievementsService {
     }
 
     return {
-      currentStreak: user?.currentStreak ?? 0,
-      longestStreak: user?.longestStreak ?? 0,
+      currentStreak: user?.singlesCurrentStreak ?? 0,
+      longestStreak: user?.singlesLongestStreak ?? 0,
       totalAchievements: userAchievements.length,
       commonUnlocked: rarityCounts.COMMON,
       rareUnlocked: rarityCounts.RARE,

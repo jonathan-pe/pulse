@@ -69,8 +69,9 @@ export function RecentPredictions() {
       <CardContent className='space-y-3'>
         {recentPredictions.map((prediction) => {
           const game = prediction.game
-          const isCorrect = prediction.isCorrect === true
-          const isIncorrect = prediction.isCorrect === false
+          const isCorrect = prediction.outcome === 'WIN'
+          const isIncorrect = prediction.outcome === 'LOSS'
+          const isPush = prediction.outcome === 'PUSH'
           const hasResult = game.result !== null && game.result !== undefined
           const gameStarted = new Date(game.startsAt) <= new Date()
 
@@ -131,6 +132,8 @@ export function RecentPredictions() {
                   <CheckCircle className='h-5 w-5 text-green-500' />
                 ) : isIncorrect ? (
                   <XCircle className='h-5 w-5 text-red-500' />
+                ) : isPush ? (
+                  <Clock className='h-5 w-5 text-muted-foreground' />
                 ) : (
                   <Clock className='h-5 w-5 text-muted-foreground' />
                 )}

@@ -6,6 +6,12 @@ enum PredictionType {
   TOTAL
 }
 
+enum PredictionOutcome {
+  WIN
+  LOSS
+  PUSH
+}
+
 model Prediction {
   id        String         @id @default(cuid())
   userId    String
@@ -20,7 +26,7 @@ model Prediction {
   // Scoring metadata
   oddsAtPrediction Json? // Snapshot of odds when prediction was made
   processedAt      DateTime? // When scoring was calculated
-  isCorrect        Boolean? // Result of prediction (null = not yet scored)
+  outcome          PredictionOutcome? // null = not yet scored; WIN / LOSS / PUSH when processed
 
   // Allow multiple predictions per game, but not duplicate type+pick combinations
   @@unique([userId, gameId, type, pick])

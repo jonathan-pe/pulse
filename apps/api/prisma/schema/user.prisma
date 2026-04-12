@@ -10,11 +10,19 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now()) @updatedAt
 
-  // Point scoring streak tracking (bonus tier only)
-  currentStreak Int @default(0)
-  longestStreak Int @default(0) // All-time best streak for achievements
+  // Singles-only streak (standalone predictions)
+  singlesCurrentStreak Int @default(0)
+  singlesLongestStreak Int @default(0)
+
+  // Parlay-leg streak (per winning leg; see parlay spec)
+  parlayLegCurrentStreak Int @default(0)
+  parlayLegLongestStreak Int @default(0)
+
+  // Largest won parlay by effective leg count (after pushes removed)
+  largestParlayWinLegCount Int @default(0)
 
   predictions      Prediction[]
+  parlays          Parlay[]
   ledger           PointsLedger[]
   userAchievements UserAchievement[]
 }
