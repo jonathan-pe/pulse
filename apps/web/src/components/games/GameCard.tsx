@@ -11,7 +11,8 @@ interface GameCardProps {
 }
 
 const GameCard: React.FC<GameCardProps> = ({ game }) => {
-  const { isGameLocked, hasSelection, hasPrediction, handleAddToCart } = useGameCardPickState(game)
+  const { isGameLocked, hasSelection, hasPrediction, getParlayBlockTooltip, handleAddToCart } =
+    useGameCardPickState(game)
 
   return (
     <Card className='overflow-hidden hover:shadow-md hover:transition-shadow'>
@@ -31,6 +32,7 @@ const GameCard: React.FC<GameCardProps> = ({ game }) => {
             isGameLocked={isGameLocked}
             hasSelection={hasSelection}
             hasPrediction={hasPrediction}
+            getParlayBlockTooltip={getParlayBlockTooltip}
             handleAddToCart={handleAddToCart}
           />
         )}

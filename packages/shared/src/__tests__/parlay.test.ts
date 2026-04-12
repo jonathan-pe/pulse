@@ -3,6 +3,8 @@ import {
   combinedIndependentImpliedPercentFromAmericanOdds,
   multiplyLegImpliedProbabilities,
   previewMultiGameParlayPoints,
+  resolveParlayTicketStatus,
+  settlementPointsForParlay,
   sgpAdjustedImpliedPercent,
 } from '../parlay'
 
@@ -21,5 +23,23 @@ describe('parlay helpers', () => {
   it('sgpAdjustedImpliedPercent bumps naive combined', () => {
     const naive = 20
     expect(sgpAdjustedImpliedPercent(naive)).toBeGreaterThan(naive)
+  })
+
+  it('resolveParlayTicketStatus handles pushes and losses', () => {
+    expect(resolveParlayTicketStatus(['PUSH', 'PUSH'])).toBe('PUSHED')
+    expect(resolveParlayTicketStatus(['WIN', 'PUSH'])).toBe('WON')
+    expect(resolveParlayTicketStatus(['WIN', 'LOSS'])).toBe('LOST')
+  })
+
+  it('settlementPointsForParlay WON single effective leg matches singles math', () => {
+    const s = settlementPointsForParlay('MULTI_GAME', 'parlay-v1', [-110], 'WON')
+    expect(s.pointsRounded).toBeGreaterThan(0)
+    expect(s.combinedImpliedPercent).toBeDefined()
+  })
+
+  it('settlementPointsForParlay LOST uses combined implied from effective legs', () => {
+    const s = settlementPointsForParlay('MULTI_GAME', 'parlay-v1', [-110, -110], 'LOST')
+    expect(s.pointsRounded).toBeLessThan(0)
+    expect(s.combinedImpliedPercent).toBeDefined()
   })
 })

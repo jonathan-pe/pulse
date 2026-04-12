@@ -56,6 +56,9 @@ export const calculateSelectionPoints = (selection: CartSelection): number => {
 
 export interface CartState {
   selections: CartSelection[]
+  /** When true, the slip submits a parlay (multi-game or SGP) instead of separate singles. */
+  parlayMode: boolean
+  setParlayMode: (on: boolean) => void
   isOpen: boolean
   addSelection: (selection: CartSelection) => void
   removeSelection: (gameId: string, market: CartSelection['market'], side: CartSelection['side']) => void
@@ -69,6 +72,10 @@ const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       selections: [],
+      parlayMode: false,
+
+      setParlayMode: (on) => set({ parlayMode: on }),
+
       isOpen: false,
 
       addSelection: (selection) =>
@@ -109,7 +116,7 @@ const useCartStore = create<CartState>()(
     }),
     {
       name: 'pulse-cart-storage',
-      partialize: (state) => ({ selections: state.selections }),
+      partialize: (state) => ({ selections: state.selections, parlayMode: state.parlayMode }),
     }
   )
 )

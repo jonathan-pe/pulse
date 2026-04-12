@@ -1,21 +1,24 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { usePredictionHistory } from '@/hooks/usePredictions'
+import { useParlays, usePredictionHistory } from '@/hooks/usePredictions'
 import { Card, CardContent } from '@/components/ui/card'
 import { GamePredictionsCard } from '@/components/predictions/GamePredictionsCard'
+import { ParlayTimelineCard } from '@/components/predictions/ParlayTimelineCard'
 import { PredictionsSummaryHeader } from '@/components/predictions/PredictionsSummaryHeader'
 import { PredictionsFilters } from '@/components/predictions/PredictionsFilters'
 import type { StatusFilter, LeagueFilter, ResultFilter } from '@/types/filters'
-import type { PredictionWithGame } from '@/types/api'
+import { buildMergedTimeline, filterTimeline } from '@/lib/predictions-timeline'
 
 export const Route = createFileRoute('/_authenticated/predictions')({
   component: PredictionsPage,
 })
 
 function PredictionsPage() {
-  const { data: predictions, isLoading } = usePredictionHistory()
+  const { data: predictions, isLoading: predictionsLoading } = usePredictionHistory()
+  const { data: parlays = [], isLoading: parlaysLoading } = useParlays({ enabled: true })
 
-  // Filter state
+  const isLoading = predictionsLoading || parlaysLoading
+
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [leagueFilter, setLeagueFilter] = useState<LeagueFilter>('all')
   const [resultFilter, setResultFilter] = useState<ResultFilter>('all')
@@ -28,55 +31,17 @@ function PredictionsPage() {
     setResultFilter('all')
   }
 
-  // Helper to determine game status
-  const getGameStatus = (prediction: PredictionWithGame) => {
-    const game = prediction.game
-    const hasResult = game.result !== null && game.result !== undefined
-    const gameStarted = new Date(game.startsAt) <= new Date()
+  const mergedTimeline = useMemo(
+    () => buildMergedTimeline(predictions ?? [], parlays),
+    [predictions, parlays]
+  )
 
-    if (hasResult) return 'completed'
-    if (gameStarted) return 'live'
-    return 'pending'
-  }
+  const filteredTimeline = useMemo(
+    () => filterTimeline(mergedTimeline, statusFilter, leagueFilter, resultFilter),
+    [mergedTimeline, statusFilter, leagueFilter, resultFilter]
+  )
 
-  // Filter predictions
-  const filteredPredictions = useMemo(() => {
-    if (!predictions) return []
-
-    return predictions.filter((prediction) => {
-      // Status filter
-      if (statusFilter !== 'all') {
-        const status = getGameStatus(prediction)
-        if (status !== statusFilter) return false
-      }
-
-      // League filter
-      if (leagueFilter !== 'all') {
-        if (prediction.game.league !== leagueFilter) return false
-      }
-
-      // Result filter (only applies to completed predictions)
-      if (resultFilter !== 'all') {
-        if (prediction.outcome === null) return false // Not yet scored
-        if (resultFilter === 'wins' && prediction.outcome !== 'WIN') return false
-        if (resultFilter === 'losses' && prediction.outcome !== 'LOSS') return false
-      }
-
-      return true
-    })
-  }, [predictions, statusFilter, leagueFilter, resultFilter])
-
-  // Group filtered predictions by game
-  const groupedPredictions = useMemo(() => {
-    return filteredPredictions.reduce((acc, prediction) => {
-      const gameId = prediction.gameId
-      if (!acc[gameId]) {
-        acc[gameId] = []
-      }
-      acc[gameId].push(prediction)
-      return acc
-    }, {} as Record<string, PredictionWithGame[]>)
-  }, [filteredPredictions])
+  const hasAnyActivity = (predictions?.length ?? 0) > 0 || parlays.length > 0
 
   if (isLoading) {
     return (
@@ -89,7 +54,7 @@ function PredictionsPage() {
     )
   }
 
-  if (!predictions || predictions.length === 0) {
+  if (!hasAnyActivity) {
     return (
       <div className='w-full h-full overflow-y-auto'>
         <div className='container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
@@ -109,12 +74,10 @@ function PredictionsPage() {
       <div className='container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
         <h1 className='text-2xl sm:text-3xl font-bold mb-6'>My Predictions</h1>
 
-        {/* Summary Stats */}
         <div className='mb-6'>
           <PredictionsSummaryHeader />
         </div>
 
-        {/* Filters */}
         <div className='mb-6'>
           <PredictionsFilters
             statusFilter={statusFilter}
@@ -128,13 +91,12 @@ function PredictionsPage() {
           />
         </div>
 
-        {/* No results after filtering */}
-        {Object.keys(groupedPredictions).length === 0 && (
-          <Card>
+        {filteredTimeline.length === 0 && (
+          <Card className='mb-6'>
             <CardContent>
               <p className='text-muted-foreground text-center'>
                 No predictions match your filters.{' '}
-                <button onClick={clearFilters} className='text-primary hover:underline'>
+                <button type='button' onClick={clearFilters} className='text-primary hover:underline'>
                   Clear filters
                 </button>
               </p>
@@ -142,11 +104,14 @@ function PredictionsPage() {
           </Card>
         )}
 
-        {/* Predictions Grid - 2 columns on larger screens */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-          {Object.entries(groupedPredictions).map(([gameId, gamePredictions]) => (
-            <GamePredictionsCard key={gameId} gamePredictions={gamePredictions} />
-          ))}
+          {filteredTimeline.map((item) =>
+            item.kind === 'single' ? (
+              <GamePredictionsCard key={item.prediction.id} gamePredictions={[item.prediction]} />
+            ) : (
+              <ParlayTimelineCard key={item.parlay.id} parlay={item.parlay} />
+            )
+          )}
         </div>
       </div>
     </div>

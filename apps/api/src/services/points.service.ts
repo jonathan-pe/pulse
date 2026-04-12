@@ -271,6 +271,50 @@ export class PointsService {
   }
 
   /**
+   * Parlay-leg streak: increment on each winning parlay leg when scored; reset on loss; unchanged on push.
+   */
+  async updateParlayLegStreak(userId: string, outcome: PredictionResolution): Promise<number> {
+    if (outcome === 'PUSH') {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { parlayLegCurrentStreak: true },
+      })
+      return user?.parlayLegCurrentStreak ?? 0
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { parlayLegCurrentStreak: true, parlayLegLongestStreak: true },
+    })
+
+    const currentStreak = user?.parlayLegCurrentStreak ?? 0
+    const longestStreak = user?.parlayLegLongestStreak ?? 0
+
+    if (outcome === 'WIN') {
+      const newStreak = currentStreak + 1
+      const updateData: { parlayLegCurrentStreak: number; parlayLegLongestStreak?: number } = {
+        parlayLegCurrentStreak: newStreak,
+      }
+      if (newStreak > longestStreak) {
+        updateData.parlayLegLongestStreak = newStreak
+      }
+      await prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+      })
+      return newStreak
+    }
+
+    if (currentStreak > 0) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { parlayLegCurrentStreak: 0 },
+      })
+    }
+    return 0
+  }
+
+  /**
    * Get user's current total points from ledger
    *
    * @param userId - User ID

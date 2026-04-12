@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import type { PredictionOutcome } from '@/lib/db'
 import { createLogger } from '../lib/logger'
 import { pointsService } from './points.service'
+import { parlaySettlementService } from './parlay-settlement.service'
 import type { PredictionWithGame as BasePredictionWithGame } from './points.service'
 
 const logger = createLogger('ScoreGameService')
@@ -116,6 +117,8 @@ export class ScoreGameService {
         result.skipped++
       }
     }
+
+    await parlaySettlementService.settleParlaysAfterGameScored(gameId)
 
     // Mark the game result as scored
     await prisma.result.update({

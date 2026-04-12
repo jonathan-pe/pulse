@@ -79,12 +79,20 @@ When losses are included, EV depends on `LOSS_MULTIPLIER` and rounding; tune in 
 
 Achievements are **cosmetic** (badges, milestones). **Streaks** advance on **scored** picks according to service rules and are **not** a multiplier on points.
 
-- Streak-related copy and conditions should match **`PointsService.updateUserStreak`** behavior (streaks are not “bonus-tier only”).
+- Streak-related copy should match **`PointsService.updateSinglesStreak`** for standalone predictions (wins increment, losses reset, pushes unchanged) and **`PointsService.updateParlayLegStreak`** for parlay legs when those legs are scored.
 - Leaderboard-style **rank** in user stats may exist as **optional context**; it is not the primary success metric in the UI.
+
+## Parlays and same-game parlays (SGP)
+
+- Users can place **parlay tickets** (multi-game or same-game) via `POST /api/parlays`. Legs are stored as **`ParlayLeg`** rows only (not duplicate `Prediction` rows).
+- **Duplicate market (v1):** a user cannot have both a pending **single** (`Prediction` with no outcome yet) and a **pending parlay leg** on the same `(gameId, type, pick)`. API errors use stable codes such as **`MARKET_ALREADY_SINGLE`** / **`MARKET_ALREADY_IN_PARLAY`**.
+- **Settlement:** when every leg’s game has a result, each leg resolves to win / loss / push like singles. Pushes are **removed** and the ticket is **re-priced** from remaining leg snapshots; the ticket then wins, loses, or pushes as a whole. **Exactly one** `PointsLedger` line is written per parlay with metadata (including `parlayId`).
+- **Pushes (singles):** moneyline ties, spread pushes, and total pushes score as **`PUSH`** with **0** points; **`singlesCurrentStreak`** does not change.
+- **Largest parlay win** and **parlay-leg streak** are tracked on the user record for achievements-style metrics; they do not multiply points.
 
 ## Future features
 
-Under consideration or planned elsewhere: live odds refresh, parlays, more markets, challenges, etc. **Social** features (follows, pools, friend comparisons) are **out of scope** unless explicitly specified; if added later, prefer opt-in, user-scoped comparisons over zero-sum framing.
+Under consideration or planned elsewhere: live odds refresh, more markets, challenges, etc. **Social** features (follows, pools, friend comparisons) are **out of scope** unless explicitly specified; if added later, prefer opt-in, user-scoped comparisons over zero-sum framing.
 
 ## Documentation
 

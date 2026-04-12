@@ -22,7 +22,14 @@ export interface BatchPredictionsRequest {
 
 export interface BatchPredictionsResult {
   created: Array<{ id: string; gameId: string; type: string; pick: string }>
-  errors: Array<{ gameId: string; error: string }>
+  errors: Array<{ gameId: string; error: string; code?: string }>
+}
+
+export type ParlayTicketType = 'MULTI_GAME' | 'SAME_GAME'
+
+export interface CreateParlayRequest {
+  ticketType: ParlayTicketType
+  legs: PredictionInput[]
 }
 
 /**
@@ -100,6 +107,43 @@ export interface PredictionWithGame extends BasePrediction {
       awayScore: number
     } | null
   }
+}
+
+export type ParlayTicketStatus = 'PENDING' | 'WON' | 'LOST' | 'PUSHED'
+
+/** Leg row from `GET /parlays` (nested game for display). */
+export interface ParlayLegWithGame {
+  id: string
+  gameId: string
+  type: PredictionType
+  pick: string
+  outcome: 'WIN' | 'LOSS' | 'PUSH' | null
+  oddsSnapshot: OddsSnapshot | null
+  game: {
+    id: string
+    homeTeam: PredictionWithGame['game']['homeTeam']
+    awayTeam: PredictionWithGame['game']['awayTeam']
+    startsAt: string
+    league: string
+    status: string
+    result: { homeScore: number; awayScore: number } | null
+  }
+}
+
+/** Parlay ticket from `GET /parlays` / `GET /parlays/:id` */
+export interface ParlayWithLegs {
+  id: string
+  userId: string
+  ticketType: ParlayTicketType
+  status: ParlayTicketStatus
+  pricingVersion: string
+  combinedImpliedProbability: number | null
+  sgpMetadata: Record<string, unknown> | null
+  createdAt: string
+  processedAt: string | null
+  legs: ParlayLegWithGame[]
+  /** Present on list when a ledger line exists for this parlay */
+  pointsEarned?: number | null
 }
 
 /**

@@ -113,29 +113,38 @@ function buildOddsSnapshot(unified: UnifiedGameOdds): OddsSnapshot {
   }
 }
 
-function americanOddsForLeg(type: PredictionType, pick: string, unified: UnifiedGameOdds): number {
+/** Snapshot stored on `ParlayLeg` — same shape as prediction `oddsAtPrediction`. */
+export function americanOddsFromLegSnapshot(type: PredictionType, pick: string, snapshot: OddsSnapshot): number {
   switch (type) {
     case 'MONEYLINE': {
       const side = pick === 'home' ? 'home' : 'away'
-      const o = unified.moneyline?.[side]
+      const o = snapshot.moneyline?.[side]
       if (o === undefined || o === null || o === 0) {
-        throw new PredictionRejectedError(
-          'GAME_NOT_OPEN',
-          'Moneyline odds are not available for this leg.'
-        )
+        throw new Error(`Missing moneyline odds for ${side}`)
       }
       return o
     }
     case 'SPREAD': {
       const key = pick === 'home' ? 'homePrice' : 'awayPrice'
-      return unified.spread?.[key] ?? -110
+      return snapshot.spread?.[key] ?? -110
     }
     case 'TOTAL': {
       const key = pick === 'over' ? 'overPrice' : 'underPrice'
-      return unified.total?.[key] ?? -110
+      return snapshot.total?.[key] ?? -110
     }
     default:
-      throw new PredictionRejectedError('GAME_NOT_OPEN', 'Invalid prediction type for parlay leg.')
+      throw new Error(`Invalid prediction type: ${type}`)
+  }
+}
+
+function americanOddsForLeg(type: PredictionType, pick: string, unified: UnifiedGameOdds): number {
+  try {
+    return americanOddsFromLegSnapshot(type, pick, buildOddsSnapshot(unified))
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('Missing moneyline')) {
+      throw new PredictionRejectedError('GAME_NOT_OPEN', 'Moneyline odds are not available for this leg.')
+    }
+    throw e
   }
 }
 
@@ -332,7 +341,7 @@ export class ParlaysService {
   }
 
   async listParlays(userId: string) {
-    return prisma.parlay.findMany({
+    const parlays = await prisma.parlay.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -346,12 +355,38 @@ export class ParlaysService {
                 startsAt: true,
                 league: true,
                 status: true,
+                result: { select: { homeScore: true, awayScore: true } },
               },
             },
           },
         },
       },
     })
+
+    if (parlays.length === 0) {
+      return parlays
+    }
+
+    const parlayIds = new Set(parlays.map((p) => p.id))
+    const ledgerRows = await prisma.pointsLedger.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      select: { delta: true, meta: true },
+      take: 4000,
+    })
+
+    const pointsByParlayId = new Map<string, number>()
+    for (const row of ledgerRows) {
+      const meta = row.meta as { parlayId?: string } | null
+      if (meta?.parlayId && parlayIds.has(meta.parlayId) && !pointsByParlayId.has(meta.parlayId)) {
+        pointsByParlayId.set(meta.parlayId, row.delta)
+      }
+    }
+
+    return parlays.map((p) => ({
+      ...p,
+      pointsEarned: pointsByParlayId.get(p.id) ?? null,
+    }))
   }
 
   async getParlayById(userId: string, parlayId: string) {
@@ -368,6 +403,7 @@ export class ParlaysService {
                 startsAt: true,
                 league: true,
                 status: true,
+                result: { select: { homeScore: true, awayScore: true } },
               },
             },
           },

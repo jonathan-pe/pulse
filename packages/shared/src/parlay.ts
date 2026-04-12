@@ -4,7 +4,7 @@
  */
 
 import { DEFAULT_LOSS_MULTIPLIER } from './constants'
-import { calculateImpliedProbability } from './points'
+import { calculateImpliedProbability, calculateTotalPoints } from './points'
 
 /**
  * Combined implied win probability (percent 0–100) for independent legs.
@@ -93,5 +93,75 @@ export function previewSameGameParlayPoints(
     combinedImpliedPercent: combined,
     winPointsRounded,
     lossPoints,
+  }
+}
+
+export type ParlayLegOutcomeToken = 'WIN' | 'LOSS' | 'PUSH'
+
+/**
+ * Final ticket status after each leg has been resolved (including pushes).
+ */
+export function resolveParlayTicketStatus(legOutcomes: ParlayLegOutcomeToken[]): 'WON' | 'LOST' | 'PUSHED' {
+  const nonPush = legOutcomes.filter((o) => o !== 'PUSH')
+  if (nonPush.length === 0) {
+    return 'PUSHED'
+  }
+  if (nonPush.some((o) => o === 'LOSS')) {
+    return 'LOST'
+  }
+  return 'WON'
+}
+
+export interface ParlaySettlementPointsResult {
+  /** Rounded points delta for the ticket (win positive, loss negative, push 0). */
+  pointsRounded: number
+  /** Combined implied win % used for meta / loss (percent scale). */
+  combinedImpliedPercent?: number
+}
+
+/**
+ * Points for a settled parlay ticket. Uses leg odds only for non-push legs (`effectiveAmericanOdds`).
+ * Single effective leg uses the same singles `calculateTotalPoints` / `calculateIncorrectPoints` path as standalone picks.
+ */
+export function settlementPointsForParlay(
+  ticketType: 'MULTI_GAME' | 'SAME_GAME',
+  pricingVersion: string | null | undefined,
+  effectiveAmericanOdds: number[],
+  ticketStatus: 'WON' | 'LOST' | 'PUSHED',
+  lossMultiplier: number = DEFAULT_LOSS_MULTIPLIER
+): ParlaySettlementPointsResult {
+  if (ticketStatus === 'PUSHED' || effectiveAmericanOdds.length === 0) {
+    return { pointsRounded: 0, combinedImpliedPercent: undefined }
+  }
+
+  if (ticketStatus === 'LOST') {
+    const combined = combinedIndependentImpliedPercentFromAmericanOdds(effectiveAmericanOdds)
+    const pts = calculateIncorrectPointsFromImpliedPercent(combined, lossMultiplier)
+    return { pointsRounded: Math.round(pts), combinedImpliedPercent: combined }
+  }
+
+  // WON
+  if (effectiveAmericanOdds.length === 1) {
+    const odds = effectiveAmericanOdds[0]!
+    const implied = calculateImpliedProbability(odds)
+    return {
+      pointsRounded: Math.round(calculateTotalPoints(odds)),
+      combinedImpliedPercent: implied,
+    }
+  }
+
+  if (ticketType === 'MULTI_GAME') {
+    const preview = previewMultiGameParlayPoints(effectiveAmericanOdds, lossMultiplier)
+    return {
+      pointsRounded: preview.winPointsRounded,
+      combinedImpliedPercent: preview.combinedImpliedPercent,
+    }
+  }
+
+  // SAME_GAME, 2+ legs — SGP adjustment
+  const preview = previewSameGameParlayPoints(effectiveAmericanOdds, lossMultiplier, pricingVersion ?? undefined)
+  return {
+    pointsRounded: preview.winPointsRounded,
+    combinedImpliedPercent: preview.combinedImpliedPercent,
   }
 }

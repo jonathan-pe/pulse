@@ -1,6 +1,7 @@
 import type { GameWithUnifiedOdds } from '@pulse/types'
 import useCartStore from '@/store/cart'
 import { usePredictionsByGame } from '@/hooks/usePredictions'
+import { PARLAY_COPY } from '@/lib/parlay-duplicate-market-copy'
 
 export type GameCardMarket = 'moneyline' | 'spread' | 'total'
 export type GameCardSide = 'home' | 'away' | 'over' | 'under'
@@ -9,6 +10,7 @@ export type GameCardPredictionType = 'MONEYLINE' | 'SPREAD' | 'TOTAL'
 export function useGameCardPickState(game: GameWithUnifiedOdds) {
   const addSelection = useCartStore((s) => s.addSelection)
   const selections = useCartStore((s) => s.selections)
+  const parlayMode = useCartStore((s) => s.parlayMode)
   const setCartOpen = useCartStore((s) => s.setCartOpen)
 
   const { data: predictionsByGame } = usePredictionsByGame()
@@ -22,6 +24,16 @@ export function useGameCardPickState(game: GameWithUnifiedOdds) {
   }
 
   const isGameLocked = new Date(game.startsAt) < new Date()
+
+  /**
+   * In parlay / SGP mode, explains why a market control is disabled (spec: duplicate-market UX).
+   */
+  const getParlayBlockTooltip = (type: GameCardPredictionType, pick: string): string | undefined => {
+    if (!parlayMode) return undefined
+    if (isGameLocked) return PARLAY_COPY.gameLocked
+    if (hasPrediction(type, pick)) return PARLAY_COPY.pendingSingle
+    return undefined
+  }
 
   const handleAddToCart = (market: GameCardMarket, side: GameCardSide, odds: number, teamName?: string) => {
     const isCurrentlySelected = hasSelection(market, side)
@@ -47,6 +59,7 @@ export function useGameCardPickState(game: GameWithUnifiedOdds) {
     isGameLocked,
     hasSelection,
     hasPrediction,
+    getParlayBlockTooltip,
     handleAddToCart,
   }
 }

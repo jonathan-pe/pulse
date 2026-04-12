@@ -4,13 +4,17 @@ import { useAPI } from './useAPI'
 import type {
   PredictionInput,
   BatchPredictionsResult,
+  CreateParlayRequest,
   PredictionsResponse,
   PredictionWithGame,
   PredictionsByGameResponse,
   DailyStats,
+  ParlayWithLegs,
 } from '@/types/api'
 import { toast } from 'sonner'
 import type { CartSelection } from '@/store/cart'
+import { inferParlayTicketType } from '@/lib/parlay-ticket'
+import { PARLAY_COPY } from '@/lib/parlay-duplicate-market-copy'
 
 // ============================================================================
 // Query Hooks (GET requests)
@@ -67,6 +71,20 @@ export const usePredictionsByGame = () => {
     queryKey: queryKeys.predictions.byGame(),
     queryFn: () => fetchAPI<PredictionsByGameResponse>('/predictions/by-game'),
     staleTime: 1 * 60 * 1000, // 1 minute
+  })
+}
+
+/**
+ * Parlay tickets (`GET /parlays`). Combine with {@link usePredictionHistory} for a unified My Predictions view.
+ */
+export const useParlays = (options?: { enabled?: boolean }) => {
+  const fetchAPI = useAPI()
+
+  return useQuery({
+    queryKey: queryKeys.parlays.all,
+    queryFn: () => fetchAPI<ParlayWithLegs[]>('/parlays'),
+    enabled: options?.enabled ?? false,
+    staleTime: 2 * 60 * 1000,
   })
 }
 
@@ -193,6 +211,53 @@ export const useCreatePredictionsFromCart = () => {
     mutateAsync: async (selections: CartSelection[]) => {
       const predictions = selections.map(mapCartSelectionToPrediction)
       return mutation.mutateAsync(predictions)
+    },
+  }
+}
+
+/**
+ * Create a parlay ticket (multi-game or SGP).
+ */
+export const useCreateParlay = () => {
+  const queryClient = useQueryClient()
+  const fetchAPI = useAPI()
+
+  return useMutation({
+    mutationFn: (body: CreateParlayRequest) =>
+      fetchAPI<unknown>('/parlays', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.parlays.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.predictions.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.predictions.history() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.predictions.byGame() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.points.me() })
+      toast.success('Parlay placed')
+    },
+    onError: (error: Error & { code?: string }) => {
+      toast.error('Could not place parlay', {
+        description: error.message || PARLAY_COPY.submitConflict,
+      })
+    },
+  })
+}
+
+export const useCreateParlayFromCart = () => {
+  const mutation = useCreateParlay()
+
+  return {
+    ...mutation,
+    mutateAsync: async (selections: CartSelection[]) => {
+      const ticketType = inferParlayTicketType(selections)
+      if (!ticketType) {
+        throw new Error(
+          'Parlay must be either one game with multiple picks (same-game parlay) or one pick each from different games (multi-game).'
+        )
+      }
+      const legs = selections.map(mapCartSelectionToPrediction)
+      return mutation.mutateAsync({ ticketType, legs })
     },
   }
 }

@@ -30,6 +30,9 @@ export const queryKeys = {
     history: () => ['predictions', 'history'] as const,
     byGame: () => ['predictions', 'byGame'] as const,
   },
+  parlays: {
+    all: ['parlays'] as const,
+  },
   points: {
     all: ['points'] as const,
     me: () => ['points', 'me'] as const,

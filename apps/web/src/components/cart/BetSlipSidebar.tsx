@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { XIcon, InfoIcon } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -6,27 +6,50 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import useCartStore, { getCartKey, calculateSelectionPoints, type CartSelection } from '@/store/cart'
-import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
+import { useCreateParlayFromCart, useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { calculateIncorrectPoints, formatOdds } from '@pulse/shared'
+import {
+  calculateIncorrectPoints,
+  formatOdds,
+  previewMultiGameParlayPoints,
+  previewSameGameParlayPoints,
+} from '@pulse/shared'
 import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
 import { getLeagueBadgeColor } from '@/lib/league-colors'
+import { inferParlayTicketType } from '@/lib/parlay-ticket'
 
 const BetSlipSidebar: React.FC = () => {
   const isMobile = useIsMobile()
   const selections = useCartStore((s) => s.selections)
+  const parlayMode = useCartStore((s) => s.parlayMode)
+  const setParlayMode = useCartStore((s) => s.setParlayMode)
   const isOpen = useCartStore((s) => s.isOpen)
   const setCartOpen = useCartStore((s) => s.setCartOpen)
   const removeSelection = useCartStore((s) => s.removeSelection)
   const clearCart = useCartStore((s) => s.clearCart)
 
   const createPredictions = useCreatePredictionsFromCart()
+  const createParlay = useCreateParlayFromCart()
+
+  const parlayShape = useMemo(() => inferParlayTicketType(selections), [selections])
+
+  const parlayPointsPreview = useMemo(() => {
+    if (!parlayMode || selections.length < 2 || !parlayShape) return null
+    const odds = selections.map((s) => s.odds)
+    return parlayShape === 'MULTI_GAME'
+      ? previewMultiGameParlayPoints(odds)
+      : previewSameGameParlayPoints(odds)
+  }, [parlayMode, selections, parlayShape])
 
   const handleSubmitPredictions = async () => {
     if (selections.length === 0) return
 
     try {
-      await createPredictions.mutateAsync(selections)
+      if (parlayMode) {
+        await createParlay.mutateAsync(selections)
+      } else {
+        await createPredictions.mutateAsync(selections)
+      }
       clearCart()
       setCartOpen(false)
     } catch {
@@ -34,14 +57,26 @@ const BetSlipSidebar: React.FC = () => {
     }
   }
 
-  // Calculate total potential points
-  const totalPotentialPoints = selections.reduce((sum, selection) => sum + calculateSelectionPoints(selection), 0)
+  const totalPotentialPoints = parlayMode
+    ? parlayPointsPreview?.winPointsRounded ?? 0
+    : selections.reduce((sum, selection) => sum + calculateSelectionPoints(selection), 0)
 
-  // Calculate total potential loss
-  const totalPotentialLoss = selections.reduce((sum, selection) => {
-    const loss = calculateIncorrectPoints(selection.odds)
-    return sum + loss
-  }, 0)
+  const totalPotentialLoss = parlayMode
+    ? parlayPointsPreview?.lossPoints ?? 0
+    : selections.reduce((sum, selection) => {
+        const loss = calculateIncorrectPoints(selection.odds)
+        return sum + loss
+      }, 0)
+
+  const submitPending = parlayMode ? createParlay.isPending : createPredictions.isPending
+
+  const parlayInvalid =
+    parlayMode && selections.length >= 2 && selections.length > 0 && parlayShape === null
+
+  const submitDisabled =
+    selections.length === 0 ||
+    submitPending ||
+    (parlayMode && (selections.length < 2 || parlayInvalid))
 
   const getBetDetail = (selection: CartSelection): string => {
     switch (selection.market) {
@@ -64,6 +99,30 @@ const BetSlipSidebar: React.FC = () => {
         </SheetHeader>
 
         <div className='flex flex-1 flex-col gap-4 overflow-hidden px-4 pb-4'>
+          <div className='flex flex-wrap items-center justify-between gap-2'>
+            <span className='text-xs text-muted-foreground'>Slip mode</span>
+            <div className='flex gap-1'>
+              <Button
+                type='button'
+                variant={!parlayMode ? 'default' : 'outline'}
+                size='sm'
+                className='h-8 text-xs'
+                onClick={() => setParlayMode(false)}
+              >
+                Singles
+              </Button>
+              <Button
+                type='button'
+                variant={parlayMode ? 'default' : 'outline'}
+                size='sm'
+                className='h-8 text-xs'
+                onClick={() => setParlayMode(true)}
+              >
+                Parlay / SGP
+              </Button>
+            </div>
+          </div>
+
           {/* Selections List */}
           <div className='flex min-h-0 flex-1 flex-col gap-2'>
             <div className='flex items-center justify-between'>
@@ -78,7 +137,9 @@ const BetSlipSidebar: React.FC = () => {
                     </TooltipTrigger>
                     <TooltipContent className='max-w-[250px]'>
                       <p className='text-xs'>
-                        Each pick becomes its own prediction. This is not a parlay.
+                        {parlayMode
+                          ? 'Parlay mode places one combined ticket: either multiple picks on the same game (SGP) or one pick per game across games. Points are scored once for the whole ticket.'
+                          : 'Each pick becomes its own prediction.'}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -101,7 +162,6 @@ const BetSlipSidebar: React.FC = () => {
             ) : (
               <div className='flex-1 space-y-2 overflow-y-auto pr-2'>
                 {selections.map((selection) => {
-                  const points = calculateSelectionPoints(selection)
                   return (
                     <div
                       key={getCartKey(selection)}
@@ -127,10 +187,11 @@ const BetSlipSidebar: React.FC = () => {
                           {/* Pick details */}
                           <div className='text-xs text-muted-foreground'>{getBetDetail(selection)}</div>
 
-                          {/* Points Preview */}
-                          <div className='mt-2'>
-                            <PredictionPointsPreview odds={selection.odds} />
-                          </div>
+                          {!parlayMode && (
+                            <div className='mt-2'>
+                              <PredictionPointsPreview odds={selection.odds} />
+                            </div>
+                          )}
                         </div>
 
                         {/* Remove Button */}
@@ -150,37 +211,54 @@ const BetSlipSidebar: React.FC = () => {
             )}
           </div>
 
-          {selections.length > 0 && (
-            <>
-              <Separator />
+            {selections.length > 0 && (
+              <>
+                <Separator />
 
-              {/* Total Points Preview */}
-              <div className='space-y-2'>
-                <div className='rounded-lg bg-success/10 p-4'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-sm text-muted-foreground'>If all correct</span>
-                    <span className='text-2xl font-bold text-success'>+{totalPotentialPoints}</span>
+                {parlayInvalid && (
+                  <p className='text-xs text-destructive'>
+                    Parlay must be either one game with two or more picks (SGP), or one pick per game from different
+                    games. Adjust your slip.
+                  </p>
+                )}
+
+                {/* Total Points Preview */}
+                <div className='space-y-2'>
+                  <div className='rounded-lg bg-success/10 p-4'>
+                    <div className='flex items-center justify-between'>
+                      <span className='text-sm text-muted-foreground'>
+                        {parlayMode ? 'If parlay wins' : 'If all correct'}
+                      </span>
+                      <span className='text-2xl font-bold text-success'>+{totalPotentialPoints}</span>
+                    </div>
+                  </div>
+                  <div className='rounded-lg bg-destructive/10 p-4'>
+                    <div className='flex items-center justify-between'>
+                      <span className='text-sm text-muted-foreground'>
+                        {parlayMode ? 'If parlay loses' : 'If all incorrect'}
+                      </span>
+                      <span className='text-2xl font-bold text-destructive'>{totalPotentialLoss.toFixed(1)}</span>
+                    </div>
                   </div>
                 </div>
-                <div className='rounded-lg bg-destructive/10 p-4'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-sm text-muted-foreground'>If all incorrect</span>
-                    <span className='text-2xl font-bold text-destructive'>{totalPotentialLoss.toFixed(1)}</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Submit Button */}
-              <Button
-                className='w-full'
-                size='lg'
-                disabled={selections.length === 0 || createPredictions.isPending}
-                onClick={handleSubmitPredictions}
-              >
-                {createPredictions.isPending ? 'Creating Predictions...' : `Create ${selections.length} Predictions`}
-              </Button>
-            </>
-          )}
+                {/* Submit Button */}
+                <Button
+                  className='w-full'
+                  size='lg'
+                  disabled={submitDisabled}
+                  onClick={handleSubmitPredictions}
+                >
+                  {submitPending
+                    ? parlayMode
+                      ? 'Placing parlay…'
+                      : 'Creating Predictions...'
+                    : parlayMode
+                      ? `Place parlay (${selections.length} legs)`
+                      : `Create ${selections.length} Predictions`}
+                </Button>
+              </>
+            )}
         </div>
       </SheetContent>
     </Sheet>

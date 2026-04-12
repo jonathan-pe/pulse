@@ -11,23 +11,35 @@ import useCartStore, { getCartKey } from '@/store/cart'
 import type { CartSelection } from '@/store/cart'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useCreatePredictionsFromCart } from '@/hooks/usePredictions'
+import { useCreateParlayFromCart, useCreatePredictionsFromCart } from '@/hooks/usePredictions'
 import { PredictionPointsPreview } from '@/components/predictions/PredictionPointsPreview'
 import { getLeagueBadgeColor } from '@/lib/league-colors'
+import { inferParlayTicketType } from '@/lib/parlay-ticket'
 
 const CartDropdown: React.FC = () => {
   const selections = useCartStore((s) => s.selections)
+  const parlayMode = useCartStore((s) => s.parlayMode)
   const removeSelection = useCartStore((s) => s.removeSelection)
   const clearCart = useCartStore((s) => s.clearCart)
 
   const createPredictions = useCreatePredictionsFromCart()
+  const createParlay = useCreateParlayFromCart()
+
+  const parlayInvalid = parlayMode && selections.length >= 2 && inferParlayTicketType(selections) === null
+  const submitDisabled =
+    selections.length === 0 ||
+    (parlayMode ? createParlay.isPending : createPredictions.isPending) ||
+    (parlayMode && (selections.length < 2 || parlayInvalid))
 
   const handleSubmitPredictions = async () => {
     if (selections.length === 0) return
 
     try {
-      await createPredictions.mutateAsync(selections)
-      // Clear cart on success
+      if (parlayMode) {
+        await createParlay.mutateAsync(selections)
+      } else {
+        await createPredictions.mutateAsync(selections)
+      }
       clearCart()
     } catch {
       // Error handling is done in the hook via toast
@@ -97,8 +109,7 @@ const CartDropdown: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Points preview */}
-                <PredictionPointsPreview odds={selection.odds} className='pt-1' />
+                {!parlayMode && <PredictionPointsPreview odds={selection.odds} className='pt-1' />}
               </div>
             )
           })}
@@ -109,8 +120,14 @@ const CartDropdown: React.FC = () => {
           <Button variant='ghost' size='sm' onClick={() => clearCart()}>
             Clear
           </Button>
-          <Button disabled={selections.length === 0 || createPredictions.isPending} onClick={handleSubmitPredictions}>
-            {createPredictions.isPending ? 'Creating...' : 'Create Predictions'}
+          <Button disabled={submitDisabled} onClick={handleSubmitPredictions}>
+            {parlayMode
+              ? createParlay.isPending
+                ? 'Placing…'
+                : 'Place parlay'
+              : createPredictions.isPending
+                ? 'Creating...'
+                : 'Create Predictions'}
           </Button>
         </div>
       </DropdownMenuContent>
