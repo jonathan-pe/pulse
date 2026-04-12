@@ -48,7 +48,7 @@
   --sidebar-ring: oklch(0.708 0 0);
   /* Team logos: dark-enough plate for light marks, blended from theme neutrals (not flat Tailwind grays) */
   /* Lower foreground % = lighter plate; keep enough contrast for light marks */
-  --team-logo-plate: color-mix(in oklch, var(--foreground) 20%, var(--muted));
+  --team-logo-plate: var(--muted);
   --team-logo-plate-fg: var(--background);
   --font-sans: Outfit, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;

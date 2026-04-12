@@ -1,3 +1,4 @@
+import type { NatStatTeam } from '@/generated/client'
 import { prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger.js'
 
@@ -11,8 +12,24 @@ export interface TeamMetadata {
   name: string
   code: string
   league: string
+  /** @deprecated Prefer logoUrl / logoUrlDark — NatStat “badge” is the light-theme small logo */
   badgeUrl: string | null
+  /** Small logo for light UI (ESPN default mark) */
   logoUrl: string | null
+  /** Small logo for dark UI (ESPN dark mark); clients fall back to logoUrl */
+  logoUrlDark: string | null
+}
+
+function natStatTeamToMetadata(t: NatStatTeam): TeamMetadata {
+  return {
+    id: t.id,
+    name: t.name,
+    code: t.code,
+    league: t.league,
+    badgeUrl: t.badgeUrl,
+    logoUrl: t.badgeUrl,
+    logoUrlDark: t.logoUrl ?? t.badgeUrl,
+  }
 }
 
 /**
@@ -37,7 +54,7 @@ export async function findTeamByName(league: string, teamName: string): Promise<
 
   if (exactMatch) {
     logger.debug('Found team by exact match', { league, teamName, foundTeam: exactMatch.name })
-    return exactMatch
+    return natStatTeamToMetadata(exactMatch)
   }
 
   // Try partial match (case-insensitive contains)
@@ -53,7 +70,7 @@ export async function findTeamByName(league: string, teamName: string): Promise<
 
   if (partialMatch) {
     logger.debug('Found team by partial match', { league, teamName, foundTeam: partialMatch.name })
-    return partialMatch
+    return natStatTeamToMetadata(partialMatch)
   }
 
   // Try reverse match (team name contains the search term)
@@ -77,7 +94,7 @@ export async function findTeamByName(league: string, teamName: string): Promise<
 
   if (fuzzyMatch) {
     logger.debug('Found team by fuzzy match', { league, teamName, foundTeam: fuzzyMatch.name })
-    return fuzzyMatch
+    return natStatTeamToMetadata(fuzzyMatch)
   }
 
   logger.warn('Team not found', { league, teamName })
@@ -96,7 +113,7 @@ export async function getTeamsByLeague(league: string): Promise<TeamMetadata[]> 
   })
 
   logger.debug('Fetched teams for league', { league, count: teams.length })
-  return teams
+  return teams.map(natStatTeamToMetadata)
 }
 
 /**

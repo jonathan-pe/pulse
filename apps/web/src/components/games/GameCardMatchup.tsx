@@ -11,7 +11,13 @@ export function GameCardMatchup({ awayTeam, homeTeam, result }: GameCardMatchupP
   return (
     <div className='mb-4 space-y-2'>
       <div className='flex items-center gap-3'>
-        <TeamLogo logoUrl={awayTeam.logoUrl} teamName={awayTeam.name} teamCode={awayTeam.code} size='md' />
+        <TeamLogo
+          logoUrl={awayTeam.logoUrl}
+          logoUrlDark={awayTeam.logoUrlDark}
+          teamName={awayTeam.name}
+          teamCode={awayTeam.code}
+          size='md'
+        />
         <div className='flex-1'>
           <div className='font-medium'>{awayTeam.name}</div>
           {result && <div className='text-xl font-bold'>{result.awayScore}</div>}
@@ -19,7 +25,13 @@ export function GameCardMatchup({ awayTeam, homeTeam, result }: GameCardMatchupP
       </div>
 
       <div className='flex items-center gap-3'>
-        <TeamLogo logoUrl={homeTeam.logoUrl} teamName={homeTeam.name} teamCode={homeTeam.code} size='md' />
+        <TeamLogo
+          logoUrl={homeTeam.logoUrl}
+          logoUrlDark={homeTeam.logoUrlDark}
+          teamName={homeTeam.name}
+          teamCode={homeTeam.code}
+          size='md'
+        />
         <div className='flex-1'>
           <div className='font-medium'>{homeTeam.name}</div>
           {result && <div className='text-xl font-bold'>{result.homeScore}</div>}

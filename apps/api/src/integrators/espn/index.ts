@@ -4,6 +4,7 @@
 
 import { createLogger } from '../../lib/logger.js'
 import { fetchTeams } from './client.js'
+import { extractLogoUrlDark, extractLogoUrlLight } from './logo-urls.js'
 import type { ESPNTeam } from './types.js'
 
 const logger = createLogger('ESPN')
@@ -82,53 +83,20 @@ export async function findTeamInLeague(league: string, teamIdentifier: string): 
   return team
 }
 
+export { extractLogoUrlDark, extractLogoUrlLight }
+
 /**
- * Extract the primary logo URL from an ESPN team
- * Prefers the largest "full" or "default" logo
- *
- * @param team - ESPN team object
- * @returns Logo URL or null if not available
+ * @deprecated Use {@link extractLogoUrlLight} — kept for older call sites.
  */
 export function extractPrimaryLogo(team: ESPNTeam): string | null {
-  if (!team.logos || team.logos.length === 0) {
-    return null
-  }
-
-  // Prefer logos with "full" or "default" rel
-  const fullLogo = team.logos.find((logo) => logo.rel.includes('full') || logo.rel.includes('default'))
-
-  if (fullLogo) {
-    return fullLogo.href
-  }
-
-  // Fallback to first logo
-  return team.logos[0]?.href ?? null
+  return extractLogoUrlLight(team)
 }
 
 /**
- * Extract alternate/dark logo URL from an ESPN team
- *
- * @param team - ESPN team object
- * @returns Alternate logo URL or null if not available
+ * @deprecated Use {@link extractLogoUrlDark} — kept for older call sites.
  */
 export function extractAlternateLogo(team: ESPNTeam): string | null {
-  if (!team.logos || team.logos.length === 0) {
-    return null
-  }
-
-  // Look for dark/alternate logos
-  const altLogo = team.logos.find((logo) => logo.rel.includes('dark') || logo.rel.includes('alternate'))
-
-  if (altLogo) {
-    return altLogo.href
-  }
-
-  // If we have multiple logos, use the second one as alternate
-  if (team.logos.length > 1) {
-    return team.logos[1].href
-  }
-
-  return null
+  return extractLogoUrlDark(team)
 }
 
 // Re-export types

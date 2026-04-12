@@ -6,8 +6,8 @@ model NatStatTeam {
   name      String // Team name (e.g., "Jacksonville Jaguars")
   league    String // League (e.g., "NFL")
   active    Boolean  @default(true)
-  badgeUrl  String? // Team badge/logo URL from ESPN
-  logoUrl   String? // Alternate team logo URL from ESPN
+  badgeUrl  String? // Small light-theme logo (ESPN default mark), mirrors Team.logoUrl
+  logoUrl   String? // Small dark-theme logo (ESPN dark mark), mirrors Team.logoUrlDark
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

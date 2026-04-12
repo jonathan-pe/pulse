@@ -44,6 +44,8 @@ export type TeamInfo = {
   nickname?: string
   city?: string
   logoUrl?: string
+  /** Small logo tuned for dark backgrounds; clients fall back to logoUrl */
+  logoUrlDark?: string
   primaryColor?: string
 }
 

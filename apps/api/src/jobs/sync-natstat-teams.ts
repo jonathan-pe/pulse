@@ -1,5 +1,5 @@
 import { loadTeams } from '../integrators/natstat/client.js'
-import { getTeamsForLeague, extractPrimaryLogo, extractAlternateLogo } from '../integrators/espn/index.js'
+import { getTeamsForLeague, extractLogoUrlLight, extractLogoUrlDark } from '../integrators/espn/index.js'
 import type { ESPNTeam } from '../integrators/espn/types.js'
 import { prisma } from '@/lib/db'
 import { createLogger } from '../lib/logger.js'
@@ -121,7 +121,7 @@ export async function upsertNatStatProviderMapping({
   externalCode: string
   externalName: string
   active: boolean
-  metadata?: { badgeUrl: string }
+  metadata?: { badgeUrl: string; logoUrlDark?: string | null }
 }) {
   const provider = 'natstat'
 
@@ -299,16 +299,21 @@ export async function syncNatStatTeams({ league }: JobInput) {
 
     const espnTeam = espnTeamsMap.get(normalizedCode) ?? espnTeamsMap.get(normalizedName)
 
-    // Extract logo URLs from ESPN team
-    const badgeUrl = espnTeam ? extractPrimaryLogo(espnTeam) : null
-    const logoUrl = espnTeam ? extractAlternateLogo(espnTeam) : null
+    // Small ESPN CDN logos: light (default mark) + dark (dark-background mark)
+    const logoUrlLightRaw = espnTeam ? extractLogoUrlLight(espnTeam) : null
+    const logoUrlDarkRaw = espnTeam ? extractLogoUrlDark(espnTeam) : null
+    const logoUrlLight = logoUrlLightRaw ?? logoUrlDarkRaw
+    const logoUrlDark = logoUrlDarkRaw ?? logoUrlLightRaw
+    const badgeUrl = logoUrlLight
+    const natStatDarkLogo = logoUrlDark
 
     if (espnTeam) {
       enriched++
       logger.debug('Enriched team with ESPN metadata', {
         teamName: name,
         badgeUrl,
-        logoUrl,
+        logoUrlLight,
+        logoUrlDark,
       })
     }
 
@@ -333,14 +338,16 @@ export async function syncNatStatTeams({ league }: JobInput) {
         name,
         city,
         nickname,
-        logoUrl: logoUrl ?? undefined,
+        logoUrl: logoUrlLight ?? undefined,
+        logoUrlDark: logoUrlDark ?? undefined,
         primaryColor: null,
       },
       update: {
         name,
         city,
         nickname,
-        logoUrl: logoUrl ?? undefined,
+        logoUrl: logoUrlLight ?? undefined,
+        logoUrlDark: logoUrlDark ?? undefined,
       },
     })
 
@@ -350,7 +357,7 @@ export async function syncNatStatTeams({ league }: JobInput) {
       externalCode: code,
       externalName: name,
       active,
-      metadata: badgeUrl ? { badgeUrl } : undefined,
+      metadata: badgeUrl ? { badgeUrl, logoUrlDark } : undefined,
     })
 
     // Also update legacy NatStatTeam table for backwards compatibility
@@ -365,7 +372,7 @@ export async function syncNatStatTeams({ league }: JobInput) {
         existing.name !== name ||
         existing.active !== active ||
         existing.badgeUrl !== badgeUrl ||
-        existing.logoUrl !== logoUrl
+        existing.logoUrl !== natStatDarkLogo
       ) {
         await prisma.natStatTeam.update({
           where: { id: teamId },
@@ -374,7 +381,7 @@ export async function syncNatStatTeams({ league }: JobInput) {
             name,
             active,
             badgeUrl,
-            logoUrl,
+            logoUrl: natStatDarkLogo,
           },
         })
         updated++
@@ -391,7 +398,7 @@ export async function syncNatStatTeams({ league }: JobInput) {
           league: normalizedLeague,
           active,
           badgeUrl,
-          logoUrl,
+          logoUrl: natStatDarkLogo,
         },
       })
       created++

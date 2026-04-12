@@ -94,11 +94,13 @@ export interface PredictionWithGame extends BasePrediction {
       name: string
       code: string
       logoUrl: string | null
+      logoUrlDark: string | null
     }
     awayTeam: {
       name: string
       code: string
       logoUrl: string | null
+      logoUrlDark: string | null
     }
     startsAt: string
     league: string

@@ -30,6 +30,7 @@ export function GamePredictionsCard({ gamePredictions }: GamePredictionsCardProp
                 teamName={game.awayTeam.name}
                 teamCode={game.awayTeam.code}
                 logoUrl={game.awayTeam.logoUrl}
+                logoUrlDark={game.awayTeam.logoUrlDark}
                 size='sm'
               />
               <span className='font-medium text-sm'>{game.awayTeam.code}</span>
@@ -40,6 +41,7 @@ export function GamePredictionsCard({ gamePredictions }: GamePredictionsCardProp
                 teamName={game.homeTeam.name}
                 teamCode={game.homeTeam.code}
                 logoUrl={game.homeTeam.logoUrl}
+                logoUrlDark={game.homeTeam.logoUrlDark}
                 size='sm'
               />
               <span className='font-medium text-sm'>{game.homeTeam.code}</span>

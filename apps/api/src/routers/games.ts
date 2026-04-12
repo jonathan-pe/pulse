@@ -48,6 +48,7 @@ gamesRouter.get('/upcoming', async (req: Request, res: Response) => {
         nickname: game.homeTeam.nickname ?? undefined,
         city: game.homeTeam.city ?? undefined,
         logoUrl: game.homeTeam.logoUrl ?? undefined,
+        logoUrlDark: game.homeTeam.logoUrlDark ?? undefined,
         primaryColor: game.homeTeam.primaryColor ?? undefined,
       }
 
@@ -58,6 +59,7 @@ gamesRouter.get('/upcoming', async (req: Request, res: Response) => {
         nickname: game.awayTeam.nickname ?? undefined,
         city: game.awayTeam.city ?? undefined,
         logoUrl: game.awayTeam.logoUrl ?? undefined,
+        logoUrlDark: game.awayTeam.logoUrlDark ?? undefined,
         primaryColor: game.awayTeam.primaryColor ?? undefined,
       }
 
@@ -114,6 +116,7 @@ gamesRouter.get('/:id', async (req: Request, res: Response) => {
       nickname: game.homeTeam.nickname ?? undefined,
       city: game.homeTeam.city ?? undefined,
       logoUrl: game.homeTeam.logoUrl ?? undefined,
+      logoUrlDark: game.homeTeam.logoUrlDark ?? undefined,
       primaryColor: game.homeTeam.primaryColor ?? undefined,
     }
 
@@ -124,6 +127,7 @@ gamesRouter.get('/:id', async (req: Request, res: Response) => {
       nickname: game.awayTeam.nickname ?? undefined,
       city: game.awayTeam.city ?? undefined,
       logoUrl: game.awayTeam.logoUrl ?? undefined,
+      logoUrlDark: game.awayTeam.logoUrlDark ?? undefined,
       primaryColor: game.awayTeam.primaryColor ?? undefined,
     }
 

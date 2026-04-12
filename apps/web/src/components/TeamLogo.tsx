@@ -1,10 +1,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useIsDarkMode } from '@/lib/useTheme'
 import { cn } from '@/lib/utils'
 
 interface TeamLogoProps {
   teamName: string
   teamCode?: string | null
+  /** Small logo for light UI (ESPN default mark) */
   logoUrl?: string | null
+  /** Small logo for dark UI; falls back to logoUrl */
+  logoUrlDark?: string | null
   className?: string
   size?: 'sm' | 'md' | 'lg'
 }
@@ -36,7 +40,17 @@ const fallbackPlateClasses = 'bg-team-logo-plate text-team-logo-plate-fg font-se
 /**
  * Display a team logo with fallback to team code/abbreviation
  */
-export function TeamLogo({ teamName, teamCode, logoUrl, className, size = 'md' }: TeamLogoProps) {
+export function TeamLogo({
+  teamName,
+  teamCode,
+  logoUrl,
+  logoUrlDark,
+  className,
+  size = 'md',
+}: TeamLogoProps) {
+  const isDark = useIsDarkMode()
+  const resolvedLogoUrl = isDark ? (logoUrlDark ?? logoUrl) : (logoUrl ?? logoUrlDark)
+
   // Use team code if available, otherwise generate initials from team name
   const fallbackText = teamCode
     ? teamCode.toUpperCase()
@@ -51,10 +65,11 @@ export function TeamLogo({ teamName, teamCode, logoUrl, className, size = 'md' }
 
   return (
     <Avatar className={cn(sizeClasses[size], logoPlateClasses, className)}>
-      {logoUrl && (
+      {resolvedLogoUrl && (
         <AvatarImage
           fit='contain'
-          src={logoUrl}
+          key={resolvedLogoUrl}
+          src={resolvedLogoUrl}
           alt={`${teamName} logo`}
           className={logoImagePadding[size]}
         />

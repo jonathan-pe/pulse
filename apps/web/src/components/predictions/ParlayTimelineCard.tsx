@@ -89,6 +89,7 @@ export function ParlayTimelineCard({ parlay }: ParlayTimelineCardProps) {
                     teamName={primaryGame.awayTeam.name}
                     teamCode={primaryGame.awayTeam.code}
                     logoUrl={primaryGame.awayTeam.logoUrl}
+                    logoUrlDark={primaryGame.awayTeam.logoUrlDark}
                     size='sm'
                   />
                   <span className='font-medium text-sm'>{primaryGame.awayTeam.code}</span>
@@ -99,6 +100,7 @@ export function ParlayTimelineCard({ parlay }: ParlayTimelineCardProps) {
                     teamName={primaryGame.homeTeam.name}
                     teamCode={primaryGame.homeTeam.code}
                     logoUrl={primaryGame.homeTeam.logoUrl}
+                    logoUrlDark={primaryGame.homeTeam.logoUrlDark}
                     size='sm'
                   />
                   <span className='font-medium text-sm'>{primaryGame.homeTeam.code}</span>
@@ -176,6 +178,7 @@ export function ParlayTimelineCard({ parlay }: ParlayTimelineCardProps) {
                         teamName={g.awayTeam.name}
                         teamCode={g.awayTeam.code}
                         logoUrl={g.awayTeam.logoUrl}
+                        logoUrlDark={g.awayTeam.logoUrlDark}
                         size='sm'
                       />
                       <span className='text-xs font-medium'>{g.awayTeam.code}</span>
@@ -184,6 +187,7 @@ export function ParlayTimelineCard({ parlay }: ParlayTimelineCardProps) {
                         teamName={g.homeTeam.name}
                         teamCode={g.homeTeam.code}
                         logoUrl={g.homeTeam.logoUrl}
+                        logoUrlDark={g.homeTeam.logoUrlDark}
                         size='sm'
                       />
                       <span className='text-xs font-medium'>{g.homeTeam.code}</span>

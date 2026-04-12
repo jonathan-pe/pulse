@@ -153,3 +153,24 @@ export function useTheme() {
 
   return { theme, setTheme } as const
 }
+
+/**
+ * Tracks whether `document.documentElement` has the `dark` class (matches theme toggle + system).
+ * For choosing assets that differ by color scheme (e.g. team logos).
+ */
+export function useIsDarkMode(): boolean {
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+  )
+
+  useEffect(() => {
+    const el = document.documentElement
+    const sync = () => setIsDark(el.classList.contains('dark'))
+    sync()
+    const obs = new MutationObserver(sync)
+    obs.observe(el, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
+
+  return isDark
+}

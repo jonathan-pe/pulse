@@ -5,8 +5,8 @@ import type { GameWithUnifiedOdds } from '@pulse/types'
 function minimalGame(overrides: Partial<GameWithUnifiedOdds> & { id: string; startsAt: string }): GameWithUnifiedOdds {
   return {
     league: 'NBA',
-    homeTeam: { name: 'Home', code: 'HOM', logoUrl: null },
-    awayTeam: { name: 'Away', code: 'AWY', logoUrl: null },
+    homeTeam: { id: 'h', name: 'Home', code: 'HOM', logoUrl: null, logoUrlDark: null },
+    awayTeam: { id: 'a', name: 'Away', code: 'AWY', logoUrl: null, logoUrlDark: null },
     status: 'scheduled',
     odds: {},
     ...overrides,

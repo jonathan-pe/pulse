@@ -22,11 +22,13 @@ function makePrediction(overrides: Partial<PredictionWithGame> = {}): Prediction
         name: 'Lakers',
         code: 'LAL',
         logoUrl: 'home-logo.png',
+        logoUrlDark: null,
       },
       awayTeam: {
         name: 'Warriors',
         code: 'GSW',
         logoUrl: 'away-logo.png',
+        logoUrlDark: null,
       },
       result: null,
     },

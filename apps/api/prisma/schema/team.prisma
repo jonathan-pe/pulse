@@ -11,7 +11,10 @@ model Team {
   // Optional metadata
   city         String?
   nickname     String? // e.g., "Jaguars" (without city)
+  /// Small ESPN CDN logo for light UI (e.g. /500/{abbr}.png)
   logoUrl      String?
+  /// Small ESPN CDN logo for dark UI (e.g. /500-dark/{abbr}.png); falls back to logoUrl in clients when null
+  logoUrlDark  String?
   primaryColor String?
 
   // Timestamps
