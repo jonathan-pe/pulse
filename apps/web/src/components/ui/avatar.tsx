@@ -25,13 +25,18 @@ function Avatar({
 
 function AvatarImage({
   className,
+  fit = "cover",
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Image> & {
+  /** `contain` fits the full asset (logos, marks); `cover` fills the circle (photos). */
+  fit?: "cover" | "contain"
+}) {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
       className={cn(
-        "aspect-square size-full rounded-full object-cover",
+        "aspect-square size-full min-h-0 min-w-0 rounded-full",
+        fit === "cover" ? "object-cover" : "object-contain object-center",
         className
       )}
       {...props}
