@@ -51,12 +51,12 @@ export default function AccountMenu({ avatarSrc, onLogout }: AccountMenuProps) {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align='end'>
+      <DropdownMenuContent align='end' className='w-auto min-w-64 max-w-sm'>
         {/* User info */}
         {clerkUser && pulseUser ? (
           <div className='px-2 py-2'>
-            <div className='text-sm font-medium'>{displayName}</div>
-            <div className='text-xs text-muted-foreground'>
+            <div className='break-words text-sm font-medium'>{displayName}</div>
+            <div className='break-words text-xs text-muted-foreground'>
               {clerkUser.primaryEmailAddress?.emailAddress || clerkUser?.emailAddresses?.[0]?.emailAddress || ''}
             </div>
           </div>
