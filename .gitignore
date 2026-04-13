@@ -13,6 +13,15 @@ build/
 .env.local
 .env.*.local
 
+# dotenvx — private decryption keys (never commit)
+.env.keys
+**/.env.keys
+
+# Encrypted shared env (ciphertext + public keys) may be tracked under apps/api.
+# Keep .env/.env.local rules above so other packages stay ignored by default.
+!apps/api/.env
+!apps/api/.env.production
+
 # Python
 __pycache__/
 *.py[cod]
@@ -27,7 +36,6 @@ build/
 *.log
 *.sqlite3
 *.db
-.env
 
 # Java
 *.class

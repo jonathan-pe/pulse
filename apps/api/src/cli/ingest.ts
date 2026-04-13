@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import 'dotenv/config'
+import '../load-env.js'
 import { pathToFileURL } from 'node:url'
 import { ingestNatStat } from '../jobs/ingest-natstat.js'
 import { createLogger } from '../lib/logger.js'

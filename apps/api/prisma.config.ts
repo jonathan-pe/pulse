@@ -1,5 +1,8 @@
 // prisma.config.ts
-import 'dotenv/config' // only needed if you read envs in this file
+import './src/load-env.ts'
+import { validateEnvForProductionFileTarget } from './src/validate-env.ts'
+
+validateEnvForProductionFileTarget()
 import path from 'node:path'
 import { defineConfig, env } from 'prisma/config'
 

@@ -15,6 +15,7 @@
  *   pnpm ingest-historical MLB 30     # Ingest past month of MLB games
  */
 
+import '../load-env.js'
 import { ingestNatStat } from '../jobs/ingest-natstat.js'
 
 async function main() {

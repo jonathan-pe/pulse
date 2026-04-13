@@ -10,7 +10,7 @@
  *   node --loader tsx src/cli/score-games.ts
  */
 
-import 'dotenv/config'
+import '../load-env.js'
 import { scoreGamesJob } from '../jobs/score-games'
 
 async function main() {

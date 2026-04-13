@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import 'dotenv/config'
+import '../load-env.js'
 import { syncNatStatTeams } from '../jobs/sync-natstat-teams.js'
 import { createLogger } from '../lib/logger.js'
 

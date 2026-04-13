@@ -1,10 +1,13 @@
 // apps/api/src/index.ts
-import 'dotenv/config.js'
+import './load-env.js'
+import { validateProductionServerEnv } from './validate-env.js'
 import express from 'express'
 import cors from 'cors'
 import { clerkMiddleware } from '@clerk/express'
 import { router } from './routers'
 import { createLogger } from './lib/logger'
+
+validateProductionServerEnv()
 
 const logger = createLogger('Server')
 
